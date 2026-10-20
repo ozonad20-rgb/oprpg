@@ -1453,6 +1453,40 @@ select option:disabled{color:var(--ink-faint)}
 .mod-tag{font-family:var(--f-ui);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);white-space:nowrap}
 .mod-tag.re-Sangue{color:var(--sangue)}.mod-tag.re-Morte{color:var(--ink-soft)}.mod-tag.re-Conhecimento{color:#8a6510}.mod-tag.re-Energia{color:var(--energia)}
 .mod-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+/* ---------- barras de recurso: trilho tingido + número sempre legível ---------- */
+.bar{--bc:var(--pv);background:linear-gradient(color-mix(in srgb,var(--bc) 24%,transparent),color-mix(in srgb,var(--bc) 24%,transparent)),var(--paper-2)}
+.bar.pv{--bc:#a3242a}.bar.san{--bc:#5c2b93}.bar.pe{--bc:#a8650e}
+.bar .fill{background:var(--bc)!important;opacity:1}
+.bar .val,.bar .val span,.bar .val input,.bar .val.vazio,.bar .val.vazio span,.bar .val.vazio input{color:#fff;text-shadow:-1px -1px 0 rgba(10,8,12,.85),1px -1px 0 rgba(10,8,12,.85),-1px 1px 0 rgba(10,8,12,.85),1px 1px 0 rgba(10,8,12,.85),0 0 8px rgba(10,8,12,.6)}
+.bar .val input:focus{background:rgba(0,0,0,.35)}
+.bar button,.bar.fl button:nth-of-type(1),.bar.fl button:nth-of-type(2),.bar.fr button:nth-of-type(3),.bar.fr button:nth-of-type(4){color:var(--ink);text-shadow:none}
+.bar.fl button:nth-of-type(1),.bar.fl button:nth-of-type(2),.bar.fr button:nth-of-type(3),.bar.fr button:nth-of-type(4){color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.7)}
+:root[data-theme="noite"] .bar.pv{--bc:#b3262c}:root[data-theme="noite"] .bar.san{--bc:#6e43b8}:root[data-theme="noite"] .bar.pe{--bc:#a8650e}
+:root[data-theme="noite"] .bar{background:linear-gradient(color-mix(in srgb,var(--bc) 30%,transparent),color-mix(in srgb,var(--bc) 30%,transparent)),var(--paper-2)}
+.dossier.masked .bar.pv{--bc:#b0161e}.dossier.masked .bar.san{--bc:#7a2bb0}.dossier.masked .bar.pe{--bc:#b5521a}
+/* ---------- ajustes de contraste (auditoria) ---------- */
+.sheet-bar .btn.red:not(.solid),.desk>.btn.red:not(.solid){color:#ff8085;border-color:#ff8085}
+.gal-pastas .empty,.desk .gal-pastas .empty{color:var(--on-desk-soft);border-color:var(--desk-line)}
+.photo,.photo .tag34,.thumb,.gal-vz{color:var(--ink-soft)}
+.mod-tag.re-Conhecimento{color:#6e5008}
+:root[data-theme="noite"] .mod-tag.re-Conhecimento{color:#e3b94f}
+:root[data-theme="noite"] .mod-tag.re-Energia{color:#c9a2ff}
+:root[data-theme="noite"] .tab.on,:root[data-theme="noite"] .folder-tab{color:#f6ecd8}
+:root[data-theme="noite"] .btn.red.solid,:root[data-theme="noite"] .paper .btn.red.solid,:root[data-theme="noite"] .toggle.on{background:#c0353b;border-color:#c0353b;color:#fff}
+:root[data-theme="noite"] .stamp{color:#ff7c80;border-color:#ff7c80}
+.gal-pasta.nova .gal-vz{color:var(--on-desk-soft)}
+.pe-chip{color:#8a5208}
+:root[data-theme="noite"] .pe-chip{color:#f2a443}
+.ali-stamp{color:#164d2b!important;border-color:#164d2b!important}
+:root[data-theme="noite"] .ali-stamp{color:#6fd394!important;border-color:#6fd394!important}
+.modal.escuro .btn.red.solid,.enl .btn.red.solid,.modal .btn.red.solid{background:#b3262d;border-color:#b3262d;color:#fff}
+.rl-fab .badge{background:#b3262d}
+.dossier.masked{--ink-faint:#ad7d7c;--ink-soft:#dbb4b2}
+.dossier.masked .btn.solid,.dossier.masked .toggle.on,.dossier.masked .btn.red.solid{background:#a8141b;border-color:#a8141b;color:#fff}
+.dossier.masked .over{color:#ff6b72}
+.bar-top .bar-edit{width:24px;height:24px;font-size:14px;margin-left:-2px;opacity:.7}
+.bar-top .bar-edit:hover,.bar-top .bar-edit:focus-visible{opacity:1}
+.sobrev-g p{font-family:var(--f-mono);font-size:15.5px;line-height:1.5;margin:0 0 10px}
 </style>
 <div id="app"><div class="boot"><div><div class="logo">NE<span>X</span></div><p>Abrindo o arquivo de agentes…</p><div class="bar"><i></i></div>
 <noscript><p style="color:#e5e2d9">O NEX precisa de JavaScript para funcionar. Abra pela página publicada ou em um navegador com JavaScript ativado; visualizadores de arquivo costumam bloquear scripts.</p></noscript></div></div></div>
@@ -2613,6 +2647,9 @@ const GUIA_COMBATE=[
   ['Mapa','Cada quadrado = 1,5m. Diagonal custa o dobro. Terreno difícil custa o dobro. Criatura Grande ocupa 2×2.'],
 ];
 
+/* sobrevivente (Sobrevivendo ao Horror): progride por estágio 1–5 antes do NEX */
+const ehSobrevivente=s=>!!(s&&CLASSES[s.classe]&&CLASSES[s.classe].porEstagio);
+const nexTxt=s=>ehSobrevivente(s)?`Estágio ${clamp(+s.estagio||1,1,5)}`:`NEX ${s.nex||0}%`;
 /* =====================================================================
    UTILIDADES + MOTOR DE REGRAS
    ===================================================================== */
@@ -2741,7 +2778,7 @@ const mascaraOf=s=>s&&s.mascara&&s.mascara.ativa?{...MASCARA_PADRAO,...(s.mascar
 const temMascara=s=>(s.itens||[]).some(i=>i.mascara||i.tipo==='mascara')||(s.habilidades||[]).some(h=>h.concedeMascara)||!!(s.mascara&&(s.mascara.ativa||(s.mascara.original||[]).some(h=>h.concedeMascara)));
 const subAttrs=(expr,d)=>String(expr||'').replace(/\b(AGI|FOR|INT|PRE|VIG)\b/g,(_,a)=>d.attrs[a]);
 function derive(s){
-  const eff=effectsOf(s);const M=mascaraOf(s);const nex=+s.nex||0;const NIV=nivelNex(nex);const src={};
+  const eff=effectsOf(s);const M=mascaraOf(s);const nex=+s.nex||0;const sobrev=ehSobrevivente(s);const NIV=sobrev?clamp(+s.estagio||1,1,5):nivelNex(nex);const src={};
   const cls=CLASSES[s.classe];const n=Math.max(1,NIV);
   const sanBase=cls?cls.san0+(n-1)*cls.sanN:0;
   const sum=(t,ctx)=>{let v=0;eff.forEach(e=>{if(e.alvo===t){const x=evalF(e.valor,ctx);if(x){v+=x;(src[t]=src[t]||[]).push(`${e.fonte} ${fmtB(x)}`)}}});return v};
@@ -2750,12 +2787,13 @@ function derive(s){
   const ctx={...ctx0,...attrs};const S=t=>sum(t,ctx);
   const cond=condAgg(s.condicoes);const C=k=>cond.agg[k]||0;
   const aj=s.ajustes||{};
+  ['pv','pe','san'].forEach(k=>{if(+aj[k])(src[k]=src[k]||[]).push(`ajuste manual ${fmtB(+aj[k])}`)});
   let pvMax=Math.max(1,(cls?cls.pv0+attrs.VIG+(n-1)*(cls.pvN+attrs.VIG):0)+S('pv')+(+aj.pv||0));
   if(C('pv_meio'))pvMax=Math.max(1,Math.floor(pvMax/2));
   if(M){pvMax+=+M.pv||0;src.pv=[...(src.pv||[]),'Máscara +'+M.pv]}
   const peMax=Math.max(0,(cls?cls.pe0+attrs.PRE+(n-1)*(cls.peN+attrs.PRE):0)+S('pe')+(+aj.pe||0)+(M?+M.pe||0:0));
   const sanMax=Math.max(0,sanBase+S('san')+(+aj.san||0)-(+s.sanPerm||0));
-  const peTurnoBase=Math.max(1,NIV);
+  const peTurnoBase=sobrev?1:Math.max(1,NIV);
   const peTurno=peTurnoBase+S('pe_turno');
   const peTurnoRitual=peTurno+S('pe_turno_ritual');
   const peTurnoAcao=S('pe_turno_acao');
@@ -3342,7 +3380,7 @@ function viewGM(){
   <div class="col">
     <section class="paper panel"><div class="panel-head"><h2>Fichas dos jogadores</h2><span class="idx">${pcs.length}</span><span class="spacer"></span><button class="btn sm solid" data-act="newSheet" data-gm="1">Nova ficha</button></div>
       <div class="list">${pcs.length?pcs.map(s=>{const d=derive(s);return `<div class="list-row">${sheetThumb(s)}
-        <div style="min-width:0"><div class="nm">${esc(s.nome||'Agente sem nome')}</div><div class="sub">${esc(s.classe||'Sem classe')} · NEX ${s.nex}% · PV ${s.pv}/${d.pvMax} · SAN ${s.san}/${d.sanMax} · Def ${d.defesa}${(s.condicoes||[]).length?' · <span style="color:var(--stamp)">'+s.condicoes.map(k=>CONDICOES[k]?.nome).join(', ')+'</span>':''}</div></div>
+        <div style="min-width:0"><div class="nm">${esc(s.nome||'Agente sem nome')}</div><div class="sub">${esc(s.classe||'Sem classe')} · ${nexTxt(s)} · PV ${s.pv}/${d.pvMax} · SAN ${s.san}/${d.sanMax} · Def ${d.defesa}${(s.condicoes||[]).length?' · <span style="color:var(--stamp)">'+s.condicoes.map(k=>CONDICOES[k]?.nome).join(', ')+'</span>':''}</div></div>
         <div class="ctl"><select class="inp" data-act-change="assign" data-id="${s.id}" aria-label="Jogador da ficha">${userOpts(s.ownerId)}</select><button class="btn sm" data-act="openSheet" data-id="${s.id}">Abrir</button><button class="ico-btn" data-act="delSheet" data-id="${s.id}" title="Excluir ficha" aria-label="Excluir ficha">✕</button></div></div>`}).join(''):'<div class="empty">Nenhuma ficha de agente nesta campanha.</div>'}</div>
     </section>
     <section class="paper panel"><div class="panel-head"><h2>Ameaças e NPCs</h2><span class="idx">${npcs.length}</span><span class="spacer"></span><button class="btn sm solid" data-act="newNpc">+ Ameaça do livro</button></div>
@@ -3352,7 +3390,7 @@ function viewGM(){
     </section>
     <section class="paper panel"><div class="panel-head"><h2>Aliados importantes</h2><span class="idx">${alis.length}</span><span class="spacer"></span><button class="btn sm solid" data-act="newAliadoImp" title="Ficha de agente compacta, com inventário e NEX">+ Aliado importante</button></div>
       <div class="list">${alis.length?alis.map(s=>{const imp=ehAliadoImp(s);const d=imp?derive(s):null;return `<div class="list-row ali-row">${sheetThumb(s)}
-        <div style="min-width:0"><div class="nm">${esc(s.nome||'Sem nome')} </div><div class="sub">${imp?`${s.ocupacao?esc(s.ocupacao)+' · ':''}${esc(s.classe||'')} NEX ${s.nex}% · PV ${s.pv}/${d.pvMax} · Def ${d.defesa}`:`${esc(s.tipo||'')} · PV ${s.pv}/${s.pvMax} · Def ${s.defesa}`}</div></div>
+        <div style="min-width:0"><div class="nm">${esc(s.nome||'Sem nome')} </div><div class="sub">${imp?`${s.ocupacao?esc(s.ocupacao)+' · ':''}${esc(s.classe||'')} ${nexTxt(s)} · PV ${s.pv}/${d.pvMax} · Def ${d.defesa}`:`${esc(s.tipo||'')} · PV ${s.pv}/${s.pvMax} · Def ${s.defesa}`}</div></div>
         <div class="ctl"><button class="btn sm" data-act="openSheet" data-id="${s.id}">Abrir</button><button class="btn sm" data-act="npcIni" data-id="${s.id}" title="Rolar iniciativa e colocar no combate">⚔ Combate</button><button class="ico-btn" data-act="delSheet" data-id="${s.id}" title="Excluir" aria-label="Excluir aliado">✕</button></div></div>`}).join(''):'<div class="empty">Nenhum aliado importante. É uma ficha de agente compacta, com inventário, que evolui com NEX.</div>'}</div>
     </section>
   </div>
@@ -3394,7 +3432,7 @@ function viewAgents(){
   const pct=(a,b)=>b?clamp(a/b*100,0,100):0;
   return `<div class="agent-grid">${mine.map(s=>{const d=derive(s);return `<button class="paper agent-card" data-act="openSheet" data-id="${s.id}">
       <div class="ph" style="${bgCss(s.foto,3/4)}">${s.foto?'':esc((s.nome||'?')[0])}</div>
-      <div style="min-width:0"><h3>${esc(s.nome||'Agente sem nome')}</h3><div class="sub">${esc(s.origem||'—')} · ${esc(s.classe||'—')}<br>NEX ${s.nex}% · ${d.pat.nome}</div>
+      <div style="min-width:0"><h3>${esc(s.nome||'Agente sem nome')}</h3><div class="sub">${esc(s.origem||'—')} · ${esc(s.classe||'—')}<br>${nexTxt(s)} · ${d.pat.nome}</div>
       <div class="mini-bars"><div class="mini-bar" title="PV ${s.pv}/${d.pvMax}"><i style="width:${pct(s.pv,d.pvMax)}%;background:var(--pv)"></i></div><div class="mini-bar" title="SAN ${s.san}/${d.sanMax}"><i style="width:${pct(s.san,d.sanMax)}%;background:var(--san)"></i></div><div class="mini-bar" title="PE ${s.pe}/${d.peMax}"><i style="width:${pct(s.pe,d.peMax)}%;background:var(--pe)"></i></div></div></div>
     </button>`}).join('')}
     <button class="new-card" data-act="newSheet"><b>+</b>Criar ficha</button>
@@ -3419,7 +3457,7 @@ function viewSheet(){
   const cls=CLASSES[s.classe];
   const F=(path,val,attrs='')=>`id="f-${path.replace(/\./g,'-')}" data-f="${path}" value="${esc(val??'')}" ${attrs} ${dis}`;
   const idx=NEX_STEPS.indexOf(+s.nex);const nextNex=NEX_STEPS[idx+1];const xpCost=state.camp.settings?.xpPorNex||100;
-  const bar=(k,lbl,max)=>{const cur=+s[k]||0;const pct=max?clamp(cur/max*100,0,100):0;const srcs=d.src[k]||[];return `<div><div class="bar-top"><span class="lbl">${lbl}</span><span class="src" title="${esc(srcs.join(', '))}">${srcs.length?'efeitos: '+esc(srcs.join(', ')):''}</span></div>
+  const bar=(k,lbl,max)=>{const cur=+s[k]||0;const pct=max?clamp(cur/max*100,0,100):0;const srcs=d.src[k]||[];return `<div><div class="bar-top"><span class="lbl">${lbl}</span>${ed?`<button class="ico-btn bar-edit" data-act="editMax" data-k="${k}" title="Editar ${lbl.toLowerCase()} máxima" aria-label="Editar ${lbl} máxima">✎</button>`:''}<span class="src" title="${esc(srcs.join(', '))}">${srcs.length?'efeitos: '+esc(srcs.join(', ')):''}</span></div>
     <div class="bar ${k} ${k==='pv'&&d.machucado||k==='san'&&d.perturbado?'low':''} ${pct>6?'fl':''} ${pct>92?'fr':''}"><div class="fill" style="width:${pct}%"></div>
     <button data-act="res" data-k="${k}" data-d="-5" ${dis} title="−5" aria-label="${lbl} −5">«</button><button data-act="res" data-k="${k}" data-d="-1" ${dis} title="−1" aria-label="${lbl} −1">‹</button>
     <div class="val ${pct<50?'vazio':''}"><input ${F(k,cur,'type="number" data-n')} aria-label="${lbl} atual"> / <span class="tnum">${max}</span></div>
@@ -3442,7 +3480,7 @@ function viewSheet(){
             <div class="field"><span>Jogador</span><div class="mono" style="font-size:15.5px;padding:4px 2px;border-bottom:1.5px dashed var(--paper-edge)">${esc(owner)}</div></div>
             <label class="field"><span>Origem</span><select class="inp" ${F('origem','')}><option value="">—</option>${ORIGENS.map(o=>`<option ${o.nome===s.origem?'selected':''}>${o.nome}</option>`).join('')}${s.origem&&!ORIGENS.some(o=>o.nome===s.origem)?`<option selected>${esc(s.origem)}</option>`:''}</select></label>
             <div class="two"><label class="field"><span>Classe</span><select class="inp" ${F('classe','')}><option value="">—</option>${Object.keys(CLASSES).map(k=>`<option value="${k}" ${k===s.classe?'selected':''}>${k}${CLASSES[k].suplemento?' (supl.)':''}</option>`).join('')}</select></label>
-            <label class="field"><span>Trilha</span><select class="inp" ${F('trilha','')}><option value="">—</option>${Object.keys(TRILHAS[s.classe]||{}).map(t=>`<option ${t===s.trilha?'selected':''}>${t}</option>`).join('')}</select></label></div>
+            ${ehSobrevivente(s)?`<label class="field"><span>Trilha</span><select class="inp" ${F('trilhaSobrev','')}><option value="">—</option>${Object.keys(SOBREV_TRILHAS).map(t=>`<option ${t===s.trilhaSobrev?'selected':''}>${t}</option>`).join('')}</select></label>`:`<label class="field"><span>Trilha</span><select class="inp" ${F('trilha','')}><option value="">—</option>${Object.keys(TRILHAS[s.classe]||{}).map(t=>`<option ${t===s.trilha?'selected':''}>${t}</option>`).join('')}</select></label>`}</div>
           </div>
         </div>
         <div class="penta-cap"><span class="lbl">Atributos</span><span class="mono muted" style="font-size:13px">AGI Agilidade · FOR Força · INT Intelecto · PRE Presença · VIG Vigor — clique na sigla para rolar</span></div>
@@ -3450,7 +3488,7 @@ function viewSheet(){
           ${ATTRS.map(a=>{const [x,y]=PENTA_POS[a];const mod=d.attrs[a]!==(+s.attrs[a]||0);return `<div class="node ${mod?'mod':''}" style="left:${x}%;top:${y}%" title="${ATTR_NOME[a]}${mod?' · com efeitos: '+d.attrs[a]:''}"><span class="ab">${ATTR_NOME[a].toUpperCase()}</span><input ${F('attrs.'+a,s.attrs[a],'type="number" min="0" max="9" data-n')} aria-label="${ATTR_NOME[a]}"><button data-act="rollAttr" data-a="${a}" title="Rolar ${ATTR_NOME[a]}">${a}${mod?'*':''}</button></div>`}).join('')}
         </div>
         <div class="stats3">
-          <div class="statbox"><span class="lbl">NEX</span><select ${F('nex','','data-n')} aria-label="NEX">${NEX_STEPS.map(n=>`<option value="${n}" ${n===+s.nex?'selected':''}>${n}%</option>`).join('')}</select></div>
+          ${ehSobrevivente(s)?`<div class="statbox"><span class="lbl">Estágio</span><select ${F('estagio','','data-n')} aria-label="Estágio de sobrevivente">${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===(+s.estagio||1)?'selected':''}>${n}</option>`).join('')}</select></div>`:`<div class="statbox"><span class="lbl">NEX</span><select ${F('nex','','data-n')} aria-label="NEX">${NEX_STEPS.map(n=>`<option value="${n}" ${n===+s.nex?'selected':''}>${n}%</option>`).join('')}</select></div>`}
           <div class="statbox" title="Limite de PE por turno${d.peTurnoRitual!==d.peTurno?' · rituais: '+d.peTurnoRitual:''}"><span class="lbl">PE/turno</span><span class="v tnum">${d.peTurno}${d.peTurnoRitual!==d.peTurno?'·'+d.peTurnoRitual:''}</span></div>
           <div class="statbox"><span class="lbl">Deslocamento</span><span class="v tnum">${d.desloc}m · ${Math.floor(d.desloc/1.5)}q</span></div>
         </div>
@@ -3481,7 +3519,7 @@ function viewSheet(){
         <div class="xpbox">
           <div class="row"><div><div class="lbl">XP disponível</div><div class="big tnum" style="${(s.xp||0)<0?'color:var(--stamp)':''}">${s.xp||0}</div></div><span class="spacer"></span>
             <div style="text-align:right"><div class="lbl">Patente · crédito</div><div class="type" style="font-size:17px">${d.pat.nome}</div><div class="mono muted" style="font-size:13.5px">${s.pp||0} PP · limite ${d.pat.credito}</div></div></div>
-          ${nextNex!=null?`<div class="row"><span class="mono" style="font-size:14.5px">Próximo: NEX ${nextNex}% · ${xpCost} XP</span><span class="spacer"></span><button class="btn sm solid" data-act="advNex" ${ed&&(s.xp||0)>=xpCost?'':'disabled'}>Avançar NEX</button></div>`:`<div class="mono muted" style="font-size:14.5px">NEX máximo atingido.</div>`}
+          ${ehSobrevivente(s)?sobrevXpRow(s,ed,xpCost):nextNex!=null?`<div class="row"><span class="mono" style="font-size:14.5px">Próximo: NEX ${nextNex}% · ${xpCost} XP</span><span class="spacer"></span><button class="btn sm solid" data-act="advNex" ${ed&&(s.xp||0)>=xpCost?'':'disabled'}>Avançar NEX</button></div>`:`<div class="mono muted" style="font-size:14.5px">NEX máximo atingido.</div>`}
         </div>
       </section>
       <section class="col col-b">
@@ -3546,12 +3584,12 @@ function tabCombate(s,d,ed){
 }
 function tabHab(s,d,ed){
   const hs=s.habilidades||[];const cls=CLASSES[s.classe];
-  const prog=cls&&Object.keys(cls.prog).length?`<details ${+s.nex<=5?'open':''}><summary class="lbl" style="cursor:pointer;color:var(--ink)">Progressão de ${esc(s.classe)} por NEX</summary>
+  const prog=ehSobrevivente(s)?sobrevProg(s,ed):cls&&Object.keys(cls.prog).length?`<details ${+s.nex<=5?'open':''}><summary class="lbl" style="cursor:pointer;color:var(--ink)">Progressão de ${esc(s.classe)} por NEX</summary>
     <div class="prog" style="margin-top:6px">${Object.entries(cls.prog).map(([n,t])=>{const c=+n===+s.nex?'cur':+n<+s.nex?'done':'';return `<div class="n ${c}">${n}%</div><div class="${c}">${esc(t)}${s.classe==='Ocultista'&&+n>5?' · aprende 1 ritual':''}${+n===50?' · afinidade':''}</div>`}).join('')}</div>
     ${ed?`<div class="row" style="margin-top:8px"><button class="btn sm" data-act="showGains">Ganhos do NEX ${s.nex}%</button></div>`:''}</details>`:'';
   const mk=d.M?`<div class="mask-note">Você está editando as habilidades da <b>máscara</b>. Alterações, novas habilidades e remoções valem só para a forma suprema; a ficha original volta intacta ao desativar.</div>`:'';
   return `${prog}${mk}<div class="row"><span class="lbl">Habilidades e poderes</span><span class="spacer"></span>${ed?`<button class="btn sm" data-act="addFromCat" data-k="habilidades">Catálogo</button><button class="btn sm solid" data-act="editHab">Nova habilidade</button>`:''}</div>
-  ${hs.length?hs.map(h=>`<div class="card ${h.modo==='ativavel'&&h.ativa?'active':''}"><div class="card-h"><h4>${esc(h.nome)}</h4><span class="chip">${esc(h.fonte||'')}</span>${h.temporario?'<span class="chip temp-chip" title="Bônus de interlúdio: some quando for usado">temporário · some ao usar</span>':''}${h.livro?`<span class="chip livro">${esc(h.livro)}</span>`:''}${maskChip(s,h)}${h.custo?`<span class="chip" style="color:var(--pe)">${h.custo} PE</span>`:''}
+  ${hs.length?hs.map(h=>`<div class="card ${h.modo==='ativavel'&&h.ativa?'active':''}"><div class="card-h"><h4>${esc(h.nome)}</h4><span class="chip">${esc(h.fonte||'')}</span>${h.temporario?'<span class="chip temp-chip" title="Bônus de interlúdio: some quando for usado">temporário · some ao usar</span>':''}${h.livro?`<span class="chip livro">${esc(h.livro)}</span>`:''}${maskChip(s,h)}${h.custo?`<span class="chip pe-chip">${h.custo} PE</span>`:''}
     <div class="acts">${ed&&escolhaDe(h)&&!h.escolha&&escolhaDe(h).tipo!=='ritualFixo'?`<button class="btn sm red solid" data-act="habEscolher" data-id="${h.id}" title="Este poder concede uma escolha">Escolher</button>`:''}${h.modo==='ativavel'?`<button class="toggle ${h.ativa?'on':''}" data-act="toggleFx" data-k="habilidades" data-id="${h.id}" ${ed?'':'disabled'}>${h.ativa?'Ativa':'Ativar'}</button>`:''}
     ${(h.modo==='acao'&&!h.boost)||h.rolagem?`<button class="btn sm solid" data-act="useHab" data-id="${h.id}" ${ed?'':'disabled'}>Usar</button>`:''}
     ${h.boost?`<button class="btn sm" data-act="goNR" ${ed?'':'disabled'} title="Marque na barra Próxima rolagem, aba Combate">Na rolagem</button>`:''}
@@ -3679,7 +3717,7 @@ function viewWizard(){
     <div class="pick-grid">${ORIGENS.map(o=>`<button class="pick ${w.origem===o.nome?'on':''}" data-act="wizPick" data-k="origem" data-v="${esc(o.nome)}"><strong>${o.nome}</strong><small>${o.pericias.length?o.pericias.join(' · '):'Duas perícias à escolha do mestre'}</small><small><b>${o.poder.nome}.</b> ${esc(o.poder.descricao)}</small></button>`).join('')}</div>
     ${w.origem==='Cultista Arrependido'?`<h2 style="margin-top:18px;font-size:20px">Traços do Outro Lado: escolha um poder paranormal</h2><div class="pick-grid">${PODERES_PARANORMAIS.map(p=>`<button class="pick ${w.poderOrigem===p.nome?'on':''}" data-act="wizPick" data-k="poderOrigem" data-v="${esc(p.nome)}"><strong>${p.nome}</strong><small>${esc(p.fonte)}</small><small>${esc(p.descricao)}</small></button>`).join('')}</div>`:''}`}
   if(step==='Classe'){valid=!!w.classe;body=`<h2>Classe</h2><p class="lead">Define PV, PE, Sanidade e o papel do agente no grupo.</p>
-    <div class="pick-grid">${Object.entries(CLASSES).map(([k,c])=>{const v=+w.attrs.VIG,p=+w.attrs.PRE;return `<button class="pick ${w.classe===k?'on':''}" data-act="wizPick" data-k="classe" data-v="${k}"><strong>${k}${c.suplemento?' <small>(Sobrevivendo ao Horror)</small>':''}</strong><small>PV ${c.pv0+v} · PE ${c.pe0+p} · SAN ${c.san0}</small><small>Por NEX: +${c.pvN}+Vig PV, +${c.peN}+Pre PE, +${c.sanN} SAN</small><small>${esc(c.prof)}</small></button>`}).join('')}</div>`}
+    <div class="pick-grid">${Object.entries(CLASSES).map(([k,c])=>{const v=+w.attrs.VIG,p=+w.attrs.PRE;return `<button class="pick ${w.classe===k?'on':''}" data-act="wizPick" data-k="classe" data-v="${k}"><strong>${k}${c.suplemento?' <small>(Sobrevivendo ao Horror)</small>':''}</strong><small>PV ${c.pv0+v} · PE ${c.pe0+p} · SAN ${c.san0}</small><small>${c.porEstagio?'Por estágio':'Por NEX'}: +${c.pvN}+Vig PV, +${c.peN}+Pre PE, +${c.sanN} SAN</small>${c.porEstagio?'<small><b>Começa como sobrevivente:</b> estágios 1 a 5, depois vira agente em NEX 5%.</small>':''}<small>${esc(c.prof)}</small></button>`}).join('')}</div>`}
   if(step==='Perícias'){const t=wizTrained(w);const c=CLASSES[w.classe];valid=c.escolhas.every((g,i)=>w.escolhas[i]);
     body=`<h2>Perícias treinadas</h2><p class="lead">Perícias da origem e da classe já estão marcadas. ${w.classe==='Especialista'?'Especialistas escolhem 7 + Intelecto.':w.classe==='Ocultista'?'Ocultistas escolhem 3 + Intelecto, além de Ocultismo e Vontade.':w.classe==='Combatente'?'Combatentes escolhem 1 + Intelecto, além das duas escolhas abaixo.':''} Se uma perícia se repetir, você ganha uma escolha livre a mais.</p>
     ${c.escolhas.map((g,i)=>`<div class="row" style="margin-bottom:10px"><span class="lbl" style="min-width:120px">Classe: escolha uma</span>${g.map(p=>`<button class="pick ${w.escolhas[i]===p?'on':''}" style="flex-direction:row;padding:6px 12px" data-act="wizEsc" data-i="${i}" data-v="${p}"><strong style="font-size:16px">${p}</strong></button>`).join('')}</div>`).join('')}
@@ -3697,7 +3735,7 @@ function viewWizard(){
     body=`<h2>Revisão do arquivo</h2><p class="lead">Confira os números. Ao confirmar, a ficha é criada e você continua editando livremente.</p>
     <div class="summary"><div><span class="lbl">Nome</span><b>${esc(s.nome||'—')}</b></div><div><span class="lbl">Origem</span><b>${esc(s.origem)}</b></div><div><span class="lbl">Classe</span><b>${esc(s.classe)}</b></div>
     <div><span class="lbl">PV</span><b>${d.pvMax}</b></div><div><span class="lbl">PE</span><b>${d.peMax}</b></div><div><span class="lbl">SAN</span><b>${d.sanMax}</b></div><div><span class="lbl">Defesa</span><b>${d.defesa}</b></div>
-    <div><span class="lbl">NEX inicial</span><select class="inp" id="w-nex" data-act-change="wizNex" style="font-family:var(--f-type);font-size:20px" aria-label="NEX inicial">${NEX_STEPS.map(n=>`<option value="${n}" ${n===w.nex?'selected':''}>${n}%</option>`).join('')}</select></div></div>
+    ${CLASSES[w.classe]?.porEstagio?'<div><span class="lbl">Começa como</span><b>Sobrevivente · estágio 1</b></div>':`<div><span class="lbl">NEX inicial</span><select class="inp" id="w-nex" data-act-change="wizNex" style="font-family:var(--f-type);font-size:20px" aria-label="NEX inicial">${NEX_STEPS.map(n=>`<option value="${n}" ${n===w.nex?'selected':''}>${n}%</option>`).join('')}</select></div>`}</div>
     <p class="mono" style="margin-top:16px;font-size:15px"><b>Treinado em:</b> ${PERICIAS.filter(p=>s.pericias[p[0]]?.treino).map(p=>p[0]).join(', ')}</p>
     <p class="mono" style="font-size:15px"><b>Habilidades:</b> ${s.habilidades.map(h=>esc(h.nome)).join(', ')||'—'}</p>
     ${s.rituais.length?`<p class="mono" style="font-size:15px"><b>Rituais:</b> ${s.rituais.map(r=>esc(r.nome)).join(', ')}</p>`:''}
@@ -3712,7 +3750,7 @@ function viewWizard(){
 }
 function buildWizSheet(w){
   const s=blankSheet(state.camp.id,w.forGM?null:state.user.id,state.user.id);
-  Object.assign(s,{nome:w.nome.trim(),origem:w.origem,classe:w.classe,nex:w.nex,foto:w.foto,attrs:{...w.attrs},descricao:{...s.descricao,personalidade:w.conceito||''}});
+  Object.assign(s,{nome:w.nome.trim(),origem:w.origem,classe:w.classe,nex:CLASSES[w.classe]?.porEstagio?0:w.nex,estagio:CLASSES[w.classe]?.porEstagio?1:undefined,foto:w.foto,attrs:{...w.attrs},descricao:{...s.descricao,personalidade:w.conceito||''}});
   const t=wizTrained(w);t.set.forEach(p=>s.pericias[p]={treino:5,outros:0});
   const c=CLASSES[w.classe];const o=ORIGENS.find(x=>x.nome===w.origem);
   s.proficiencias=c?.prof||'';
@@ -4637,7 +4675,7 @@ function viewAliadoImp(){
   <div class="sheet-bar"><button class="btn sm" data-act="backCamp">‹ Voltar</button><span class="muted mono" style="font-size:14.5px;color:var(--on-desk-soft)">Aliado importante · controlado pelo mestre</span><span class="spacer"></span>
     ${ed?`<button class="btn sm" data-act="aliCombate">⚔ Pôr no combate</button><button class="btn sm red" data-act="delSheet" data-id="${s.id}">Excluir</button>`:''}</div>
   <article class="paper dossier ali-doc">
-    <header class="dossier-head"><span class="org">Ficha de Aliado</span><span class="fileno">Ref. ${s.id.slice(-6).toUpperCase()} · NEX ${s.nex}%</span><span class="stamp ali-stamp">Aliado</span></header>
+    <header class="dossier-head"><span class="org">Ficha de Aliado</span><span class="fileno">Ref. ${s.id.slice(-6).toUpperCase()} · ${nexTxt(s)}</span><span class="stamp ali-stamp">Aliado</span></header>
     <div class="ali-grid">
       <section class="col">
         <div class="idblock"><button class="photo ${ed?'':'ro'}" ${ed?'data-act="editPhoto"':''} style="${bgCss(s.foto,3/4)}" aria-label="Foto"><span class="clip"></span>${s.foto?'':'Foto<br>3x4'}</button>
@@ -4660,7 +4698,7 @@ function viewAliadoImp(){
         ${sec('atq','Ataques',`${atks.length?atks.map(a=>{const i=atkInfo(a,d);return `<div class="acao-card"><div class="row"><strong class="type" style="font-size:17px;font-weight:400">${esc(a.nome)}</strong><span class="mono muted" style="font-size:14px">${esc(i.pericia)} ${i.spec.label}${fmtB(i.atkB)} · ${esc(i.dmg)} · ${i.crit}${i.crit<20?'+':''}/x${i.mult}</span><span class="spacer"></span><button class="btn sm solid" data-act="attack" data-id="${a.id}" ${dis}>Atacar</button><button class="btn sm" data-act="damage" data-id="${a.id}" ${dis}>Dano</button></div></div>`}).join(''):'<div class="muted mono" style="font-size:14.5px">Sem ataques. Equipe uma arma no inventário.</div>'}`,true,ed?`<button class="btn sm" data-act="addFromCat" data-k="itens" data-f="arma">+ Arma</button>`:'')}
         ${sec('per','Perícias',`<div class="ali-pers">${[...fixas,...vis.filter(p=>!fixas.includes(p))].map(perRow).join('')}</div>
           ${ed?`<div class="row" style="margin-top:6px"><select class="inp" id="aliPerNova" style="max-width:220px" aria-label="Adicionar perícia"><option value="">+ perícia…</option>${PERICIAS.map(p=>p[0]).filter(p=>!vis.includes(p)&&!fixas.includes(p)).map(p=>`<option>${p}</option>`).join('')}</select><button class="btn sm" data-act="aliPerAdd">Adicionar</button></div>`:''}`,true)}
-        ${sec('hab',`Habilidades e poderes <small class="mono muted">${(s.habilidades||[]).length}</small>`,`<div class="ali-lista">${(s.habilidades||[]).map(h=>`<div class="ali-it ${h.modo==='ativavel'&&h.ativa?'on':''}"><div><b>${esc(h.nome)}</b> <span class="chip">${esc(h.fonte||'')}</span>${h.custo?` <span class="chip" style="color:var(--pe)">${h.custo} PE</span>`:''}<small>${esc(h.descricao||'')}</small></div><div class="acts">${h.modo==='ativavel'?`<button class="toggle ${h.ativa?'on':''}" data-act="toggleFx" data-k="habilidades" data-id="${h.id}" ${dis}>${h.ativa?'Ativa':'Ativar'}</button>`:''}${(h.modo==='acao'&&!h.boost)||h.rolagem?`<button class="btn sm solid" data-act="useHab" data-id="${h.id}" ${dis}>Usar</button>`:''}${ed?`<button class="ico-btn" data-act="delEntry" data-k="habilidades" data-id="${h.id}" aria-label="Remover">✕</button>`:''}</div></div>`).join('')||'<div class="muted mono" style="font-size:14.5px">Nenhuma.</div>'}</div>`,false,ed?`<button class="btn sm" data-act="addFromCat" data-k="habilidades">Catálogo</button>`:'')}
+        ${sec('hab',`Habilidades e poderes <small class="mono muted">${(s.habilidades||[]).length}</small>`,`<div class="ali-lista">${(s.habilidades||[]).map(h=>`<div class="ali-it ${h.modo==='ativavel'&&h.ativa?'on':''}"><div><b>${esc(h.nome)}</b> <span class="chip">${esc(h.fonte||'')}</span>${h.custo?` <span class="chip pe-chip">${h.custo} PE</span>`:''}<small>${esc(h.descricao||'')}</small></div><div class="acts">${h.modo==='ativavel'?`<button class="toggle ${h.ativa?'on':''}" data-act="toggleFx" data-k="habilidades" data-id="${h.id}" ${dis}>${h.ativa?'Ativa':'Ativar'}</button>`:''}${(h.modo==='acao'&&!h.boost)||h.rolagem?`<button class="btn sm solid" data-act="useHab" data-id="${h.id}" ${dis}>Usar</button>`:''}${ed?`<button class="ico-btn" data-act="delEntry" data-k="habilidades" data-id="${h.id}" aria-label="Remover">✕</button>`:''}</div></div>`).join('')||'<div class="muted mono" style="font-size:14.5px">Nenhuma.</div>'}</div>`,false,ed?`<button class="btn sm" data-act="addFromCat" data-k="habilidades">Catálogo</button>`:'')}
         ${sec('rit',`Rituais <small class="mono muted">${(s.rituais||[]).length}</small>`,`<div class="ali-lista">${(s.rituais||[]).map(r=>`<div class="ali-it re-${r.elemento}"><div><b>${esc(r.nome)}</b> <span class="chip re-${r.elemento}">${esc(r.elemento)} ${r.circulo}º</span><small>${esc(r.execucao)} · ${esc(r.alcance)} · ${esc(r.descricao||'')}</small></div><div class="acts"><button class="btn sm solid" data-act="castRit" data-id="${r.id}" ${dis}>Conjurar · ${ritualCost(s,d,r,'b')} PE</button>${ed?`<button class="ico-btn" data-act="delEntry" data-k="rituais" data-id="${r.id}" aria-label="Remover">✕</button>`:''}</div></div>`).join('')||'<div class="muted mono" style="font-size:14.5px">Nenhum.</div>'}</div>`,false,ed?`<button class="btn sm" data-act="addFromCat" data-k="rituais">Catálogo</button>`:'')}
         ${sec('inv',`Inventário <small class="mono muted">${d.cargaUso}/${d.cargaLim} esp.</small>`,`<div class="ali-lista">${(s.itens||[]).map(i=>`<div class="ali-it ${i.equipado?'on':''}"><div><b>${esc(i.nome)}</b>${+i.qtd>1?` ×${i.qtd}`:''} <span class="chip">${esc(TIPO_ITEM[i.tipo]||'')} · Cat. ${ROMAN[i.categoria]||0}</span><small>${esc(i.descricao||'')}</small></div><div class="acts"><button class="toggle ${i.equipado?'on':''}" data-act="toggleFx" data-k="itens" data-id="${i.id}" ${dis}>${i.equipado?'Em uso':'Usar'}</button>${i.uso?.rolagem?`<button class="btn sm solid" data-act="useItem" data-id="${i.id}" ${dis}>Usar</button>`:''}${ed?`<button class="ico-btn" data-act="editItem" data-id="${i.id}" aria-label="Editar">✎</button><button class="ico-btn" data-act="delEntry" data-k="itens" data-id="${i.id}" aria-label="Remover">✕</button>`:''}</div></div>`).join('')||'<div class="muted mono" style="font-size:14.5px">Inventário vazio.</div>'}</div>`,true,ed?`<button class="btn sm" data-act="addFromCat" data-k="itens">Arsenal</button>`:'')}
       </section>
@@ -4675,6 +4713,90 @@ Object.assign(A,{
   aliPerDel:async el=>{const s=state.sheet;const p=el.dataset.p;s.periciasVis=(s.periciasVis||[]).filter(x=>x!==p);if(s.pericias[p])s.pericias[p].treino=0;await saveSheet(s)},
   aliCombate:()=>{const s=state.sheet;if(Col.get('ini',s.id)){toast(`${esc(s.nome)} já está no combate.`);return}addAoCombate(s,true);toast(`${esc(s.nome)} entrou no combate.`)},
   npcPapel:async el=>{const s=state.sheet;s.papel=s.papel==='aliado'?'':'aliado';await saveSheet(s);toast(s.papel==='aliado'?'Agora é um aliado.':'Agora é uma ameaça.')},
+});
+
+/* =====================================================================
+   SOBREVIVENTE (Sobrevivendo ao Horror) — estágios 1 a 5, depois agente
+   Os textos das habilidades ficam editáveis na ficha (✎).
+   ===================================================================== */
+const SOBREV_TXT=e=>`Habilidade de sobrevivente (Sobrevivendo ao Horror, estágio ${e}). Use ✎ para colar o texto completo do livro.`;
+const SOBREV_TRILHAS={
+  'Durão':{2:'Durão',4:'Pancada Forte'},
+  'Esperto':{2:'Esperto',4:'Entendido'},
+  'Esotérico':{2:'Esotérico',4:'Iniciado'},
+};
+const SOBREV_PROG={1:'Empenho',2:'Trilha de sobrevivente (1ª habilidade)',3:'Aumento de atributo (máximo 3)',4:'Trilha de sobrevivente (2ª habilidade)',5:'Cicatrizado · pode se tornar agente (NEX 5%)'};
+CLASSES.Sobrevivente={pv0:8,pvN:2,pe0:2,peN:1,san0:8,sanN:2,livres:1,fixas:[],escolhas:[],grau:0,suplemento:true,porEstagio:true,
+  prof:'Armas simples',prog:{},resumo:'Pessoa comum que sobreviveu ao paranormal. Evolui por estágios e depois entra para a Ordem.',
+  habs:[H('Empenho','Sobrevivente','Ao fazer um teste de perícia, gaste 1 PE para receber +2 nesse teste.',{modo:'acao',custo:1,boost:{tipo:'bonus',valor:2}})]};
+const sobrevHab=(nome,fonte,e)=>Object.assign(H(nome,fonte,SOBREV_TXT(e)),{id:uid('e_'),sobrevivente:true});
+const temHab=(s,n)=>(s.habilidades||[]).some(h=>h.nome===n);
+const classesAgente=()=>Object.keys(CLASSES).filter(k=>!CLASSES[k].porEstagio&&k!=='Mundano');
+
+function sobrevXpRow(s,ed,cost){
+  const e=clamp(+s.estagio||1,1,5);const ok=ed&&(s.xp||0)>=cost;
+  if(e<5)return `<div class="row"><span class="mono" style="font-size:14.5px">Próximo: estágio ${e+1} · ${cost} XP</span><span class="spacer"></span><button class="btn sm solid" data-act="advEstagio" ${ok?'':'disabled'}>Avançar estágio</button></div>`;
+  return `<div class="row"><span class="mono" style="font-size:14.5px">Estágio máximo · NEX 5% por ${cost} XP</span><span class="spacer"></span><button class="btn sm red solid" data-act="virarAgente" ${ok?'':'disabled'}>Tornar-se agente</button></div>`;
+}
+function sobrevProg(s,ed){
+  const e=clamp(+s.estagio||1,1,5);
+  return `<details open><summary class="lbl" style="cursor:pointer;color:var(--ink)">Progressão de sobrevivente por estágio</summary>
+    <div class="prog" style="margin-top:6px">${Object.entries(SOBREV_PROG).map(([n,t])=>{const c=+n===e?'cur':+n<e?'done':'';return `<div class="n ${c}">${n}</div><div class="${c}">${esc(t)}${(+n===2||+n===4)&&s.trilhaSobrev?` · ${esc(SOBREV_TRILHAS[s.trilhaSobrev][n])}`:''}</div>`}).join('')}</div>
+    ${ed?`<div class="row" style="margin-top:8px"><button class="btn sm" data-act="sobrevGanhos">Ganhos do estágio ${e}</button>${e>=5?'<button class="btn sm red solid" data-act="virarAgente">Tornar-se agente</button>':''}</div>`:''}</details>`;
+}
+function sobrevGanhosModal(){
+  const s=state.sheet;const e=clamp(+s.estagio||1,1,5);let body='';
+  if(e===1)body=`<p>Estágio 1: <b>Empenho</b>${temHab(s,'Empenho')?' já está nas habilidades.':''}</p>${temHab(s,'Empenho')?'':'<button class="btn sm solid" data-act="sobrevAdd" data-n="Empenho">Adicionar Empenho</button>'}`;
+  if(e===2||e===4){
+    if(!s.trilhaSobrev)body=`<p>Escolha a trilha de sobrevivente. Ela define as habilidades dos estágios 2 e 4.</p><div class="pick-grid">${Object.entries(SOBREV_TRILHAS).map(([t,h])=>`<button class="pick" data-act="sobrevTrilha" data-v="${esc(t)}"><strong>${esc(t)}</strong><small>Estágio 2: ${esc(h[2])}</small><small>Estágio 4: ${esc(h[4])}</small></button>`).join('')}</div>`;
+    else{const n=SOBREV_TRILHAS[s.trilhaSobrev][e];body=`<p>Trilha <b>${esc(s.trilhaSobrev)}</b>, estágio ${e}: <b>${esc(n)}</b>.</p>${temHab(s,n)?'<p class="muted mono">Já está nas habilidades.</p>':`<button class="btn sm solid" data-act="sobrevAdd" data-n="${esc(n)}">Adicionar ${esc(n)}</button>`}`}
+  }
+  if(e===3){const usado=s.sobrevAttr;body=usado?`<p>Aumento de atributo já usado em <b>${ATTR_NOME[usado]}</b>.</p>`:`<p>Some +1 em um atributo (máximo 3).</p><div class="row" style="flex-wrap:wrap;gap:8px">${ATTRS.map(a=>`<button class="btn sm" data-act="sobrevAttr" data-a="${a}" ${(+s.attrs[a]||0)>=3?'disabled':''}>${ATTR_NOME[a]} ${s.attrs[a]||0} → ${(+s.attrs[a]||0)+1}</button>`).join('')}</div>`}
+  if(e===5)body=`<p>Estágio 5: <b>Cicatrizado</b>${temHab(s,'Cicatrizado')?' já está nas habilidades.':''}</p>${temHab(s,'Cicatrizado')?'':'<button class="btn sm solid" data-act="sobrevAdd" data-n="Cicatrizado">Adicionar Cicatrizado</button>'}
+    <p class="fx-help" style="margin-top:12px">Agora o personagem pode entrar para a Ordem: <b>Tornar-se agente</b> escolhe a classe e o leva a NEX 5%. As habilidades de sobrevivente continuam na ficha.</p>`;
+  openModal(`<h3>Ganhos do estágio ${e}</h3><div class="sobrev-g">${body}</div>`,'wide');
+}
+function virarAgenteModal(){
+  const s=state.sheet;const v=+s.attrs.VIG||0,p=+s.attrs.PRE||0;
+  openModal(`<h3>Tornar-se agente</h3>
+    <p class="lead">${esc(s.nome||'O sobrevivente')} entra para a Ordem em NEX 5%. PV, PE e SAN passam a seguir a classe escolhida; habilidades de sobrevivente, trilha e aumento de atributo continuam. Se a sua mesa usa outra conta, ajuste os máximos com o lápis das barras.</p>
+    <div class="pick-grid">${classesAgente().map(k=>{const c=CLASSES[k];return `<button class="pick" data-act="virarAgenteOk" data-v="${k}"><strong>${k}</strong><small>PV ${c.pv0+v} · PE ${c.pe0+p} · SAN ${c.san0} em NEX 5%</small><small>${esc(c.resumo||c.prof||'')}</small></button>`}).join('')}</div>`,'wide');
+}
+Object.assign(A,{
+  advEstagio:async()=>{const s=state.sheet;const cost=state.camp.settings?.xpPorNex||100;const e=clamp(+s.estagio||1,1,5);if(e>=5||(s.xp||0)<cost)return;
+    const b=derive(s);s.estagio=e+1;s.xp-=cost;const a=derive(s);['pv','pe','san'].forEach(k=>s[k]=(+s[k]||0)+a[k+'Max']-b[k+'Max']);await saveSheet();
+    logRoll([{note:`${s.nome} chegou ao estágio ${s.estagio} de sobrevivente (PV ${a.pvMax}, PE ${a.peMax}, SAN ${a.sanMax})`}]);sobrevGanhosModal()},
+  sobrevGanhos:()=>sobrevGanhosModal(),
+  sobrevTrilha:async el=>{const s=state.sheet;s.trilhaSobrev=el.dataset.v;const e=clamp(+s.estagio||1,1,5);
+    [2,4].filter(n=>n<=e).forEach(n=>{const nm=SOBREV_TRILHAS[s.trilhaSobrev][n];if(!temHab(s,nm))pushHab(s,sobrevHab(nm,'Sobrevivente · '+s.trilhaSobrev,n))});
+    await saveSheet();toast(`Trilha ${esc(s.trilhaSobrev)} escolhida.`);sobrevGanhosModal()},
+  sobrevAdd:async el=>{const s=state.sheet;const n=el.dataset.n;if(temHab(s,n))return;
+    if(n==='Empenho')pushHab(s,{...clone(CLASSES.Sobrevivente.habs[0]),id:uid('e_'),sobrevivente:true});
+    else pushHab(s,sobrevHab(n,n==='Cicatrizado'?'Sobrevivente':'Sobrevivente · '+s.trilhaSobrev,clamp(+s.estagio||1,1,5)));
+    await saveSheet();toast(`${esc(n)} adicionado.`);sobrevGanhosModal()},
+  sobrevAttr:async el=>{const s=state.sheet;const a=el.dataset.a;if(s.sobrevAttr||(+s.attrs[a]||0)>=3)return;const b=derive(s);s.attrs[a]=(+s.attrs[a]||0)+1;s.sobrevAttr=a;const d=derive(s);['pv','pe','san'].forEach(k=>s[k]=(+s[k]||0)+Math.max(0,d[k+'Max']-b[k+'Max']));await saveSheet();toast(`${ATTR_NOME[a]} +1.`);sobrevGanhosModal()},
+  virarAgente:()=>virarAgenteModal(),
+  virarAgenteOk:async el=>{const s=state.sheet;const k=el.dataset.v;const c=CLASSES[k];if(!c)return;const cost=state.camp.settings?.xpPorNex||100;
+    const b=derive(s);const de=s.classe;s.exSobrevivente={estagio:clamp(+s.estagio||1,1,5),trilha:s.trilhaSobrev||'',de};
+    s.classe=k;s.nex=5;delete s.estagio;s.trilha='';if((s.xp||0)>=cost)s.xp-=cost;
+    s.proficiencias=c.prof||s.proficiencias;
+    (c.fixas||[]).forEach(p=>{s.pericias=s.pericias||{};const o=s.pericias[p]||{treino:0,outros:0};if(!+o.treino)o.treino=5;s.pericias[p]=o});
+    (c.habs||[]).filter(h=>!temHab(s,h.nome)).forEach(h=>pushHab(s,{...clone(h),id:uid('e_')}));
+    const a=derive(s);['pv','pe','san'].forEach(x=>s[x]=clamp((+s[x]||0)+a[x+'Max']-b[x+'Max'],0,a[x+'Max']));
+    closeModal();await saveSheet();
+    logRoll([{note:`${s.nome} deixou de ser sobrevivente e entrou para a Ordem como ${k} (NEX 5%).`}]);
+    toast(`Agora ${esc(k)} em NEX 5%. ${(c.escolhas||[]).length||c.livres?'Marque as perícias da classe na lista.':''}${k==='Ocultista'?' Escolha 3 rituais de 1º círculo no catálogo.':''}`);
+    if(CLASSES[k].prog?.[5])setTimeout(()=>gainsModal(),80)},
+  editMax:el=>{const s=state.sheet;const k=el.dataset.k;const d=derive(s);const nomes={pv:'Vida',pe:'Esforço',san:'Sanidade'};const aj=+(s.ajustes||{})[k]||0;
+    openModal(`<h3>${nomes[k]} máxima</h3>
+      <form id="maxForm"><label class="field"><span>Novo máximo</span><input class="inp" id="mx-v" type="number" min="0" value="${d[k+'Max']}" style="font-family:var(--f-type);font-size:24px"></label>
+      <p class="fx-help">Calculado pela ficha: <b>${d[k+'Max']-aj}</b>${aj?` · ajuste manual atual ${fmtB(aj)}`:''}. O valor digitado vira um ajuste fixo, então continua somando quando o NEX, a classe ou os atributos mudarem.</p>
+      <div class="mfoot">${aj?'<button type="button" class="btn" id="mx-reset">Voltar ao calculado</button>':''}<span class="spacer"></span><button type="button" class="btn" data-act="closeModal">Cancelar</button><button class="btn solid">Salvar</button></div></form>`);
+    const apply=async novo=>{s.ajustes=s.ajustes||{pv:0,pe:0,san:0};const b=derive(s);s.ajustes[k]=(+s.ajustes[k]||0)+(novo-b[k+'Max']);const a=derive(s);
+      const gain=a[k+'Max']-b[k+'Max'];s[k]=clamp((+s[k]||0)+Math.max(0,gain),0,a[k+'Max']);closeModal();await saveSheet();toast(`${nomes[k]} máxima: ${a[k+'Max']}.`)};
+    $('#maxForm').addEventListener('submit',ev=>{ev.preventDefault();const v=Math.max(0,Math.round(num($('#mx-v').value)));apply(v)});
+    $('#mx-reset')?.addEventListener('click',()=>apply(d[k+'Max']-aj));
+    setTimeout(()=>{$('#mx-v')?.select()},30)},
 });
 
 /* =====================================================================
@@ -5131,7 +5253,7 @@ function combatCardHtml(s,ents){
   }
   const d=derive(s);const atks=attacksOf(s);
   const rituais=s.rituais||[];const habs=(s.habilidades||[]).filter(h=>h.modo==='acao'&&(h.rolagem||!h.boost));
-  return `<article class="paper cc ${d.M?'masked':''} ${ehAliadoImp(s)?'ali':''}">${head(`${ehAliadoImp(s)?'<span class="chip ali-chip">aliado</span> ':''}${esc(s.classe||'Sem classe')} · NEX ${s.nex}%${own?' · '+esc(own):''}`,'')}
+  return `<article class="paper cc ${d.M?'masked':''} ${ehAliadoImp(s)?'ali':''}">${head(`${ehAliadoImp(s)?'<span class="chip ali-chip">aliado</span> ':''}${esc(s.classe||'Sem classe')} · ${nexTxt(s)}${own?' · '+esc(own):''}`,'')}
     <div class="cc-stats"><span class="cc-stat"><b>${d.defesa}</b>Defesa</span>${d.esquiva!=null?`<span class="cc-stat" title="Reação: soma Reflexos na Defesa"><b>${d.esquiva}</b>Esquiva</span>`:''}${d.bloqueio!=null?`<span class="cc-stat" title="Reação: RD contra corpo a corpo"><b>RD ${d.bloqueio}</b>Bloqueio</span>`:''}${d.rd||d.rdFisico?`<span class="cc-stat"><b>${d.rd+d.rdFisico}</b>RD</span>`:''}<span class="cc-stat"><b>${d.desloc}m</b>${Math.floor(d.desloc/1.5)} quadr.</span>
       <button class="cc-stat btn-stat" data-act="cbIniFicha" data-sid="${s.id}" ${dis} title="Rolar Iniciativa"><b>${d.per.Iniciativa?diceSpec(d.per.Iniciativa.base,d.per.Iniciativa.dmod).label+fmtB(d.per.Iniciativa.total):'—'}</b>Iniciativa 🎲</button></div>
     ${track('pv','Vida',+s.pv||0,d.pvMax,+s.pvTemp||0)}${track('san','Sanidade',+s.san||0,d.sanMax)}${track('pe','Esforço',+s.pe||0,d.peMax,+s.peTemp||0)}
@@ -5379,8 +5501,8 @@ function abrirAddCombatente(){
     const pcs=state.sheets.filter(ehAgente);const npcs=state.sheets.filter(ehAmeaca);const alis=state.sheets.filter(s=>ehAliado(s)||ehAliadoImp(s));
     const L=AMEACAS_LIVRO.filter(a=>ameacaFiltro(a,grupo,fonte,q));
     $('#addBody').innerHTML=`<div class="tabs">${[['agentes','Agentes'],['aliados','Aliados'],['ameacas','Ameaças da campanha'],['livro','Do livro']].map(([k,l])=>`<button class="tab ${aba===k?'on':''}" data-aba="${k}">${l}</button>`).join('')}</div>
-      ${aba==='agentes'?`<div class="add-lista">${pcs.map(s=>`<label class="add-it"><input type="checkbox" value="${s.id}" ${ini[s.id]?'checked disabled':''}> ${sheetThumb(s,'thumb sm')}<span><b>${esc(s.nome||'Sem nome')}</b><small>${esc(state.users[s.ownerId]?.name||'sem jogador')} · ${esc(s.classe||'')} NEX ${s.nex}%</small></span></label>`).join('')||'<div class="empty">Nenhum agente na campanha.</div>'}</div>`
-      :aba==='aliados'?`<div class="add-lista">${alis.map(s=>`<label class="add-it"><input type="checkbox" value="${s.id}" ${ini[s.id]?'checked disabled':''}> ${sheetThumb(s,'thumb sm')}<span><b>${esc(s.nome||'Sem nome')}</b><small>${ehAliadoImp(s)?`Aliado importante · ${esc(s.classe||'')} NEX ${s.nex}%`:`Aliado · PV ${s.pv}/${s.pvMax} · Def ${s.defesa}`}</small></span></label>`).join('')||'<div class="empty">Nenhum aliado na campanha. Crie na Área do mestre.</div>'}</div>`
+      ${aba==='agentes'?`<div class="add-lista">${pcs.map(s=>`<label class="add-it"><input type="checkbox" value="${s.id}" ${ini[s.id]?'checked disabled':''}> ${sheetThumb(s,'thumb sm')}<span><b>${esc(s.nome||'Sem nome')}</b><small>${esc(state.users[s.ownerId]?.name||'sem jogador')} · ${esc(s.classe||'')} ${nexTxt(s)}</small></span></label>`).join('')||'<div class="empty">Nenhum agente na campanha.</div>'}</div>`
+      :aba==='aliados'?`<div class="add-lista">${alis.map(s=>`<label class="add-it"><input type="checkbox" value="${s.id}" ${ini[s.id]?'checked disabled':''}> ${sheetThumb(s,'thumb sm')}<span><b>${esc(s.nome||'Sem nome')}</b><small>${ehAliadoImp(s)?`Aliado importante · ${esc(s.classe||'')} ${nexTxt(s)}`:`Aliado · PV ${s.pv}/${s.pvMax} · Def ${s.defesa}`}</small></span></label>`).join('')||'<div class="empty">Nenhum aliado na campanha. Crie na Área do mestre.</div>'}</div>`
       :aba==='ameacas'?`<div class="add-lista">${npcs.map(s=>`<label class="add-it"><input type="checkbox" value="${s.id}" ${ini[s.id]?'checked disabled':''}> ${sheetThumb(s,'thumb sm')}<span><b>${esc(s.nome)}</b><small>VD ${esc(s.vd||'—')} · Def ${s.defesa} · PV ${s.pv}/${s.pvMax}</small></span></label>`).join('')||'<div class="empty">Nenhuma ameaça criada. Use a aba “Do livro”.</div>'}</div>`
       :`<div class="add-livro">${bestLivros(fonte,'data-fonte')}${bestAbas(grupo,'data-g')}
         <div class="bst-topo">${bestBusca('addQ',q)}<label class="field" style="width:110px"><span>Quantidade</span><input class="inp" id="addQtd" type="number" min="1" max="12" value="${qtd}"></label></div>
@@ -6387,12 +6509,14 @@ document.addEventListener('change',async e=>{
       if(s.type==='pc'){
         const d=derive(s);
         if(['pv','pe','san'].includes(path))s[path]=clamp(s[path],0,d[path+'Max']);
-        if(before&&(path.startsWith('attrs.')||path==='classe'||path==='nex'||path.startsWith('ajustes')||path==='origem')){
+        if(before&&(path.startsWith('attrs.')||path==='classe'||path==='nex'||path==='estagio'||path.startsWith('ajustes')||path==='origem')){
           ['pv','pe','san'].forEach(k=>{const gain=d[k+'Max']-before[k+'Max'];if(gain>0&&path!=='classe')s[k]=(+s[k]||0)+gain;s[k]=clamp(+s[k]||0,0,d[k+'Max'])});
           if(path==='classe'&&!before.pvMax)['pv','pe','san'].forEach(k=>s[k]=d[k+'Max']);
         }
         if(path==='origem'){const o=ORIGENS.find(x=>x.nome===v);if(o&&!(s.habilidades||[]).some(h=>h.nome===o.poder.nome)){pushHab(s,{...clone(o.poder),id:uid('e_')});toast(`Poder de origem “${esc(o.poder.nome)}” adicionado às habilidades.`)}}
         if(path==='classe'){const c=CLASSES[v];if(c){const add=c.habs.filter(h=>!(s.habilidades||[]).some(x=>x.nome===h.nome));add.forEach(h=>pushHab(s,{...clone(h),id:uid('e_')}));if(add.length)toast(`Habilidades de ${esc(v)} adicionadas.`);if(!s.proficiencias)s.proficiencias=c.prof;s.trilha=''}}
+        if(path==='classe'&&CLASSES[v]?.porEstagio&&!s.estagio)s.estagio=1;
+        if(path==='trilhaSobrev'&&SOBREV_TRILHAS[v]){const e=clamp(+s.estagio||1,1,5);[2,4].filter(n=>n<=e).forEach(n=>{const nm=SOBREV_TRILHAS[v][n];if(!temHab(s,nm)){pushHab(s,sobrevHab(nm,'Sobrevivente · '+v,n));toast(`${esc(nm)} adicionado às habilidades.`)}})}
         if(path==='nex'&&v>prevNex&&CLASSES[s.classe]?.prog?.[v])setTimeout(()=>gainsModal(),50);
       }
       if(s.type==='npc'&&path==='pvMax')s.pv=Math.min(+s.pv||0,+s.pvMax||0);
