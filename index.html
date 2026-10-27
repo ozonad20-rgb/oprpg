@@ -1487,6 +1487,74 @@ select option:disabled{color:var(--ink-faint)}
 .bar-top .bar-edit{width:24px;height:24px;font-size:14px;margin-left:-2px;opacity:.7}
 .bar-top .bar-edit:hover,.bar-top .bar-edit:focus-visible{opacity:1}
 .sobrev-g p{font-family:var(--f-mono);font-size:15.5px;line-height:1.5;margin:0 0 10px}
+/* =====================================================================
+   MODO JOGO x MODO EDIÇÃO — a ficha mostra só o que se usa na mesa
+   ===================================================================== */
+.dossier.play .help,.dossier.play .ed-only{display:none!important}
+.dossier.play .idfields select,.dossier.play .idfields input.charname,.dossier.play .penta .node input,.dossier.play .statbox select,.dossier.play .defcalc input,.dossier.play .col-a>label.field input{pointer-events:none;border-bottom-color:transparent!important;background-image:none!important;-webkit-appearance:none;appearance:none}
+.dossier.play .idfields .field>div.mono{border-bottom-color:transparent!important}
+.dossier.play .per-row select,.dossier.play .per-row input,.dossier.play .per-hd span:nth-child(n+6){display:none}
+.dossier.play .per-row,.dossier.play .per-hd{grid-template-columns:28px minmax(0,1fr) 44px 56px 48px;gap:8px}
+.dossier.play .per-row{padding:6px 0;font-size:16px}
+.dossier.play .per-grid{min-width:0}
+.per-wrap.so-tr .per-row:not(.tr){display:none}
+.per-tog{font-size:13.5px}
+.btn.on-desk-solid{background:var(--manila);border-color:var(--manila);color:#1d160b}
+/* respiro geral */
+.dossier .col{gap:26px}
+.dossier .tabbody{gap:18px;padding-top:20px}
+.dossier .card{padding:14px 16px;gap:8px}
+.dossier .bars{gap:18px}
+.dossier .kv{gap:6px 18px}
+/* condições recolhidas */
+.cond-det>summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer;list-style:none;padding:8px 0;border-bottom:1px solid var(--paper-edge)}
+.cond-det>summary::-webkit-details-marker{display:none}
+.cond-det>summary::before{content:"▸";font-size:12px;color:var(--ink-soft)}
+.cond-det[open]>summary::before{content:"▾"}
+.cond-det .conds{margin-top:10px}
+.cond-mais{font-family:var(--f-ui);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.chip.cond-on{background:var(--stamp);border-color:var(--stamp);color:#fff}
+:root[data-theme="noite"] .chip.cond-on{background:#c0353b;border-color:#c0353b}
+.dossier.play .states .state:not(.on){display:none}
+.dossier.play .states:not(:has(.state.on,button,.linkbtn)){display:none}
+.dossier.play .card .ico-btn[data-act^="edit"],.dossier.play .card .ico-btn[data-act="delEntry"]{display:none}
+.dossier.play .tabbody>.row>.btn[data-act="addFromCat"],.dossier.play .tabbody>.row>.btn[data-act="editItem"],.dossier.play .tabbody>.row>.btn[data-act="editAtk"],.dossier.play .tabbody>.row>.btn[data-act="editHab"],.dossier.play .tabbody>.row>.btn[data-act="editRit"]{display:none}
+.dossier.play .tabbody>details:has(>.prog){display:none}
+/* painéis recolhíveis */
+section.panel[data-colapsa]>.panel-head h2{cursor:pointer}
+.col-tg{background:none;border:0;color:var(--ink-soft);font-size:15px;width:24px;height:24px;padding:0;margin-right:2px;transition:transform .15s}
+section.panel.fechado .col-tg{transform:rotate(-90deg)}
+section.panel.fechado>*:not(.panel-head){display:none!important}
+section.panel.fechado>.panel-head{margin-bottom:0;border-bottom:0;padding-bottom:0}
+.pc-resumo{font-size:15px;letter-spacing:.15em;color:var(--ink-soft)}
+section.panel:not(.fechado) .pc-resumo{display:none}
+section.panel.fechado>.panel-head>:not(.col-tg):not(h2):not(.pc-resumo):not(.chip):not(.idx){display:none}
+/* danos adicionais */
+.wgrid.w4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:640px){.wgrid.w4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.dano-lista{display:grid;gap:8px;margin:8px 0}
+.dano-row{display:grid;grid-template-columns:84px 120px 172px minmax(0,1fr) auto 30px;gap:10px;align-items:end;border:1.5px solid var(--paper-edge);padding:8px 10px}
+.dano-row .chk{white-space:nowrap;padding-bottom:6px}
+@media(max-width:700px){.dano-row{grid-template-columns:1fr 1fr}.d-nome-f{grid-column:1/-1}.d-del{justify-self:end}}
+.sit-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cond.sit.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+#danoAdd{color:var(--ink);border-color:var(--ink);background:transparent}
+/* cartões recolhíveis: habilidades, rituais, itens e listas do aliado */
+.card-tg{background:none;border:0;padding:0;width:22px;height:22px;flex:0 0 22px;color:var(--ink-soft);font-size:13px;transition:transform .15s;align-self:center}
+.card.recolhivel .card-h h4{cursor:pointer}
+.card.recolhivel:not(.recolhido) .card-tg{transform:rotate(90deg)}
+.card.recolhido .card-h~*{display:none!important}
+.card.recolhido{padding-top:10px;padding-bottom:10px}
+.tg-todos{display:flex;gap:14px;justify-content:flex-end;margin-bottom:-6px}
+.tg-todos .linkbtn{font-size:13.5px}
+.ali-it.recolhivel small{display:none}
+.ali-it.recolhivel.aberto small{display:block}
+.ali-it.recolhivel b{cursor:pointer}
+.ali-it.recolhivel b::before{content:"▸ ";color:var(--ink-soft);font-size:12px}
+.ali-it.recolhivel.aberto b::before{content:"▾ "}
+.rit-card.recolhido .rit-art{width:40px;box-shadow:1px 2px 0 var(--ink);font-size:13px}
+.rit-card.recolhido .rit-art span{font-size:18px}
+.card.recolhivel .card-h{align-items:center}
 </style>
 <div id="app"><div class="boot"><div><div class="logo">NE<span>X</span></div><p>Abrindo o arquivo de agentes…</p><div class="bar"><i></i></div>
 <noscript><p style="color:#e5e2d9">O NEX precisa de JavaScript para funcionar. Abra pela página publicada ou em um navegador com JavaScript ativado; visualizadores de arquivo costumam bloquear scripts.</p></noscript></div></div></div>
@@ -2648,6 +2716,9 @@ const GUIA_COMBATE=[
 ];
 
 /* sobrevivente (Sobrevivendo ao Horror): progride por estágio 1–5 antes do NEX */
+/* componentes de dano da arma: {expr,tipo,crit:'mult'|'nao'|'so',sit,nome}; dano extra antigo vira componente */
+function danosDe(a){const l=(a.danos||[]).filter(c=>c&&String(c.expr||'').trim());if(!a.danos&&a.danoExtra&&String(a.danoExtra).trim())l.push({expr:a.danoExtra,tipo:a.danoExtraTipo||'',crit:'nao'});return l}
+const SIT_ON=new Set();const sitAtivo=(id,ix)=>SIT_ON.has(id+':'+ix);
 const ehSobrevivente=s=>!!(s&&CLASSES[s.classe]&&CLASSES[s.classe].porEstagio);
 const nexTxt=s=>ehSobrevivente(s)?`Estágio ${clamp(+s.estagio||1,1,5)}`:`NEX ${s.nex||0}%`;
 /* =====================================================================
@@ -2851,15 +2922,19 @@ function atkInfo(a,d){
   const danoAttr=a.atrDano==='nenhum'?0:ATTRS.includes(a.atrDano)?d.attrs[a.atrDano]:melee?(a.agil&&d.attrs.AGI>d.attrs.FOR?d.attrs.AGI:d.attrs.FOR):tipo==='arremesso'?d.attrs.FOR:0;
   const flat=(+a.bonusDano||0)+d.dano+danoAttr+(melee?d.danoCorpo:0)+(tipo==='disparo'||tipo==='fogo'?d.danoDisparo:0)+(tipo==='fogo'?d.danoFogo:0)+mf.dano+tool;
   const extraDados=mf.dado+(melee?d.dadoExtraCorpo:0)+d.dadosM;
-  const baseDano=addDice(a.dano||'1d4',extraDados)+malFx.filter(f=>f.dadoCrit).map(f=>'+'+f.dadoCrit).join('');
-  const extrasArma=[...(a.danoExtra&&String(a.danoExtra).trim()?[String(a.danoExtra).trim().replace(/^\+/,'')]:[]),...malFx.filter(f=>f.extra).map(f=>f.extra)];
+  const comps=danosDe(a).filter((c,ix)=>!c.sit||sitAtivo(a.id,ix));
+  const cl=x=>String(x.expr).trim().replace(/^\+/,'');
+  const baseDano=addDice(a.dano||'1d4',extraDados)+malFx.filter(f=>f.dadoCrit).map(f=>'+'+f.dadoCrit).join('')+comps.filter(c=>c.crit==='mult').map(c=>'+'+cl(c)).join('');
+  const extrasArma=[...comps.filter(c=>c.crit==='nao').map(cl),...malFx.filter(f=>f.extra).map(f=>f.extra)];
+  const soCrit=comps.filter(c=>c.crit==='so').map(cl);
   let critBase=+a.crit||20;if(malFx.some(f=>f.margemDupla))critBase=21-(21-critBase)*2;
   const crit=clamp(critBase-d.margem-(melee?d.margemCorpo:0)-mf.margem-tool,2,20);
   const mult=Math.max(2,(+a.mult||2)+d.mult+mf.mult);
   const spec=diceSpec(base,dmod);
   const extras=[...extrasArma,...mf.extra,...d.allyDmg];
-  return{pericia,atAttr,base,dmod,spec,atkB,flat,baseDano,extras,crit,mult,auto:!!(a.auto||mf.auto),compensador:!!mf.compensador,melee,
-    dmg:baseDano+(extras.length?'+'+extras.join('+'):'')+(flat?fmtB(flat):'')};
+  const tipos=[a.danoTipo,...comps.map(c=>c.tipo)].map(x=>(x||'').trim().toLowerCase()).filter(Boolean);
+  return{pericia,atAttr,base,dmod,spec,atkB,flat,baseDano,extras,soCrit,crit,mult,auto:!!(a.auto||mf.auto),compensador:!!mf.compensador,melee,tipos:[...new Set(tipos)],
+    dmg:baseDano+(extras.length?'+'+extras.join('+'):'')+(flat?fmtB(flat):'')+(soCrit.length?` (+${soCrit.join('+')} no crítico)`:'')};
 }
 
 /* =====================================================================
@@ -3358,7 +3433,7 @@ function viewGM(){
   return `<div class="gm-grid">
   <div class="col">
     ${intPainelGM()}
-    <section class="paper panel"><div class="panel-head"><h2>Código e capa</h2></div>
+    <section class="paper panel" data-colapsa="gm-codigo"><div class="panel-head"><h2>Código e capa</h2><span class="spacer"></span><span class="mono pc-resumo">${esc(state.camp.code||"")}</span></div>
       <div class="code-box"><div><div class="lbl">Código da campanha</div><div class="code-big">${c.code}</div></div><div class="spacer"></div><button class="btn sm solid" data-act="copyCode">Copiar</button></div>
       <p class="muted mono" style="font-size:14.5px;margin:10px 0 14px">Envie este código aos jogadores. Eles usam “Entrar em campanha” na tela inicial.</p>
       ${c.cover?`<div class="cover" style="aspect-ratio:16/9;max-width:100%;background:var(--paper-3);background-repeat:no-repeat;border:4px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.25);${bgCss(c.cover,16/9)}"></div>`:''}
@@ -3366,7 +3441,7 @@ function viewGM(){
       <div class="lbl" style="margin-top:16px">Na mesa</div>
       <div class="members"><span class="member gm">${esc(state.users[c.ownerId]?.name||'')} · mestre</span>${members.map(u=>`<span class="member">${esc(u.name)}</span>`).join('')||'<span class="muted mono" style="font-size:14.5px">Nenhum jogador entrou ainda.</span>'}</div>
     </section>
-    <section class="paper panel"><div class="panel-head"><h2>Rolagem</h2><span class="spacer"></span><label class="chk" style="font-size:13.5px"><input type="checkbox" id="gm-secret"> Secreta</label></div>
+    <section class="paper panel" data-colapsa="gm-rolagem"><div class="panel-head"><h2>Rolagem</h2><span class="spacer"></span><label class="chk" style="font-size:13.5px"><input type="checkbox" id="gm-secret"> Secreta</label></div>
       <div class="dice-form">
         <label class="field"><span>Quantidade</span><input class="inp" id="gm-n" type="number" min="1" max="100" value="1"></label>
         <label class="field"><span>Lados</span><input class="inp" id="gm-s" type="number" min="2" max="1000" value="20" list="sidesList"><datalist id="sidesList"><option value="4"><option value="6"><option value="8"><option value="10"><option value="12"><option value="20"><option value="100"></datalist></label>
@@ -3401,7 +3476,7 @@ const patIdx=s=>{const pp=+s.pp||0;let k=0;PATENTES.forEach((p,i)=>{if(pp>=p.pp)
 const patGrupo=pcs=>pcs.length?Math.min(...pcs.map(patIdx)):0;
 function viewRewards(pcs){
   const c=state.camp;
-  return `<section class="paper panel full"><div class="panel-head"><h2>Recompensas</h2><span class="spacer"></span>
+  return `<section class="paper panel full" data-colapsa="gm-recomp"><div class="panel-head"><h2>Recompensas</h2><span class="spacer"></span>
       <label class="field" style="flex-direction:row;align-items:center;gap:8px"><span>XP por avanço de NEX</span><input class="inp" id="xpPorNex" type="number" min="1" value="${c.settings?.xpPorNex||100}" style="width:80px" data-act-change="xpPorNex"></label></div>
     <div class="rw-cols">
       <div>
@@ -3462,14 +3537,14 @@ function viewSheet(){
     <button data-act="res" data-k="${k}" data-d="-5" ${dis} title="−5" aria-label="${lbl} −5">«</button><button data-act="res" data-k="${k}" data-d="-1" ${dis} title="−1" aria-label="${lbl} −1">‹</button>
     <div class="val ${pct<50?'vazio':''}"><input ${F(k,cur,'type="number" data-n')} aria-label="${lbl} atual"> / <span class="tnum">${max}</span></div>
     <button data-act="res" data-k="${k}" data-d="1" ${dis} title="+1" aria-label="${lbl} +1">›</button><button data-act="res" data-k="${k}" data-d="5" ${dis} title="+5" aria-label="${lbl} +5">»</button></div>
-    ${k!=='san'?`<div class="temp">${k==='pv'?'PV':'PE'} temporários <input ${F(k+'Temp',s[k+'Temp']||0,'type="number" data-n')} aria-label="${k.toUpperCase()} temporários"> <span>somem no fim da cena</span></div>`:''}</div>`};
+    ${k!=='san'?`<div class="temp ${+s[k+'Temp']?'':'ed-only'}">${k==='pv'?'PV':'PE'} temporários <input ${F(k+'Temp',s[k+'Temp']||0,'type="number" data-n')} aria-label="${k.toUpperCase()} temporários"> <span class="help">somem no fim da cena</span></div>`:''}</div>`};
   const pips=(k,n)=>`<span class="pips">${[1,2,3].map(i=>`<button class="pip ${n>=i?'on':''}" data-act="pip" data-k="${k}" data-i="${i}" ${dis} aria-label="Turno ${i}"></button>`).join('')}</span>`;
   const protecoes=(s.itens||[]).filter(i=>i.equipado&&i.tipo==='protecao').map(i=>i.nome);
   const rdTxt=[d.rd?`RD ${d.rd}`:'',d.rdFisico?`RD ${d.rdFisico} balístico/corte/impacto/perfuração`:'',d.rdMental?`RD mental ${d.rdMental}`:''].filter(Boolean).join(' · ');
   return `${topbar(`<div class="crumb">${esc(state.camp.name)} / <b>${esc(s.nome||'Agente sem nome')}</b></div>`)}
   <div class="sheet-bar"><button class="btn sm" data-act="backCamp">‹ Voltar</button><span class="muted mono" style="font-size:14.5px;color:var(--on-desk-soft)">${ed?'Alterações salvas automaticamente':'Somente leitura'}</span><span class="spacer"></span>
-    ${state.isGM?`<button class="btn sm red" data-act="delSheet" data-id="${s.id}">Excluir ficha</button>`:''}</div>
-  <article class="paper dossier ${d.M?'masked':''}">
+    ${ed?`<button class="btn sm ${state.editMode?'solid on-desk-solid':''}" data-act="toggleEdit" aria-pressed="${!!state.editMode}">${state.editMode?'✓ Concluir edição':'✎ Editar ficha'}</button>`:''}${state.isGM&&state.editMode?`<button class="btn sm red" data-act="delSheet" data-id="${s.id}">Excluir ficha</button>`:''}</div>
+  <article class="paper dossier ${d.M?'masked':''} ${ed&&state.editMode?'editing':'play'}">
     <header class="dossier-head"><span class="org">Ordo Realitas · Arquivo de Agente</span><span class="fileno">Nº ${s.id.slice(-6).toUpperCase()} · ${esc(state.camp.name)}</span>${maskSwitch(s,d,ed)}<span class="stamp">${d.morrendo?'Morrendo':d.enlouquecendo?'Enlouquecendo':d.M?'Forma suprema':'Confidencial'}</span></header>
     <div class="dgrid">
       <section class="col col-a">
@@ -3483,7 +3558,7 @@ function viewSheet(){
             ${ehSobrevivente(s)?`<label class="field"><span>Trilha</span><select class="inp" ${F('trilhaSobrev','')}><option value="">—</option>${Object.keys(SOBREV_TRILHAS).map(t=>`<option ${t===s.trilhaSobrev?'selected':''}>${t}</option>`).join('')}</select></label>`:`<label class="field"><span>Trilha</span><select class="inp" ${F('trilha','')}><option value="">—</option>${Object.keys(TRILHAS[s.classe]||{}).map(t=>`<option ${t===s.trilha?'selected':''}>${t}</option>`).join('')}</select></label>`}</div>
           </div>
         </div>
-        <div class="penta-cap"><span class="lbl">Atributos</span><span class="mono muted" style="font-size:13px">AGI Agilidade · FOR Força · INT Intelecto · PRE Presença · VIG Vigor — clique na sigla para rolar</span></div>
+        <div class="penta-cap"><span class="lbl">Atributos</span><span class="mono muted help" style="font-size:13px">AGI Agilidade · FOR Força · INT Intelecto · PRE Presença · VIG Vigor — clique na sigla para rolar</span></div>
         <div class="penta">${pentaSvg()}
           ${ATTRS.map(a=>{const [x,y]=PENTA_POS[a];const mod=d.attrs[a]!==(+s.attrs[a]||0);return `<div class="node ${mod?'mod':''}" style="left:${x}%;top:${y}%" title="${ATTR_NOME[a]}${mod?' · com efeitos: '+d.attrs[a]:''}"><span class="ab">${ATTR_NOME[a].toUpperCase()}</span><input ${F('attrs.'+a,s.attrs[a],'type="number" min="0" max="9" data-n')} aria-label="${ATTR_NOME[a]}"><button data-act="rollAttr" data-a="${a}" title="Rolar ${ATTR_NOME[a]}">${a}${mod?'*':''}</button></div>`}).join('')}
         </div>
@@ -3508,14 +3583,14 @@ function viewSheet(){
           ${ed?`<div class="row" style="justify-content:flex-end;gap:14px"><button class="linkbtn" data-act="endScene">Fim de cena</button><button class="linkbtn" data-act="restore">Descanso completo</button></div>`:''}</div>
         <div class="defrow">
           <div class="shield"><svg viewBox="0 0 62 70" aria-hidden="true"><path d="M31 3 57 12v20c0 17-11 28-26 35C16 60 5 49 5 32V12z" fill="none" stroke="currentColor" stroke-width="3"/></svg><span class="tnum">${d.defesa}</span></div>
-          <div><div class="lbl" style="color:var(--ink)">Defesa</div><div class="defcalc">10 + AGI ${d.attrs.AGI}${d.defEff?` ${fmtB(d.defEff)} <span title="${esc((d.src.defesa||[]).join(', '))}">efeitos</span>`:''} + <input class="inp" ${F('defOutros',s.defOutros,'type="number" data-n title="Outros bônus"')} aria-label="Outros bônus de Defesa">${d.cond.agg.def?` <span style="color:var(--stamp)">${d.cond.agg.def} cond.</span>`:''}${d.over?' <span style="color:var(--stamp)">–5 carga</span>':''}</div></div>
+          <div><div class="lbl" style="color:var(--ink)">Defesa</div><div class="defcalc help">10 + AGI ${d.attrs.AGI}${d.defEff?` ${fmtB(d.defEff)} <span title="${esc((d.src.defesa||[]).join(', '))}">efeitos</span>`:''} + <input class="inp" ${F('defOutros',s.defOutros,'type="number" data-n title="Outros bônus"')} aria-label="Outros bônus de Defesa">${d.cond.agg.def?` <span style="color:var(--stamp)">${d.cond.agg.def} cond.</span>`:''}${d.over?' <span style="color:var(--stamp)">–5 carga</span>':''}</div></div>
           <div class="minibig" title="Treinado em Fortitude: reação, RD igual ao bônus de Fortitude contra um ataque corpo a corpo"><span class="lbl">Bloqueio</span><span class="v tnum">${d.bloqueio==null?'—':'RD '+d.bloqueio}</span></div>
           <div class="minibig" title="Treinado em Reflexos: reação, soma Reflexos na Defesa contra um ataque"><span class="lbl">Esquiva</span><span class="v tnum">${d.esquiva==null?'—':d.esquiva}</span></div>
         </div>
         <div class="field"><span>Proteção</span><div class="mono" style="font-size:15px;padding:3px 2px;border-bottom:1.5px dashed var(--paper-edge)">${esc(protecoes.join(', ')||'Nenhuma equipada')}${rdTxt?' · '+esc(rdTxt):''}</div></div>
-        <label class="field"><span>Resistências</span><input class="inp" ${F('resistencias',s.resistencias)}></label>
+        <label class="field ${s.resistencias?'':'ed-only'}"><span>Resistências</span><input class="inp" ${F('resistencias',s.resistencias)}></label>
         <label class="field"><span>Proficiências</span><input class="inp" ${F('proficiencias',s.proficiencias||cls?.prof||'')}></label>
-        ${afinidadePainel(s,ed)}
+        <div class="${s.afinidade||s.conexao?'':'ed-only'}">${afinidadePainel(s,ed)}</div>
         <div class="xpbox">
           <div class="row"><div><div class="lbl">XP disponível</div><div class="big tnum" style="${(s.xp||0)<0?'color:var(--stamp)':''}">${s.xp||0}</div></div><span class="spacer"></span>
             <div style="text-align:right"><div class="lbl">Patente · crédito</div><div class="type" style="font-size:17px">${d.pat.nome}</div><div class="mono muted" style="font-size:13.5px">${s.pp||0} PP · limite ${d.pat.credito}</div></div></div>
@@ -3523,8 +3598,8 @@ function viewSheet(){
         </div>
       </section>
       <section class="col col-b">
-        <div><div class="skills-head"><h3>Perícias</h3><span class="mono muted" style="font-size:13.5px">clique no ícone para rolar</span></div>
-        <div class="per-wrap"><div class="per-grid"><div class="per-hd"><span></span><span>Perícia</span><span style="text-align:center">Atr</span><span style="text-align:center">Dados</span><span style="text-align:center">Bônus</span><span style="text-align:center">Treino</span><span style="text-align:center">Outros</span></div>
+        <div><div class="skills-head"><h3>Perícias</h3>${state.editMode&&ed?'<span class="mono muted" style="font-size:13.5px">clique no ícone para rolar</span>':`<button class="linkbtn per-tog" data-act="perTodas">${state.perTodas?'só treinadas':'mostrar todas ('+PERICIAS.length+')'}</button>`}</div>
+        <div class="per-wrap ${!state.perTodas&&!(state.editMode&&ed)?'so-tr':''}"><div class="per-grid"><div class="per-hd"><span></span><span>Perícia</span><span style="text-align:center">Atr</span><span style="text-align:center">Dados</span><span style="text-align:center">Bônus</span><span style="text-align:center">Treino</span><span style="text-align:center">Outros</span></div>
         ${PERICIAS.map(([nome,,fl])=>{const r=d.per[nome];const sp=diceSpec(r.base,r.dmod);return `<div class="per-row ${r.treino?'tr':''} ${r.lock?'lock':''}">
           <button class="ico-btn" data-act="rollPer" data-p="${nome}" title="Rolar ${nome}" aria-label="Rolar ${nome}">${D20}</button>
           <span class="pn" title="${r.lock?'Somente treinada':''}">${nome}<sup>${fl}</sup></span>
@@ -3533,7 +3608,7 @@ function viewSheet(){
           <select id="f-per-${nome}-t" data-f="pericias.${nome}.treino" data-n ${dis} aria-label="Treino em ${nome}">${TREINO.map(([v])=>`<option value="${v}" ${v===r.treino?'selected':''}>${v?'+'+v:'—'}</option>`).join('')}</select>
           <input id="f-per-${nome}-o" data-f="pericias.${nome}.outros" data-n type="number" value="${r.outros}" ${dis} aria-label="Outros bônus em ${nome}">
         </div>`}).join('')}</div></div>
-        <div class="per-foot">+ penalidade de carga · * somente treinada · ■ treinada · Treino: +5 treinado, +10 veterano, +15 expert</div></div>
+        <div class="per-foot help">+ penalidade de carga · * somente treinada · ■ treinada · Treino: +5 treinado, +10 veterano, +15 expert</div></div>
       </section>
       <section class="col col-c">
         <nav class="stabs">${[['combate','Combate'],['habilidades',d.M?'Habilidades ✕':'Habilidades'],['rituais','Rituais'],['inventario','Inventário'],['aliados','Aliados'+((s.aliados||[]).length?' · '+s.aliados.length:'')],['descricao','Descrição']].map(([k,l])=>`<button class="stab ${state.sheetTab===k?'on':''}" data-act="sheetTab" data-t="${k}">${l}</button>`).join('')}</nav>
@@ -3560,7 +3635,7 @@ function nextRollBar(s,d,ed){
       ${nr.dice||nr.bonus||nr.ae||nr.em||nr.contra||Object.values(nr.on).some(Boolean)?'<button class="linkbtn" data-act="nrReset" style="font-size:13.5px">limpar</button>':''}</div>
     ${items?`<div class="row">${items}</div>`:''}
     ${s.afinidade?`<div class="row nr-contra"><span class="lbl" title="Afinidade: +2d20 contra efeitos do seu elemento, –2d20 contra o elemento opressor">Contra efeito de</span>${ELS_AF.map(e=>`<button class="cond ${nr.contra===e?'on':''} ${e===s.afinidade?'af-bom':e===opressorDe(s.afinidade)?'af-ruim':''}" data-act="nrContra" data-v="${e}" ${ed?'':'disabled'}>${e}${e===s.afinidade?' +2d20':e===opressorDe(s.afinidade)?' –2d20':''}</button>`).join('')}</div>`:''}
-    <div class="nr-hint">Vale para a próxima perícia, atributo ou ataque rolado. Habilidades marcadas descontam PE só se se aplicarem.</div></div>`;
+    <div class="nr-hint help">Vale para a próxima perícia, atributo ou ataque rolado. Habilidades marcadas descontam PE só se se aplicarem.</div></div>`;
 }
 function condPanel(s,ed){
   const {all,implied}=expandConds(s.condicoes);const agg=condAgg(s.condicoes).agg;
@@ -3568,8 +3643,10 @@ function condPanel(s,ed){
     if(k.startsWith('d:')){const w=k.slice(2);const tag=(v>0?'+':'–')+Math.abs(v)+'d20';
       parts.push(`${tag} ${w==='*'?'em testes':w==='ataque'?'em ataques':w==='ataque_corpo'?'em ataques corpo a corpo':w.startsWith('attr:')?'em '+ATTR_NOME[w.slice(5)]:w.startsWith('per:')?'em '+w.slice(4):w}`)}
     else if(k==='def')parts.push(`${v} na Defesa`);else if(k==='desloc_meio')parts.push('deslocamento pela metade');else if(k==='desloc0')parts.push('deslocamento 0');else if(k==='custo')parts.push(`+${v} PE em habilidades e rituais`);else if(k==='pv_meio')parts.push('PV máximos pela metade');else if(k==='dmg_extra')parts.push('+1d10 de dano contra o rival e metade do dano de outras fontes')});
-  return `<div><div class="row" style="margin-bottom:6px"><span class="lbl">Condições</span><span class="spacer"></span>${(s.condicoes||[]).length&&ed?'<button class="linkbtn" data-act="clearConds" style="font-size:13.5px">limpar todas</button>':''}</div>
-    <div class="conds">${Object.entries(CONDICOES).map(([k,c])=>`<button class="cond ${(s.condicoes||[]).includes(k)?'on':implied.has(k)?'implied':''}" data-act="toggleCond" data-k="${k}" title="${esc(c.desc)}" ${ed?'':'disabled'}>${c.nome}</button>`).join('')}</div>
+  const ativas=(s.condicoes||[]).filter(k=>CONDICOES[k]);
+  return `<div class="cond-box"><details class="cond-det" data-k="conds"><summary><span class="lbl">Condições</span>${ativas.length?ativas.map(k=>`<span class="chip cond-on">${esc(CONDICOES[k].nome)}</span>`).join(''):'<span class="muted mono" style="font-size:14px">nenhuma</span>'}<span class="spacer"></span><span class="cond-mais">${ed?'alterar':'ver'}</span></summary>
+    ${ativas.length&&ed?'<div class="row" style="justify-content:flex-end;margin:6px 0"><button class="linkbtn" data-act="clearConds" style="font-size:13.5px">limpar todas</button></div>':''}
+    <div class="conds">${Object.entries(CONDICOES).map(([k,c])=>`<button class="cond ${(s.condicoes||[]).includes(k)?'on':implied.has(k)?'implied':''}" data-act="toggleCond" data-k="${k}" title="${esc(c.desc)}" ${ed?'':'disabled'}>${c.nome}</button>`).join('')}</div></details>
     ${parts.length?`<div class="cond-sum">Aplicado nas rolagens: ${parts.join(' · ')}</div>`:''}</div>`;
 }
 function tabCombate(s,d,ed){
@@ -3579,7 +3656,7 @@ function tabCombate(s,d,ed){
   <div class="row"><span class="lbl">Ataques</span><span class="spacer"></span>${ed?`<button class="btn sm" data-act="addFromCat" data-k="itens" data-f="arma">Arma do arsenal</button><button class="btn sm solid" data-act="editAtk">Novo ataque</button>`:''}</div>
   ${atks.length?atks.map(a=>{const i=atkInfo(a,d);return `<div class="card"><div class="card-h"><h4>${esc(a.nome)}</h4>${a.src==='item'?'<span class="chip">Inventário</span>':''}${i.auto?'<span class="chip">Automática</span>':''}
     <div class="acts"><button class="btn sm solid" data-act="attack" data-id="${a.id}" ${ed?'':'disabled'}>Atacar</button>${i.auto?`<button class="btn sm" data-act="attack" data-id="${a.id}" data-rajada="1" ${ed?'':'disabled'} title="–O no ataque, +1 dado de dano${i.compensador?' (compensador anula a penalidade)':''}">Rajada</button>`:''}<button class="btn sm" data-act="damage" data-id="${a.id}" ${ed?'':'disabled'}>Dano</button>${ed?`<button class="ico-btn" data-act="${a.src==='item'?'editItem':'editAtk'}" data-id="${a.id}" title="Editar" aria-label="Editar">✎</button>`:''}${ed&&a.src==='ataque'?`<button class="ico-btn" data-act="delEntry" data-k="ataques" data-id="${a.id}" title="Remover" aria-label="Remover">✕</button>`:''}</div></div>
-    <div class="kv"><span><b>Teste</b>${esc(i.pericia)} ${i.spec.label}${fmtB(i.atkB)}</span><span><b>Dano</b>${esc(i.dmg)}${a.danoTipo?' '+esc(a.danoTipo.toLowerCase()):''}</span><span><b>Crítico</b>${i.crit}${i.crit<20?'+':''}/x${i.mult}</span>${a.alcance&&a.alcance!=='—'?`<span><b>Alcance</b>${esc(a.alcance)}</span>`:''}</div>${a.obs?`<p>${esc(a.obs)}</p>`:''}${(a.mods||[]).length?`<div class="fx">${a.mods.map(m=>`<span>${esc(MODS_ARMA.find(x=>x.id===m)?.nome||m)}</span>`).join('')}</div>`:''}</div>`}).join(''):'<div class="empty">Nenhum ataque. Adicione uma arma do arsenal ou crie um ataque.</div>'}
+    <div class="kv"><span><b>Teste</b>${esc(i.pericia)} ${i.spec.label}${fmtB(i.atkB)}</span><span><b>Dano</b>${esc(i.dmg)}${i.tipos.length?' '+esc(i.tipos.join(', ')):''}</span><span><b>Crítico</b>${i.crit}${i.crit<20?'+':''}/x${i.mult}</span>${a.alcance&&a.alcance!=='—'?`<span><b>Alcance</b>${esc(a.alcance)}</span>`:''}</div>${danosDe(a).some(c=>c.sit)?`<div class="sit-row"><span class="lbl">Situacional</span>${danosDe(a).map((c,ix)=>c.sit?`<button class="cond sit ${sitAtivo(a.id,ix)?'on':''}" data-act="sitTog" data-id="${a.id}" data-i="${ix}" aria-pressed="${sitAtivo(a.id,ix)}" title="${sitAtivo(a.id,ix)?'Ligado: entra no próximo dano':'Clique para incluir no dano'}">+${esc(c.expr)}${c.tipo?' '+esc(c.tipo):''}${c.nome?' · '+esc(c.nome):''}</button>`:'').join('')}</div>`:''}${a.obs?`<p>${esc(a.obs)}</p>`:''}${(a.mods||[]).length?`<div class="fx">${a.mods.map(m=>`<span>${esc(MODS_ARMA.find(x=>x.id===m)?.nome||m)}</span>`).join('')}</div>`:''}</div>`}).join(''):'<div class="empty">Nenhum ataque. Adicione uma arma do arsenal ou crie um ataque.</div>'}
   ${condPanel(s,ed)}`;
 }
 function tabHab(s,d,ed){
@@ -3608,7 +3685,7 @@ function ritFiltros(rs){
 function tabRit(s,d,ed){
   const rs=s.rituais||[];const maxCirc=s.classe==='Ocultista'?(+s.nex>=85?4:+s.nex>=55?3:+s.nex>=25?2:1):(+s.nex>=75?3:+s.nex>=45?2:1);
   return `<div class="row"><span class="lbl">Rituais · DT ${d.dtRitual} · limite ${d.peTurnoRitual} PE por conjuração</span><span class="spacer"></span>${ed?`<button class="btn sm" data-act="addFromCat" data-k="rituais">Catálogo</button><button class="btn sm solid" data-act="editRit">Novo ritual</button>`:''}</div>
-  <p class="fx-help" style="margin:0">Conjurar pede Ocultismo contra DT 20 + custo (exceto Medo): falhando, perde SAN igual ao custo; por 5 ou mais, perde 1 SAN permanente. Rituais de Medo sempre custam SAN. Círculo máximo atual: ${maxCirc}º${s.classe!=='Ocultista'?' (via Aprender Ritual)':''}. ${s.afinidade?'Afinidade: '+esc(s.afinidade)+' (dispensa componentes).':''}</p>
+  <p class="fx-help help" style="margin:0">Conjurar pede Ocultismo contra DT 20 + custo (exceto Medo): falhando, perde SAN igual ao custo; por 5 ou mais, perde 1 SAN permanente. Rituais de Medo sempre custam SAN. Círculo máximo atual: ${maxCirc}º${s.classe!=='Ocultista'?' (via Aprender Ritual)':''}. ${s.afinidade?'Afinidade: '+esc(s.afinidade)+' (dispensa componentes).':''}</p>
   ${ritFiltros(rs)}
   ${rs.length?ritFiltrar(rs).map(r=>`<div class="card rit-card re-${r.elemento} ${r.ativo?'active':''}"><button class="rit-art ${r.arte&&ImgDB.src(r.arte)?'':'vazia'}" data-act="verCarta" data-k="rituais" data-id="${r.id}" title="Ver a carta do ritual" aria-label="Ver a carta do ritual">${r.arte&&ImgDB.src(r.arte)?`<img src="${ImgDB.src(r.arte)}" alt="">`:`<span>${EL_SIGILO[r.elemento]||'✦'}</span>`}</button><div class="rit-corpo"><div class="card-h"><h4>${esc(r.nome)}</h4><span class="chip el-${r.elemento}">${esc(r.elemento)}</span><span class="chip">${r.circulo}º círculo</span>${r.livro?`<span class="chip livro">${esc(r.livro)}</span>`:''}${r.circulo>maxCirc?'<span class="chip" style="color:var(--stamp)">acima do seu círculo</span>':''}
     <div class="acts"><button class="btn sm solid" data-act="castRit" data-id="${r.id}" ${ed?'':'disabled'}>Conjurar · ${ritualCost(s,d,r,'b')} PE</button><button class="btn sm" data-act="mesaRitual" data-id="${r.id}" ${ed?'':'disabled'} title="Mostrar a carta deste ritual a todos na mesa">👁 Mostrar à mesa</button>${ed?`<button class="ico-btn" data-act="arteEntrada" data-k="rituais" data-id="${r.id}" title="${r.arte?'Trocar':'Escolher'} a arte da carta" aria-label="Arte da carta">🖼</button>${r.arte?`<button class="ico-btn" data-act="arteRemover" data-k="rituais" data-id="${r.id}" title="Remover a arte" aria-label="Remover a arte">⌫</button>`:''}`:''}${r.ativo?`<button class="toggle on" data-act="toggleFx" data-k="rituais" data-id="${r.id}" ${ed?'':'disabled'}>Encerrar</button>`:''}
@@ -3878,7 +3955,7 @@ async function rollAttack(id,rajada){
   const t=mkLine(`Ataque · ${a.nome}${rajada?' (rajada)':''}${b.used.length?' · '+b.used.join(', '):''}`,testExpr(i.base,i.dmod+b.dice+raj,i.atkB+b.bonus)+b.extra.map(x=>'+'+x).join(''),i.crit);
   if(b.consumir.length)s.habilidades=(s.habilidades||[]).filter(h=>!b.consumir.includes(h.id));
   const baseD=addDice(i.baseDano,rajada?1:0);const extras=[...i.extras,...b.dmgExtra];const flat=i.flat+b.dmgBonus;
-  const dm=mkLine(`Dano${t.crit?' crítico':''} · ${a.nome}`,(t.crit?critExpr(baseD,i.mult):baseD)+extras.map(x=>'+'+x).join('')+(flat?fmtB(flat):''));dm.crit=t.crit;
+  const dm=mkLine(`Dano${t.crit?' crítico':''} · ${a.nome}${i.tipos.length?' ('+i.tipos.join(', ')+')':''}`,(t.crit?critExpr(baseD,i.mult):baseD)+extras.map(x=>'+'+x).join('')+(t.crit?i.soCrit.map(x=>'+'+x).join(''):'')+(flat?fmtB(flat):''));dm.crit=t.crit;
   state.nr=freshNR();await saveSheet(s);logRoll([t,dm]);
 }
 
@@ -4000,17 +4077,22 @@ function entryModal(kind,id){
       <label class="field"><span>Proficiência</span>${sel('e-prof',['Simples','Tática','Pesada'],a.prof||'Simples')}</label>
       <label class="field"><span>Tipo</span>${sel('e-tatq',[['corpo','Corpo a corpo'],['arremesso','Arremesso'],['disparo','Disparo'],['fogo','Arma de fogo']],tipoAtq)}</label>
       <label class="field"><span>Empunhadura</span>${sel('e-emp',[['leve','Leve'],['uma','Uma mão'],['duas','Duas mãos']],a.empunhadura||'uma')}</label></div>
-    <div class="wgrid w5 full">${I('e-dano','Dano*',a.dano)}${I('e-dextra','Dano extra',a.danoExtra||'','text')}${I('e-crit','Crítico*',a.crit,'number')}${I('e-mult','Multiplicador*',a.mult,'number')}${I('e-dtipo','Tipo de dano',a.danoTipo)}</div>
+    <div class="wgrid w4 full">${I('e-dano','Dano*',a.dano)}${I('e-crit','Crítico*',a.crit,'number')}${I('e-mult','Multiplicador*',a.mult,'number')}${I('e-dtipo','Tipo de dano',a.danoTipo)}</div>
     <div class="wgrid w5 full">${I('e-alc','Alcance',a.alcance)}
       <label class="field"><span>Perícia do ataque</span>${sel('e-per',pers,a.pericia||(tipoAtq==='corpo'?'Luta':'Pontaria'))}</label>
       <label class="field"><span>Atributo no dano</span>${sel('e-adano',[['','Padrão'],['nenhum','Nenhum'],...ATTRS.map(x=>[x,ATTR_NOME[x]])],a.atrDano||'')}</label>
       ${I('e-batq','Bônus no ataque',a.bonusAtq,'number')}${I('e-bdano','Bônus no dano',a.bonusDano,'number')}
     </div>
-    <p class="fx-help full" style="margin-top:-4px">Dano extra soma no dano mas não é multiplicado no crítico. Atributo “Padrão”: Força em corpo a corpo e arremesso, nada em disparo e fogo.</p>
+    <p class="fx-help full" style="margin-top:-4px">Atributo “Padrão”: Força em corpo a corpo e arremesso, nada em disparo e fogo.</p>
+    <details class="sec mods-sec full" data-k="ed-danos" ${danosDe(a).length?'open':''}><summary><span class="type sec-t">Danos adicionais</span><small class="mono muted" id="danosN">${danosDe(a).length||'nenhum'}</small></summary>
+      <datalist id="dl-tipos">${["balístico","corte","impacto","perfuração","fogo","eletricidade","frio","químico","mental","Sangue","Morte","Conhecimento","Energia","Medo"].map(t=>`<option value="${t}">`).join("")}</datalist><div class="dano-lista" id="danoLista">${danosDe(a).map(danoRow).join('')}</div>
+      <button type="button" class="btn sm" id="danoAdd">+ Adicionar dano</button>
+      <p class="fx-help">Cada linha soma no dano da arma. <b>Crítico</b>: “multiplica” entra na multiplicação; “não multiplica” soma por fora; “só no crítico” aparece apenas quando critar. <b>Situacional</b> vira um botão no cartão do ataque para ligar só quando valer (ex.: contra mortos-vivos).</p></details>
     <div class="row full" style="gap:18px"><label class="chk"><input type="checkbox" id="e-agil" ${a.agil?'checked':''}> Ágil (usa Agilidade se for maior)</label><label class="chk"><input type="checkbox" id="e-auto" ${a.auto?'checked':''}> Automática (rajada)</label></div>
     <details class="sec mods-sec full" data-k="ed-mods" ${mods.length?'open':''}><summary><span class="type sec-t">Modificações</span><small class="mono muted" id="modsN">${mods.length?mods.length+' · +'+mods.length+' categoria(s)':'+1 categoria cada'}</small></summary><div class="mod-lista" id="modLista">${lista(MODS_ARMA,mods,'mod',tagMod)}</div></details>
     <details class="sec mods-sec full" data-k="ed-mals" ${mals.length?'open':''}><summary><span class="type sec-t">Maldições</span><small class="mono muted" id="malsN">${mals.length?mals.length+' · +'+(mals.length+1)+' categoria(s)':'a primeira +II, as seguintes +I'}</small></summary><div class="mod-lista" id="malLista">${typeof MALDICOES_ARMA!=='undefined'?lista(MALDICOES_ARMA,mals,'mal',tagMal):''}</div><p class="fx-help">Não misture maldições de elementos opressores na mesma arma. Lancinante, Erosiva e Predadora já entram no cálculo.</p></details>`};
-  const readWeapon=()=>({pericia:$('#e-per').value,tipoAtq:$('#e-tatq').value,empunhadura:$('#e-emp').value,dano:$('#e-dano').value.trim()||'1d4',danoExtra:$('#e-dextra').value.trim(),danoTipo:$('#e-dtipo').value.trim(),alcance:$('#e-alc').value,crit:clamp(num($('#e-crit').value)||20,2,20),mult:clamp(num($('#e-mult').value)||2,2,6),prof:$('#e-prof').value,atrDano:$('#e-adano').value,bonusAtq:num($('#e-batq').value),bonusDano:num($('#e-bdano').value),agil:$('#e-agil').checked,auto:$('#e-auto').checked,mods:$$('#modLista .mod-row.on').map(r=>r.dataset.mod),maldicoes:$$('#malLista .mod-row.on').map(r=>r.dataset.mal)});
+  const readDanos=()=>$$('#danoLista .dano-row').map(r=>({expr:r.querySelector('.d-expr').value.trim(),tipo:r.querySelector('.d-tipo').value.trim(),crit:r.querySelector('.d-crit').value,sit:r.querySelector('.d-sit').checked,nome:r.querySelector('.d-nome').value.trim()})).filter(c=>c.expr);
+  const readWeapon=()=>({danos:readDanos(),danoExtra:'',pericia:$('#e-per').value,tipoAtq:$('#e-tatq').value,empunhadura:$('#e-emp').value,dano:$('#e-dano').value.trim()||'1d4',danoTipo:$('#e-dtipo').value.trim(),alcance:$('#e-alc').value,crit:clamp(num($('#e-crit').value)||20,2,20),mult:clamp(num($('#e-mult').value)||2,2,6),prof:$('#e-prof').value,atrDano:$('#e-adano').value,bonusAtq:num($('#e-batq').value),bonusDano:num($('#e-bdano').value),agil:$('#e-agil').checked,auto:$('#e-auto').checked,mods:$$('#modLista .mod-row.on').map(r=>r.dataset.mod),maldicoes:$$('#malLista .mod-row.on').map(r=>r.dataset.mal)});
   let html='';const T={habilidades:'habilidade',rituais:'ritual',itens:'item',ataques:'ataque'}[kind];
   if(kind==='habilidades')html=`${I('e-nome','Nome',o.nome,'text','full')}<label class="field"><span>Fonte</span>${sel('e-fonte',['Classe','Origem','Trilha','Geral','Combatente','Especialista','Ocultista','Paranormal','Outro',...(o.fonte&&!['Classe','Origem','Trilha','Geral','Combatente','Especialista','Ocultista','Paranormal','Outro'].includes(o.fonte)?[o.fonte]:[])],o.fonte)}</label>
     <label class="field"><span>Modo</span>${sel('e-modo',[['passiva','Passiva (sempre ativa)'],['ativavel','Ativável (liga/desliga)'],['acao','Ação (gasta PE ao usar)']],o.modo)}</label>${I('e-custo','Custo em PE',o.custo,'number')}${I('e-rol','Rolagem ao usar (opcional)',o.rolagem)}
@@ -4031,6 +4113,9 @@ function entryModal(kind,id){
   if(kind==='ataques')html=`${I('e-nome','Nome',o.nome,'text','full')}${weaponFields(o)}<label class="field full"><span>Observações</span><textarea class="inp" id="e-desc">${esc(o.obs)}</textarea></label>`;
   openModal(`<h3>${cur?'Editar':'Novo'} ${T}</h3><form id="entryForm" class="mgrid" novalidate>${html}<div class="mfoot full"><button type="button" class="btn" data-act="closeModal">Cancelar</button><button class="btn solid" type="submit">Salvar</button></div></form>`,'wide');
   if($('#fxAdd'))bindFx();
+  if($('#danoAdd')){const upd=()=>{const n=$$('#danoLista .dano-row').length;$('#danosN').textContent=n||'nenhum'};
+    $('#danoAdd').addEventListener('click',()=>{$('#danoLista').insertAdjacentHTML('beforeend',danoRow({expr:'',tipo:'',crit:'nao'}));upd();$$('#danoLista .d-expr').pop().focus()});
+    $('#danoLista').addEventListener('click',e=>{const b=e.target.closest('.d-del');if(b){b.closest('.dano-row').remove();upd()}})}
   $('#entryForm').addEventListener('click',ev=>{const b=ev.target.closest('.mod-tg');if(!b)return;const r=b.closest('.mod-row');const on=!r.classList.contains('on');r.classList.toggle('on',on);b.textContent=on?'−':'+';b.setAttribute('aria-pressed',on);
     const nm=$$('#modLista .mod-row.on').length,nl=$$('#malLista .mod-row.on').length;if($('#modsN'))$('#modsN').textContent=nm?`${nm} · +${nm} categoria(s)`:'+1 categoria cada';if($('#malsN'))$('#malsN').textContent=nl?`${nl} · +${nl+1} categoria(s)`:'a primeira +II, as seguintes +I'});
   if($('#e-tatq'))$('#e-tatq').addEventListener('change',e=>{const p=$('#e-per');if(p&&['Luta','Pontaria'].includes(p.value))p.value=e.target.value==='corpo'?'Luta':'Pontaria'});
@@ -4039,7 +4124,7 @@ function entryModal(kind,id){
   $('#entryForm').onsubmit=async e=>{e.preventDefault();
     const n=$('#e-nome').value.trim();if(!n){$('#e-nome').focus();toast('Dê um nome antes de salvar.','err');return}
     o.nome=n;
-    try{['e-rol','e-uso','e-dano','e-dextra','e-drol','e-vrol'].forEach(k=>{const el=$('#'+k);if(el&&el.value.trim()&&!el.closest('[hidden]'))rollExpr(el.value)})}catch(x){toast('Confira as expressões de dados: '+esc(x.message),'err');return}
+    try{['e-rol','e-uso','e-dano','e-drol','e-vrol'].forEach(k=>{const el=$('#'+k);if(el&&el.value.trim()&&!el.closest('[hidden]'))rollExpr(el.value)});$$('#danoLista .d-expr').forEach(el=>{if(el.value.trim()&&!el.closest('[hidden]'))rollExpr(el.value)})}catch(x){toast('Confira as expressões de dados: '+esc(x.message),'err');return}
     if(kind==='habilidades'){Object.assign(o,{fonte:$('#e-fonte').value,modo:$('#e-modo').value,custo:num($('#e-custo').value),rolagem:$('#e-rol').value.trim(),rolagemTipo:$('#e-rtipo').value,descricao:$('#e-desc').value,efeitos:readFx()});if($('.e-perito'))o.pericias=$$('.e-perito').filter(c=>c.checked).map(c=>c.value)}
     if(kind==='rituais'){Object.assign(o,{elemento:$('#e-el').value,circulo:+$('#e-circ').value,custo:num($('#e-custo').value),ajusteCusto:num($('#e-aj').value),execucao:$('#e-exec').value,alcance:$('#e-alc').value,alvo:$('#e-alvo').value,duracao:$('#e-dur').value,resistencia:$('#e-res').value,rolagem:$('#e-rol').value.trim(),rolagemTipo:$('#e-rtipo').value,descricao:$('#e-desc').value,efeitos:readFx()});
       o.formas=o.formas||{};[['d','e-d'],['v','e-v']].forEach(([k,p])=>{const pe=num($('#'+p+'pe').value),desc=$('#'+p+'desc').value.trim(),rol=$('#'+p+'rol').value.trim();if(pe||desc||rol)o.formas[k]=Object.assign(o.formas[k]||{},{pe,desc,rolagem:rol});else delete o.formas[k]})}
@@ -4218,7 +4303,8 @@ const A={
   rollPer:el=>rollTest(el.dataset.p,null,el.dataset.p),
   sheetRoll:()=>{try{logRoll([mkLine('Rolagem livre',$('#s-expr').value)])}catch(x){toast(esc(x.message),'err')}},
   attack:el=>rollAttack(el.dataset.id,!!el.dataset.rajada),
-  damage:el=>{const s=state.sheet,d=derive(s),a=attacksOf(s).find(x=>x.id===el.dataset.id);const i=atkInfo(a,d);logRoll([mkLine(`Dano · ${a.nome}`,i.baseDano+i.extras.map(x=>'+'+x).join('')+(i.flat?fmtB(i.flat):''))])},
+  damage:el=>{const s=state.sheet,d=derive(s),a=attacksOf(s).find(x=>x.id===el.dataset.id);const i=atkInfo(a,d);logRoll([mkLine(`Dano · ${a.nome}${i.tipos.length?' ('+i.tipos.join(', ')+')':''}`,i.baseDano+i.extras.map(x=>'+'+x).join('')+(i.flat?fmtB(i.flat):''))])},
+  sitTog:el=>{const k=el.dataset.id+':'+el.dataset.i;SIT_ON.has(k)?SIT_ON.delete(k):SIT_ON.add(k);render()},
   nrDice:el=>{state.nr.dice=clamp(state.nr.dice+(+el.dataset.d),-5,5);render()},
   nrBonus:el=>{state.nr.bonus=clamp(state.nr.bonus+(+el.dataset.d),-30,30);render()},
   nrToggle:el=>{state.nr.on[el.dataset.id]=!state.nr.on[el.dataset.id];render()},
@@ -4308,6 +4394,54 @@ async function submitAuth(){
 
 Object.assign(A,{
   privToggle:()=>{setPrivado(!privado());toast(privado()?(state.isGM?'Suas rolagens agora ficam ocultas dos jogadores.':'Suas rolagens agora ficam ocultas dos outros jogadores (o mestre continua vendo).'):'Suas rolagens voltaram a ser públicas.');render()},
+});
+/* modo jogar / editar ficha (preferência por navegador) */
+(()=>{const g=k=>{try{return localStorage.getItem('nexpref.'+k)==='1'}catch(e){return false}};state.editMode=false;state.perTodas=g('perTodas')})();
+const setPref=(k,v)=>{try{localStorage.setItem('nexpref.'+k,v?'1':'0')}catch(e){}};
+Object.assign(A,{
+  toggleEdit:()=>{state.editMode=!state.editMode;render();toast(state.editMode?'Modo edição: todos os campos estão visíveis.':'Modo jogo: só o que importa na mesa.')},
+  perTodas:()=>{state.perTodas=!state.perTodas;setPref('perTodas',state.perTodas);render()},
+});
+/* painéis recolhíveis da área do mestre (estado lembrado por navegador) */
+const COL_MEM={};const colapsado=k=>{if(k in COL_MEM)return COL_MEM[k];try{const v=localStorage.getItem('nexpref.col.'+k);return v==null?null:v==='1'}catch(e){return null}};
+afterRender.push(()=>{document.querySelectorAll('section.panel[data-colapsa]').forEach(sec=>{
+  const k=sec.dataset.colapsa;const pref=colapsado(k);const fechado=sec.dataset.aberto?false:pref==null?true:pref;
+  sec.classList.toggle('fechado',fechado);const h=sec.querySelector('.panel-head');if(!h||h.querySelector('.col-tg'))return;
+  const b=document.createElement('button');b.type='button';b.className='col-tg';b.setAttribute('aria-expanded',String(!fechado));b.setAttribute('aria-label','Mostrar ou esconder '+(h.querySelector('h2')?.textContent||''));b.textContent='▾';h.prepend(b);
+  const tg=()=>{const f=!sec.classList.contains('fechado');sec.classList.toggle('fechado',f);b.setAttribute('aria-expanded',String(!f));COL_MEM[k]=f;try{localStorage.setItem('nexpref.col.'+k,f?'1':'0')}catch(e){}};
+  b.addEventListener('click',tg);h.querySelector('h2')?.addEventListener('click',tg)})});
+
+/* linha de dano adicional no editor de arma */
+function danoRow(c){const e=v=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');return `<div class="dano-row">
+  <label class="field"><span>Dano</span><input class="inp d-expr" value="${e(c.expr)}" placeholder="1d6"></label>
+  <label class="field"><span>Tipo</span><input class="inp d-tipo" value="${e(c.tipo)}" placeholder="fogo" list="dl-tipos"></label>
+  <label class="field"><span>Crítico</span><select class="inp d-crit">${[['nao','não multiplica'],['mult','multiplica'],['so','só no crítico']].map(([v,l])=>`<option value="${v}" ${c.crit===v?'selected':''}>${l}</option>`).join('')}</select></label>
+  <label class="field d-nome-f"><span>Quando / nome</span><input class="inp d-nome" value="${e(c.nome)}" placeholder="opcional"></label>
+  <label class="chk d-sit-f"><input type="checkbox" class="d-sit" ${c.sit?'checked':''}> Situacional</label>
+  <button type="button" class="ico-btn d-del" aria-label="Remover dano">✕</button></div>`}
+
+/* descrições recolhidas por padrão; lembra o que foi aberto nesta sessão */
+const CARD_ABERTOS=new Set((()=>{try{return JSON.parse(sessionStorage.getItem('nex.cardsAbertos')||'[]')}catch(e){return []}})());
+const salvaAbertos=()=>{try{sessionStorage.setItem('nex.cardsAbertos',JSON.stringify([...CARD_ABERTOS]))}catch(e){}};
+const cardChave=c=>{const el=c.querySelector('[data-id]');return el?el.dataset.id:null};
+afterRender.push(()=>{
+  const tb=document.querySelector('.dossier .tabbody');
+  if(tb&&['habilidades','rituais','inventario'].includes(state.sheetTab)){
+    const cards=[...tb.querySelectorAll(':scope>.card')].filter(c=>c.querySelector('.card-h')&&cardChave(c));
+    cards.forEach(c=>{const k=cardChave(c);const h=c.querySelector('.card-h');c.classList.add('recolhivel');c.classList.toggle('recolhido',!CARD_ABERTOS.has(k));
+      if(!h.querySelector('.card-tg')){const b=document.createElement('button');b.type='button';b.className='card-tg';b.setAttribute('aria-label','Mostrar ou esconder a descrição');h.prepend(b);b.textContent='▸'}
+      h.querySelector('.card-tg').setAttribute('aria-expanded',String(CARD_ABERTOS.has(k)))});
+    if(cards.length>1&&!tb.querySelector('.tg-todos')){const d=document.createElement('div');d.className='tg-todos';d.innerHTML='<button class="linkbtn" data-tg="abrir">expandir todos</button><button class="linkbtn" data-tg="fechar">recolher todos</button>';cards[0].before(d)}
+  }
+  document.querySelectorAll('.ali-it').forEach(it=>{if(!it.querySelector('small'))return;const k=(it.querySelector('[data-id]')||{}).dataset?.id||it.querySelector('b')?.textContent;it.classList.add('recolhivel');it.classList.toggle('aberto',CARD_ABERTOS.has('ali:'+k));it.dataset.ck='ali:'+k});
+});
+document.addEventListener('click',e=>{
+  const tgAll=e.target.closest('.tg-todos [data-tg]');
+  if(tgAll){const abrir=tgAll.dataset.tg==='abrir';document.querySelectorAll('.tabbody>.card.recolhivel').forEach(c=>{const k=cardChave(c);abrir?CARD_ABERTOS.add(k):CARD_ABERTOS.delete(k);c.classList.toggle('recolhido',!abrir);c.querySelector('.card-tg')?.setAttribute('aria-expanded',String(abrir))});salvaAbertos();return}
+  const card=e.target.closest('.card.recolhivel');
+  if(card&&(e.target.closest('.card-tg')||e.target.closest('.card-h h4'))){const k=cardChave(card);const abrir=card.classList.contains('recolhido');abrir?CARD_ABERTOS.add(k):CARD_ABERTOS.delete(k);card.classList.toggle('recolhido',!abrir);card.querySelector('.card-tg')?.setAttribute('aria-expanded',String(abrir));salvaAbertos();return}
+  const ali=e.target.closest('.ali-it.recolhivel');
+  if(ali&&e.target.closest('b')){const k=ali.dataset.ck;ali.classList.toggle('aberto');ali.classList.contains('aberto')?CARD_ABERTOS.add(k):CARD_ABERTOS.delete(k);salvaAbertos()}
 });
 
 /* =====================================================================
@@ -5319,10 +5453,10 @@ function abrirAtaque(sid,atkKey){
   const st={alvo:alvos.length===1?alvos[0].id:null,modo:armas.length?'arma':'custom',arma:atkKey&&armas.some(x=>x.key===atkKey)?atkKey:(armas[0]||{}).key,
     tipos:{},mod:0,dados:0,cobertura:false,defManual:{},custom:{nome:'',pericia:'Luta',dano:'1d6',crit:20,mult:2,tipo:'impacto'},man:'derrubar',rajada:false,vezes:null};
   function montar(){
-    let spec,atkB=0,dano='',base='',resto='',crit=20,mult=2,nome='',qtd=1,danoTipo='',melee=true,avisos=[];
+    let spec,atkB=0,dano='',base='',resto='',soCrit='',crit=20,mult=2,nome='',qtd=1,danoTipo='',melee=true,avisos=[];
     if(st.modo==='arma'){
       const w=armas.find(x=>x.key===st.arma);if(!w)return null;
-      if(isPC){const i=atkInfo(w.a,d);spec={base:i.base,mod:i.dmod};atkB=i.atkB;base=addDice(i.baseDano,st.rajada?1:0);resto=(i.extras.length?'+'+i.extras.join('+'):'')+(i.flat?fmtB(i.flat):'');dano=base+resto;crit=i.crit;mult=i.mult;nome=w.nome;melee=i.melee;danoTipo=w.a.danoTipo||'';if(st.rajada&&!i.compensador)spec.mod-=1}
+      if(isPC){const i=atkInfo(w.a,d);spec={base:i.base,mod:i.dmod};atkB=i.atkB;base=addDice(i.baseDano,st.rajada?1:0);resto=(i.extras.length?'+'+i.extras.join('+'):'')+(i.flat?fmtB(i.flat):'');soCrit=i.soCrit.map(x=>'+'+x).join('');dano=base+resto;crit=i.crit;mult=i.mult;nome=w.nome;melee=i.melee;danoTipo=w.a.danoTipo||'';if(st.rajada&&!i.compensador)spec.mod-=1}
       else{const a=w.a;spec={base:+a.d||1,mod:0};atkB=+a.b||0;dano=a.dano;crit=+a.crit||20;mult=+a.mult||2;nome=a.nome;qtd=Math.max(1,+a.qtd||1);qtd=Math.max(qtd,npcMaxAtaques(s));melee=a.tipo==='Corpo a corpo';danoTipo=a.danoTipo||''}
     }else{
       const c=st.custom;nome=c.nome||'Ataque personalizado';
@@ -5332,7 +5466,7 @@ function abrirAtaque(sid,atkKey){
     let dmod=0,bon=0;Object.keys(st.tipos).filter(k=>st.tipos[k]).forEach(k=>{const t=ATAQUE_TIPOS[k];dmod+=t.dados||0;bon+=t.bonus||0});
     dmod+=+st.dados||0;bon+=+st.mod||0;
     if(!base){base=dano;resto=''}
-    return{nome,base,resto,expr:testExpr(spec.base,spec.mod+dmod,atkB+bon),label:diceSpec(spec.base,spec.mod+dmod).label+fmtB(atkB+bon),dano,crit,mult,qtd,danoTipo,melee,avisos};
+    return{nome,base,resto,soCrit,expr:testExpr(spec.base,spec.mod+dmod,atkB+bon),label:diceSpec(spec.base,spec.mod+dmod).label+fmtB(atkB+bon),dano,crit,mult,qtd,danoTipo,melee,avisos};
   }
   function defDe(e){if(!e)return null;const i=cbInfo(e);let v=e.s||e.raw.defesa?i.def:+st.defManual[e.id]||0;const conds=e.s?(e.s.condicoes||[]):(e.raw.cond||[]);const notas=[];
     if(conds.includes('desprevenido')||conds.includes('surpreendido')){v-=5;notas.push('desprevenido –5')}
@@ -5396,7 +5530,7 @@ function abrirAtaque(sid,atkKey){
     for(let k=0;k<nAt;k++){
       const t=mkLine(`Ataque${nAt>1?' '+(k+1):''} · ${m.nome}${alvoE?' → '+alvoE.nome:''}`,m.expr,m.crit,df&&df.v?df.v:null);lines.push(t);
       const acertou=!df||!df.v||t.total>=df.v;
-      if(acertou){const dm=mkLine(`Dano${t.crit?' crítico':''} · ${m.nome}`,t.crit?critExpr(m.base,m.mult)+m.resto:m.dano);dm.crit=t.crit;lines.push(dm);golpes.push({total:dm.total,crit:t.crit})}
+      if(acertou){const dm=mkLine(`Dano${t.crit?' crítico':''} · ${m.nome}`,t.crit?critExpr(m.base,m.mult)+m.resto+(m.soCrit||''):m.dano);dm.crit=t.crit;lines.push(dm);golpes.push({total:dm.total,crit:t.crit})}
       else lines.push({note:`Errou (${t.total} contra Defesa ${df.v}).`});
     }
     if(st.tipos.investida)lines.push({note:`${s.nome} fez uma investida: –5 na Defesa até o próximo turno.`});
@@ -6472,7 +6606,7 @@ function intRender(){
 function intFaixa(){const i=intAtivo();if(!i||intAberto)return'';return `<div class="int-faixa"><span>🕯 Interlúdio em andamento</span><button class="btn sm solid" data-act="intAbrir">Abrir</button>${state.isGM?'<button class="btn sm" data-act="intEncerrar">Encerrar</button>':''}</div>`}
 function intPainelGM(){
   const i=intAtivo();
-  return `<section class="paper panel"><div class="panel-head"><h2>Interlúdio</h2>${i?'<span class="chip ok">em andamento</span>':''}</div>
+  return `<section class="paper panel" data-colapsa="gm-interludio" ${i?'data-aberto="1"':''}><div class="panel-head"><h2>Interlúdio</h2>${i?'<span class="chip ok">em andamento</span>':''}</div>
     ${i?`<p class="mono" style="font-size:15px;margin:0 0 10px">${esc(i.nota||'Interlúdio')} · descanso ${(INT_COND[i.condicao]||INT_COND.normal).nome.toLowerCase()}</p><div class="row" style="gap:8px"><button class="btn solid" data-act="intAbrir">Ver escolhas</button><button class="btn red" data-act="intEncerrar">Encerrar</button></div>`
       :`<p class="fx-help" style="margin-top:0">Abre para todos a tela de ações de interlúdio. Cada personagem escolhe até duas, e os efeitos vão direto para a ficha.</p>
       <div class="mgrid c2"><label class="field"><span>Condição de descanso</span><select class="inp" id="intCond">${Object.entries(INT_COND).map(([k,c])=>`<option value="${k}" ${k==='normal'?'selected':''}>${c.nome} — ${c.ex}</option>`).join('')}</select></label><label class="field"><span>Cena (opcional)</span><input class="inp" id="intNota" placeholder="Pousada na beira da estrada"></label></div>
