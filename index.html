@@ -1783,6 +1783,31 @@ details.hcard[open]>summary .hc-tg{transform:rotate(90deg)}
 .tr-camp{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--ink-faint);cursor:pointer}
 .tr-camp:has(input:checked){border-color:var(--ink);background:var(--stamp-soft)}
 .tr-camp span{display:flex;flex-direction:column}.tr-camp small{font-family:var(--f-mono);color:var(--ink-soft)}
+
+.cc-pags{display:flex;gap:0;border-bottom:1px solid var(--ink-faint);margin:6px 0 10px}
+.cc-pag{background:none;border:0;border-bottom:3px solid transparent;padding:8px 14px;font-family:var(--f-mono);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);cursor:pointer;margin-bottom:-1px}
+.cc-pag.on{color:var(--ink);border-bottom-color:var(--stamp);font-weight:700}
+.cc .nextroll{margin-bottom:10px}
+.cc-itens{display:grid;gap:8px}
+.cc-item{border:1px solid var(--ink-faint);padding:8px 10px}
+.cc-item-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cc-item .hmeta{display:block;margin-top:4px}
+
+.rd-reac.rh{margin-top:8px}
+.rh-it{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:6px 8px;border-left:3px solid var(--ink-faint);margin:4px 0}
+.rh-it.on{border-left-color:var(--stamp);background:var(--stamp-soft)}
+.rh-gs{display:flex;gap:10px;flex-wrap:wrap}
+
+.tempbox{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-bottom:8px;padding:6px 10px;border:2px dashed var(--ink-faint);color:var(--ink-soft)}
+.tempbox.on{border:2px solid var(--pv);background:color-mix(in srgb,var(--pv) 14%,transparent);color:var(--ink)}
+.tempbox .lbl{min-width:9em}
+.tempbox .tb-ctl{display:flex;align-items:center;gap:2px}
+.tempbox .tb-ctl button{background:none;border:1px solid var(--ink-faint);width:30px;height:30px;font-family:var(--f-mono);font-weight:700;font-size:16px;color:inherit;cursor:pointer}
+.tempbox .tb-ctl button:hover{background:rgba(0,0,0,.08)}
+.tempbox .tb-ctl input,.tempbox .tb-ctl b{width:4.4ch;text-align:center;font-family:var(--f-type);font-size:19px;background:transparent;border:0;border-bottom:1px solid var(--ink-faint);color:inherit}
+.tempbox small{flex-basis:100%;font-size:12.5px}
+.tempbox.on .tb-ctl b,.tempbox.on .tb-ctl input{color:var(--pv);font-weight:700}
+.cc .tempbox{margin:2px 0 6px}
 </style>
 <div id="app"><div class="boot"><div><div class="logo">NE<span>X</span></div><p>Abrindo o arquivo de agentes…</p><div class="bar"><i></i></div>
 <noscript><p style="color:#e5e2d9">O NEX precisa de JavaScript para funcionar. Abra pela página publicada ou em um navegador com JavaScript ativado; visualizadores de arquivo costumam bloquear scripts.</p></noscript></div></div></div>
@@ -4068,12 +4093,12 @@ function viewSheet(){
   const cls=CLASSES[s.classe];
   const F=(path,val,attrs='')=>`id="f-${path.replace(/\./g,'-')}" data-f="${path}" value="${esc(val??'')}" ${attrs} ${dis}`;
   const idx=NEX_STEPS.indexOf(+s.nex);const nextNex=NEX_STEPS[idx+1];const xpCost=state.camp.settings?.xpPorNex||100;
-  const bar=(k,lbl,max)=>{const cur=+s[k]||0;const pct=max?clamp(cur/max*100,0,100):0;const srcs=d.src[k]||[];return `<div><div class="bar-top"><span class="lbl">${lbl}</span>${ed?`<button class="ico-btn bar-edit" data-act="editMax" data-k="${k}" title="Editar ${lbl.toLowerCase()} máxima" aria-label="Editar ${lbl} máxima">✎</button>`:''}<span class="src" title="${esc(srcs.join(', '))}">${srcs.length?'efeitos: '+esc(srcs.join(', ')):''}</span></div>
+  const bar=(k,lbl,max)=>{const cur=+s[k]||0;const pct=max?clamp(cur/max*100,0,100):0;const srcs=d.src[k]||[];return `<div>${k==='pv'?tempBox(s,dis):''}<div class="bar-top"><span class="lbl">${lbl}</span>${ed?`<button class="ico-btn bar-edit" data-act="editMax" data-k="${k}" title="Editar ${lbl.toLowerCase()} máxima" aria-label="Editar ${lbl} máxima">✎</button>`:''}<span class="src" title="${esc(srcs.join(', '))}">${srcs.length?'efeitos: '+esc(srcs.join(', ')):''}</span></div>
     <div class="bar ${k} ${k==='pv'&&d.machucado||k==='san'&&d.perturbado?'low':''} ${pct>6?'fl':''} ${pct>92?'fr':''}"><div class="fill" style="width:${pct}%"></div>
     <button data-act="res" data-k="${k}" data-d="-5" ${dis} title="−5" aria-label="${lbl} −5">«</button><button data-act="res" data-k="${k}" data-d="-1" ${dis} title="−1" aria-label="${lbl} −1">‹</button>
     <div class="val ${pct<50?'vazio':''}"><input ${F(k,cur,'type="number" data-n')} aria-label="${lbl} atual"> / <span class="tnum">${max}</span></div>
     <button data-act="res" data-k="${k}" data-d="1" ${dis} title="+1" aria-label="${lbl} +1">›</button><button data-act="res" data-k="${k}" data-d="5" ${dis} title="+5" aria-label="${lbl} +5">»</button></div>
-    ${k!=='san'?`<div class="temp ${+s[k+'Temp']?'':'ed-only'}">${k==='pv'?'PV':'PE'} temporários <input ${F(k+'Temp',s[k+'Temp']||0,'type="number" data-n')} aria-label="${k.toUpperCase()} temporários"> <span class="help">somem no fim da cena</span></div>`:''}</div>`};
+    ${k==='pe'?`<div class="temp ${+s[k+'Temp']?'':'ed-only'}">${k==='pv'?'PV':'PE'} temporários <input ${F(k+'Temp',s[k+'Temp']||0,'type="number" data-n')} aria-label="${k.toUpperCase()} temporários"> <span class="help">somem no fim da cena</span></div>`:''}</div>`};
   const pips=(k,n)=>`<span class="pips">${[1,2,3].map(i=>`<button class="pip ${n>=i?'on':''}" data-act="pip" data-k="${k}" data-i="${i}" ${dis} aria-label="Turno ${i}"></button>`).join('')}</span>`;
   const protecoes=(s.itens||[]).filter(i=>i.equipado&&i.tipo==='protecao').map(i=>i.nome);
   const rdTxt=[d.rd?`RD ${d.rd}`:'',d.rdFisico?`RD ${d.rdFisico} balístico/corte/impacto/perfuração`:'',d.rdMental?`RD mental ${d.rdMental}`:''].filter(Boolean).join(' · ');
@@ -4165,11 +4190,13 @@ function nextRollBar(s,d,ed){
     if(b.tipo==='furtivo'){lbl+=` +${FURTIVO_DADO(+s.nex||0)*(s.assassinar?2:0||1)}d6${s.assassinar?' (Assassinar)':''}`}
     if(b.tipo==='bonus')lbl+=` +${b.valor}`+(b.custoSan?` (–${b.custoSan} SAN)`:'');
     return `<button class="boost ${on?'on':''}" data-act="nrToggle" data-id="${h.id}" ${ed?'':'disabled'}>${esc(lbl)} <small>${cost} PE</small></button>`}).join('');
+  const ass=(s.habilidades||[]).filter(h=>!h.boost&&h.modo==='acao'&&/^Assassinar/i.test(h.nome)).map(h=>s.assassinar?`<span class="boost on" title="Os dados do Ataque Furtivo do próximo ataque saem dobrados">${esc(h.nome)} ativo</span>`:`<button class="boost" data-act="ccAct" data-a="useHab" data-sid="${s.id}" data-id="${h.id}" ${ed?'':'disabled'} title="${esc(h.descricao||'')}">${esc(h.nome)} <small>${h.custo||0} PE</small></button>`).join('');
+  const items2=items+ass;
   return `<div class="nextroll"><div class="row"><span class="lbl">Próxima rolagem</span><span class="spacer"></span>
       <span class="stepper" title="Dados extras: +1d20 ou –1d20 no teste"><button data-act="nrDice" data-d="-1" aria-label="Menos um dado">–</button><span>${nr.dice?(nr.dice>0?'+':'–')+Math.abs(nr.dice)+'d20':'±d20'}</span><button data-act="nrDice" data-d="1" aria-label="Mais um dado">+</button></span>
       <span class="stepper" title="Bônus numérico"><button data-act="nrBonus" data-d="-1" aria-label="Menos 1">–</button><span>${nr.bonus?fmtB(nr.bonus):'±0'}</span><button data-act="nrBonus" data-d="1" aria-label="Mais 1">+</button></span>
       ${nr.dice||nr.bonus||nr.ae||nr.em||nr.contra||Object.values(nr.on).some(Boolean)?'<button class="linkbtn" data-act="nrReset" style="font-size:13.5px">limpar</button>':''}</div>
-    ${items?`<div class="row">${items}</div>`:''}
+    ${items2?`<div class="row">${items2}</div>`:''}
     ${s.afinidade?`<div class="row nr-contra"><span class="lbl" title="Afinidade: +2d20 contra efeitos do seu elemento, –2d20 contra o elemento opressor">Contra efeito de</span>${ELS_AF.map(e=>`<button class="cond ${nr.contra===e?'on':''} ${e===s.afinidade?'af-bom':e===opressorDe(s.afinidade)?'af-ruim':''}" data-act="nrContra" data-v="${e}" ${ed?'':'disabled'}>${e}${e===s.afinidade?' +2d20':e===opressorDe(s.afinidade)?' –2d20':''}</button>`).join('')}</div>`:''}
     <div class="nr-hint help">Vale para a próxima perícia, atributo ou ataque rolado. Habilidades marcadas descontam PE só se se aplicarem.</div></div>`;
 }
@@ -4185,6 +4212,11 @@ function condPanel(s,ed){
     <div class="conds">${Object.entries(CONDICOES).map(([k,c])=>`<button class="cond ${(s.condicoes||[]).includes(k)?'on':implied.has(k)?'implied':''}" data-act="toggleCond" data-k="${k}" title="${esc(c.desc)}" ${ed?'':'disabled'}>${c.nome}</button>`).join('')}</div></details>
     ${parts.length?`<div class="cond-sum">Aplicado nas rolagens: ${parts.join(' · ')}</div>`:''}</div>`;
 }
+/* caixa de vida temporária: fica acima da vida e é gasta primeiro */
+function tempBox(s,dis,sid){const v=+s.pvTemp||0;const act=sid?`data-act="cbResTemp" data-sid="${sid}"`:'data-act="resTemp"';
+  return `<div class="tempbox ${v?'on':''}"><span class="lbl">Vida temporária</span><div class="tb-ctl"><button ${act} data-d="-5" ${dis} aria-label="Vida temporária −5">«</button><button ${act} data-d="-1" ${dis} aria-label="Vida temporária −1">‹</button>
+    ${sid?`<b class="tnum">${v}</b>`:`<input id="f-pvTemp" data-f="pvTemp" value="${v}" type="number" data-n ${dis} aria-label="Vida temporária">`}
+    <button ${act} data-d="1" ${dis} aria-label="Vida temporária +1">›</button><button ${act} data-d="5" ${dis} aria-label="Vida temporária +5">»</button></div><small class="help">${v?'o dano sai daqui primeiro':'nenhuma'} · some no fim da cena</small></div>`}
 function tabCombate(s,d,ed){
   const atks=attacksOf(s);
   return `${ed?nextRollBar(s,d,ed):''}
@@ -4356,6 +4388,8 @@ function renderRolls(){
 function d20Nat(parts){const d=(parts||[]).find(p=>p.t==='d'&&p.sides===20);if(!d||d.kept.length!==1)return null;return d.rolls[d.kept[0]]}
 function mkLine(label,expr,critAt,vs){const r=rollExpr(expr);let crit=false;if(critAt){const d=r.parts.find(p=>p.t==='d'&&p.sides===20);if(d)crit=d.kept.some(i=>d.rolls[i]>=critAt)}
   const nat=d20Nat(r.parts);return{label,expr,total:r.total,parts:r.parts,crit,nat,critAt:critAt||null,vs:vs||null}}
+/* acerto: 20 natural sempre acerta; margem de ameaça só é crítico se passar a Defesa */
+const acerta=(t,def)=>!def||t.nat===20||t.total>=def;
 /* regra da mesa: críticos das ameaças precisam de confirmação (1d20) */
 const CRIT_AMEACA={livro:{nome:'Regra do livro',conf:1,txt:'Crítico sempre que o dado cair na margem.'},leve:{nome:'Um pouco menos',conf:8,txt:'Crítico precisa de 8+ num d20 de confirmação: cerca de 1/3 a menos.'},metade:{nome:'Metade',conf:11,txt:'Crítico precisa de 11+ num d20 de confirmação: metade dos críticos.'}};
 const critAmeacaRegra=()=>(state.camp?.settings||{}).critAmeaca||'leve';
@@ -4392,7 +4426,7 @@ function rollCard(r){
     <div class="rc-label">${esc(L.label)}</div>
     <div class="rc-nums ${nums.length>1?'multi':''}">${nums.map(l=>{const e=extremo(l);return `<div class="rc-n ${e||''}"><b class="tnum">${l.total}</b>${nums.length>1?`<small>${esc(l.label.replace(/^(Ataque|Dano)( crítico)?\s*\d*\s*·\s*/,'$1$2 '))}</small>`:''}</div>`}).join('')}</div>
     ${top==='crit'?'<div class="rc-ext">Acerto crítico</div>':top==='falha'?'<div class="rc-ext">Falha crítica</div>':''}
-    ${L.vs?`<div class="rc-dt ${L.total>=L.vs?'ok':'no'}">${/Ataque/.test(L.label)?'Defesa':'DT'} ${L.vs} · ${L.total>=L.vs?(/Ataque/.test(L.label)?'acertou':'passou'):(/Ataque/.test(L.label)?'errou':'falhou')}</div>`:''}
+    ${L.vs?(()=>{const atq=/Ataque/.test(L.label);const ok=atq?acerta(L,L.vs):L.total>=L.vs;return `<div class="rc-dt ${ok?'ok':'no'}">${atq?'Defesa':'DT'} ${L.vs} · ${ok?(atq?(L.total<L.vs?'acertou (20 natural)':'acertou'):'passou'):(atq?'errou':'falhou')}</div>`})():''}
     <div class="rc-expr">${esc(prettyExpr(L.expr))}</div>${diceHtml(L.parts,L.critAt)}</div>`;
   el.classList.add('on');
   clearTimeout(rcTimer);rcTimer=setTimeout(()=>{el.classList.remove('on');el.classList.add('off')},top?3600:2600);
@@ -4775,6 +4809,7 @@ const A={
   sheetTab:el=>{state.sheetTab=el.dataset.t;render()},
   goNR:()=>{state.sheetTab='combate';render();$('.nextroll')?.scrollIntoView({block:'center',behavior:'smooth'})},
   editPhoto:async()=>{const s=state.sheet;const r=await cropEditor({img:s.foto,aspect:3/4,title:'Foto 3x4 do arquivo',max:800});if(!r)return;s.foto=r;await saveSheet()},
+  resTemp:async el=>{const s=state.sheet;s.pvTemp=Math.max(0,(+s.pvTemp||0)+(+el.dataset.d));await saveSheet(s,true)},
   res:async el=>{const s=state.sheet;const k=el.dataset.k;let dlt=+el.dataset.d;
     if(s.type==='npc'){s.pv=clamp((+s.pv||0)+dlt,0,+s.pvMax||0);return saveSheet(s,true)}
     const d=derive(s);const max=d[k+'Max'];
@@ -6752,20 +6787,38 @@ function combatCardHtml(s,ents){
         ${s.enigma?`<p class="regra"><b>Enigma de Medo.</b> ${esc(s.enigma)}</p>`:''}</details>`:''}
     </article>`;
   }
-  const d=derive(s);const atks=attacksOf(s);
+  const d=derive(s);const atks=attacksOf(s);const pag=state.ccPag||'acoes';
   const rituais=s.rituais||[];const habs=(s.habilidades||[]).filter(h=>h.modo==='acao'&&(h.rolagem||!h.boost));
   return `<article class="paper cc ${d.M?'masked':''} ${ehAliadoImp(s)?'ali':''}">${head(`${ehAliadoImp(s)?'<span class="chip ali-chip">aliado</span> ':''}${esc(s.classe||'Sem classe')} · ${nexTxt(s)}${own?' · '+esc(own):''}`,'')}
     <div class="cc-stats"><span class="cc-stat"><b>${d.defesa}</b>Defesa</span>${d.esquiva!=null?`<span class="cc-stat" title="Reação: soma Reflexos na Defesa"><b>${d.esquiva}</b>Esquiva</span>`:''}${d.bloqueio!=null?`<span class="cc-stat" title="Reação: RD contra corpo a corpo"><b>RD ${d.bloqueio}</b>Bloqueio</span>`:''}${d.rd||d.rdFisico?`<span class="cc-stat"><b>${d.rd+d.rdFisico}</b>RD</span>`:''}<span class="cc-stat"><b>${d.desloc}m</b>${Math.floor(d.desloc/1.5)} quadr.</span>
       <button class="cc-stat btn-stat" data-act="cbIniFicha" data-sid="${s.id}" ${dis} title="Rolar Iniciativa"><b>${d.per.Iniciativa?diceSpec(d.per.Iniciativa.base,d.per.Iniciativa.dmod).label+fmtB(d.per.Iniciativa.total):'—'}</b>Iniciativa 🎲</button></div>
-    ${track('pv','Vida',+s.pv||0,d.pvMax,+s.pvTemp||0)}${track('san','Sanidade',+s.san||0,d.sanMax)}${track('pe','Esforço',+s.pe||0,d.peMax,+s.peTemp||0)}
+    ${tempBox(s,dis,s.id)}${track('pv','Vida',+s.pv||0,d.pvMax,0)}${track('san','Sanidade',+s.san||0,d.sanMax)}${track('pe','Esforço',+s.pe||0,d.peMax,+s.peTemp||0)}
     <div class="states">${d.machucado?'<span class="state on">Machucado</span>':''}${d.morrendo?`<span class="state on">Morrendo ${[1,2,3].map(i=>`<button class="pip ${(s.morte||0)>=i?'on':''}" data-act="cbPip" data-sid="${s.id}" data-k="morte" data-i="${i}" ${dis} aria-label="Turno ${i}"></button>`).join('')}</span>`:''}${d.perturbado?'<span class="state san on">Perturbado</span>':''}${d.enlouquecendo?`<span class="state san on">Enlouquecendo ${[1,2,3].map(i=>`<button class="pip ${(s.loucura||0)>=i?'on':''}" data-act="cbPip" data-sid="${s.id}" data-k="loucura" data-i="${i}" ${dis} aria-label="Turno ${i}"></button>`).join('')}</span>`:''}</div>
     ${condHtml}
+    ${pode?`<nav class="cc-pags" role="tablist">${[['acoes','Ações'],['itens',`Itens${(s.itens||[]).length?' · '+(s.itens||[]).length:''}`]].map(([k,l])=>`<button role="tab" class="cc-pag ${pag===k?'on':''}" aria-selected="${pag===k}" data-act="ccPag" data-v="${k}">${l}</button>`).join('')}</nav>`:''}
+    ${pag==='itens'&&pode?ccItens(s,d):`${pode?nextRollBar(s,d,true):''}
     <div class="cc-armas">${atks.map(a=>{const i=atkInfo(a,d);return `<button class="cc-arma" data-act="cbAtacar" data-sid="${s.id}" data-atk="${a.id}" ${dis}><span class="nm">${esc(a.nome)}</span><span class="pool">${esc(i.pericia)} ${i.spec.label}${fmtB(i.atkB)} · ${i.crit}/x${i.mult}</span><span class="dano"><small>Dano</small>${esc(i.dmg)}</span></button>`}).join('')||'<p class="fx-help">Nenhuma arma equipada — use Atacar! → ataque personalizado.</p>'}</div>
     <div class="cc-chips">${['Luta','Pontaria','Reflexos','Fortitude','Vontade','Percepção','Ocultismo','Atletismo','Furtividade'].map(p=>{const r=d.per[p];if(!r)return'';return `<button class="cc-chip ${r.treino?'tr':''}" data-act="cbPer" data-sid="${s.id}" data-p="${p}" ${dis}>${p} <b>${diceSpec(r.base,r.dmod).label}${fmtB(r.total)}</b></button>`}).join('')}</div>
     ${rituais.length?`<div class="cc-sec"><span class="lbl">Rituais · DT ${d.dtRitual}</span><div class="cc-rits">${rituais.map(r=>`<div class="cc-rit re-${r.elemento}"><span class="nm">${esc(r.nome)}</span><small>${r.circulo}º · ${ritualCost(s,d,r,'b')} PE</small>${pode?`<button class="btn sm solid" data-act="cbConjurar" data-sid="${s.id}" data-id="${r.id}">Conjurar</button><button class="ico-btn" data-act="cbMesaRit" data-sid="${s.id}" data-id="${r.id}" title="Mostrar à mesa" aria-label="Mostrar à mesa">👁</button>`:''}</div>`).join('')}</div></div>`:''}
     ${habs.length?`<div class="cc-sec"><span class="lbl">Habilidades de ação</span><div class="cc-chips">${habs.map(h=>`<button class="cc-chip" data-act="cbUsarHab" data-sid="${s.id}" data-id="${h.id}" ${dis} title="${esc(h.descricao||'')}">${esc(h.nome)}${h.custo?` <b>${h.custo} PE</b>`:''}</button>`).join('')}</div></div>`:''}
+`}
   </article>`;
 }
+
+/* página de itens da ficha de combate */
+const ccWrap=(html,sid)=>html.replace(/data-act="(\w+)"/g,(m,a)=>a==='closeModal'?m:`data-act="ccAct" data-sid="${sid}" data-a="${a}"`);
+function ccItens(s,d){
+  const it=s.itens||[];if(!it.length)return'<p class="fx-help">Inventário vazio.</p>';
+  const ordem=i=>i.tipo==='veneno'?0:i.uso?.rolagem?1:i.tipo==='arma'?2:3;
+  return `<div class="cc-itens">${[...it].sort((a,b)=>ordem(a)-ordem(b)).map(i=>{
+    const acts=`${i.uso?.rolagem?`<button class="btn sm solid" data-act="useItem" data-id="${i.id}">Usar</button>`:''}${venBotoes(i,true)}${i.tipo!=='municao'&&i.tipo!=='veneno'?`<button class="toggle ${i.equipado?'on':''}" data-act="toggleFx" data-k="itens" data-id="${i.id}">${i.tipo==='arma'||i.tipo==='protecao'?(i.equipado?'Equipado':'Equipar'):(i.equipado?'Em uso':'Usar')}</button>`:''}`;
+    return `<div class="cc-item"><div class="cc-item-h"><b>${esc(i.nome)}</b>${num(i.qtd)>1?` <span class="mono">×${i.qtd}</span>`:''}<span class="chip">${esc(TIPO_ITEM[i.tipo]||i.tipo)}</span><span class="spacer"></span>${ccWrap(acts,s.id)}</div>
+      ${i.tipo==='veneno'||i.uso?.rolagem?`<small class="hmeta">${esc(i.descricao||'')}</small>`:''}${i.tipo==='arma'?ccWrap(venArmaHtml(s,i,true)+ritModsHtml(i,true),s.id):''}</div>`}).join('')}</div>`;
+}
+Object.assign(A,{
+  ccPag:el=>{state.ccPag=el.dataset.v;render()},
+  ccAct:el=>{const s=sheetById(el.dataset.sid);const f=A[el.dataset.a];if(!s||!f)return;state.sheet=s;f(el)},
+});
 
 /* ---------- iniciativa ---------- */
 function rolarIniFicha(s,quiet){
@@ -6812,13 +6865,13 @@ function defesaAlvo(e,st){
   const conds=e.s?(e.s.condicoes||[]):(e.raw.cond||[]);
   return{def,base:i.def,conds,notas};
 }
-function abrirAtaque(sid,atkKey){
+function abrirAtaque(sid,atkKey,opt={}){
   const s=sheetById(sid);if(!s)return;
   const ents=combateEntradas();const alvos=ents.filter(e=>e.sheetId!==sid);
   const isPC=s.type==='pc';const d=isPC?derive(s):null;
   const armas=isPC?attacksOf(s).map(a=>({key:a.id,nome:a.nome,a})):(s.acoes||[]).map((a,i)=>({key:'n'+i,nome:a.nome,a})).filter(x=>x.a.tipo);
-  const st={alvo:alvos.length===1?alvos[0].id:null,modo:armas.length?'arma':'custom',arma:atkKey&&armas.some(x=>x.key===atkKey)?atkKey:(armas[0]||{}).key,
-    tipos:{},mod:0,dados:0,cobertura:false,defManual:{},custom:{nome:'',pericia:'Luta',dano:'1d6',crit:20,mult:2,tipo:'impacto'},man:'derrubar',rajada:false,vezes:null};
+  const st={alvo:opt.alvo&&alvos.some(x=>x.id===opt.alvo)?opt.alvo:alvos.length===1?alvos[0].id:null,modo:armas.length?'arma':'custom',arma:atkKey&&armas.some(x=>x.key===atkKey)?atkKey:(armas[0]||{}).key,
+    tipos:{},mod:+opt.mod||0,dados:0,cobertura:false,defManual:{},custom:{nome:'',pericia:'Luta',dano:'1d6',crit:20,mult:2,tipo:'impacto'},man:'derrubar',rajada:false,vezes:null};
   function montar(){
     let spec,atkB=0,dano='',base='',resto='',soCrit='',crit=20,mult=2,nome='',qtd=1,danoTipo='',melee=true,avisos=[];
     if(st.modo==='arma'){
@@ -6900,10 +6953,11 @@ function abrirAtaque(sid,atkKey){
     const df=defDe(alvoE);const lines=[];const golpes=[];
     const nAt=Math.max(1,Math.min(st.vezes||m.qtd,m.qtd));
     for(let k=0;k<nAt;k++){
-      const t=mkLine(`Ataque${nAt>1?' '+(k+1):''} · ${m.nome}${alvoE?' → '+alvoE.nome:''}`,m.expr,m.crit,df&&df.v?df.v:null);lines.push(t);if(s.type==='npc')confirmaCritAmeaca(t,lines);
-      const acertou=!df||!df.v||t.total>=df.v;
-      if(acertou){const dm=mkLine(`Dano${t.crit?' crítico':''} · ${m.nome}`,t.crit?critExpr(m.base,m.mult)+m.resto+(m.soCrit||''):m.dano);dm.crit=t.crit;lines.push(dm);golpes.push({total:dm.total,crit:t.crit,atk:t.total,def:df?df.v:null,acertou:true,dano:dm.total})}
-      else{lines.push({note:`Errou (${t.total} contra Defesa ${df.v}).`});golpes.push({total:0,crit:false,atk:t.total,def:df.v,acertou:false,dano:0})}
+      const t=mkLine(`Ataque${nAt>1?' '+(k+1):''} · ${m.nome}${alvoE?' → '+alvoE.nome:''}`,m.expr,m.crit,df&&df.v?df.v:null);lines.push(t);const acertou=acerta(t,df&&df.v?df.v:null);
+      if(!acertou&&t.crit){t.crit=false;t.label+=' · margem de crítico, mas não passou a Defesa'}
+      if(s.type==='npc'&&acertou)confirmaCritAmeaca(t,lines);if(acertou&&df&&df.v&&t.total<df.v)lines.push({note:`20 natural: acerto automático (${t.total} não passaria a Defesa ${df.v}).`});
+      if(acertou){const dm=mkLine(`Dano${t.crit?' crítico':''} · ${m.nome}`,t.crit?critExpr(m.base,m.mult)+m.resto+(m.soCrit||''):m.dano);dm.crit=t.crit;lines.push(dm);golpes.push({total:dm.total,crit:t.crit,atk:t.total,nat:t.nat,def:df?df.v:null,acertou:true,dano:dm.total})}
+      else{lines.push({note:`Errou (${t.total} contra Defesa ${df.v}).`});golpes.push({total:0,crit:false,atk:t.total,nat:t.nat,def:df.v,acertou:false,dano:0})}
     }
     if(st.tipos.investida)lines.push({note:`${s.nome} fez uma investida: –5 na Defesa até o próximo turno.`});
     logRoll(lines,{char:s.nome,secret:s.type==='npc'&&privado()});closeModal();
@@ -6921,7 +6975,7 @@ function abrirAtaque(sid,atkKey){
 /* resultado do ataque com atalhos para aplicar no alvo */
 const cbUltimo={};
 function cbResultado(titulo,lines,danos,conds,aviso){
-  openModal(`<h3>${esc(titulo)}</h3>${lines.map(l=>l.note?`<p class="mono" style="font-size:15px;margin:4px 0">${esc(l.note)}</p>`:`<div class="result-box"><div class="row"><span class="big">${l.total}</span><div><div class="mono" style="font-size:15px">${esc(l.label)} · ${esc(l.expr)}${l.vs?` · Defesa ${l.vs}: <b style="color:${l.total>=l.vs?'var(--ok)':'var(--stamp)'}">${l.total>=l.vs?'acertou':'errou'}</b>`:''}${l.crit?' · <b style="color:var(--stamp)">CRÍTICO</b>':''}</div>${diceHtml(l.parts,l.critAt)}</div></div></div>`).join('')}
+  openModal(`<h3>${esc(titulo)}</h3>${lines.map(l=>l.note?`<p class="mono" style="font-size:15px;margin:4px 0">${esc(l.note)}</p>`:`<div class="result-box"><div class="row"><span class="big">${l.total}</span><div><div class="mono" style="font-size:15px">${esc(l.label)} · ${esc(l.expr)}${l.vs?` · Defesa ${l.vs}: <b style="color:${acerta(l,l.vs)?'var(--ok)':'var(--stamp)'}">${acerta(l,l.vs)?(l.total<l.vs?'acertou (20 natural)':'acertou'):'errou'}</b>`:''}${l.crit?' · <b style="color:var(--stamp)">CRÍTICO</b>':''}</div>${diceHtml(l.parts,l.critAt)}</div></div></div>`).join('')}
     ${aviso?`<p class="aud-ver">${esc(aviso)}</p>`:''}<div class="mfoot">${danos.map(x=>`<button class="btn red ${x.fora?'':'solid'}" data-act="cbDanoPre" data-id="${x.e.id}" data-v="${x.valor}" data-t="${esc(x.tipo||'')}" data-m="${x.melee?1:0}">${x.fora?'Resolver eu mesmo':`Aplicar ${x.valor} de dano em ${esc(x.e.nome)}`}</button>`).join('')}
       ${conds.map(x=>`<button class="btn solid" data-act="cbCondAplicar" data-id="${x.e.id}" data-k="${x.c}">Deixar ${esc(x.e.nome)} ${esc((CONDICOES[x.c]||{}).nome||x.c).toLowerCase()}</button>`).join('')}
       <button class="btn" data-act="closeModal">Fechar</button></div>`);
@@ -6995,7 +7049,7 @@ function abrirIniLote(){
 
 /* ---------- ações ---------- */
 Object.assign(A,{
-  cbSel:el=>{if(el.closest('button')&&el.closest('button')!==el)return;state.cbSel=el.dataset.id;state.cbFechado=false;render()},
+  cbSel:el=>{if(el.closest('button')&&el.closest('button')!==el)return;if(state.cbSel!==el.dataset.id)state.nr=freshNR();state.cbSel=el.dataset.id;state.cbFechado=false;render()},
   cbFechar:()=>{state.cbSel=null;state.cbFechado=true;render()},
   cbGuia:()=>openModal(`<h3>Guia de combate</h3><div class="guia">${GUIA_COMBATE.map(([t,d])=>`<p><b>${esc(t)}.</b> ${esc(d)}</p>`).join('')}</div><div class="mfoot"><button class="btn" data-act="closeModal">Fechar</button></div>`,'wide'),
   cbRolarMinha:()=>{const id=$('#cbMeu')?$('#cbMeu').value:(state.sheets.find(s=>souDono(s))||{}).id;const s=sheetById(id);if(s){rolarIniFicha(s);state.cbSel=s.id}},
@@ -7016,6 +7070,7 @@ Object.assign(A,{
   cbDanoPre:el=>{closeModal();const r=cbUltimo[el.dataset.id];delete cbUltimo[el.dataset.id];abrirReceberDano(el.dataset.id,r?{...r}:{valor:el.dataset.v,tipo:el.dataset.t,melee:el.dataset.m==='1'})},
   cbCondAplicar:async el=>{const e=combateEntradas().find(x=>x.id===el.dataset.id);if(!e)return;const k=el.dataset.k;
     if(e.s){e.s.condicoes=[...new Set([...(e.s.condicoes||[]),k])];await Store.saveSheet(e.s)}else Col.set('ini',e.id,{cond:[...new Set([...(e.raw.cond||[]),k])]});closeModal();render()},
+  cbResTemp:async el=>{const s=sheetById(el.dataset.sid);if(!s||!podeControlar(s))return;s.pvTemp=Math.max(0,(+s.pvTemp||0)+(+el.dataset.d));await Store.saveSheet(s);softRender()},
   cbRes:async el=>{const s=sheetById(el.dataset.sid);if(!s||!podeControlar(s))return;const k=el.dataset.k;let dl=+el.dataset.d;
     if(s.type==='npc'){s.pv=clamp((+s.pv||0)+dl,0,+s.pvMax||0)}
     else{const d=derive(s);if(dl<0&&(k==='pv'||k==='pe')&&(+s[k+'Temp']||0)>0){const t=+s[k+'Temp'];const u=Math.min(t,-dl);s[k+'Temp']=t-u;dl+=u}
@@ -7023,7 +7078,7 @@ Object.assign(A,{
     await Store.saveSheet(s);softRender()},
   cbPip:async el=>{const s=sheetById(el.dataset.sid);if(!s)return;const k=el.dataset.k,i=+el.dataset.i;s[k]=(+s[k]||0)>=i?i-1:i;if(s[k]>=3)toast(k==='morte'?`${esc(s.nome)} morreu.`:`${esc(s.nome)} ficou insano.`,'err');await Store.saveSheet(s);render()},
   cbCond:async el=>{const s=sheetById(el.dataset.sid);if(!s||!podeControlar(s))return;s.condicoes=(s.condicoes||[]).filter(c=>c!==el.dataset.k);await Store.saveSheet(s);render()},
-  cbPer:el=>{const s=sheetById(el.dataset.sid);const d=derive(s);const r=d.per[el.dataset.p];logRoll([mkLine(el.dataset.p,testExpr(r.base,r.dmod,r.total))],{char:s.nome})},
+  cbPer:el=>{const s=sheetById(el.dataset.sid);state.sheet=s;rollTest(el.dataset.p,null,el.dataset.p)},
   cbNpcTeste:el=>{const s=sheetById(el.dataset.sid);const v=getPath(s,el.dataset.k)||{d:1,b:0};logRoll([mkLine(el.dataset.l,testExpr(+v.d||0,0,+v.b||0))],{char:s.nome,secret:privado()})},
   cbNpcPer:el=>{const s=sheetById(el.dataset.sid);const p=s.pericias[+el.dataset.i];logRoll([mkLine(p.nome,testExpr(+p.d||1,0,+p.b||0))],{char:s.nome,secret:privado()})},
   cbNpcUsar:el=>{const s=sheetById(el.dataset.sid);const a=s.acoes[+el.dataset.i];logRoll([{note:`${s.nome} usa ${a.nome}${a.desc?': '+a.desc:''}`}],{char:s.nome,secret:false})},
@@ -7058,6 +7113,19 @@ document.addEventListener('keydown',ev=>{
 const REAC={esquiva:{nome:'Esquivar',per:'Reflexos',palavra:/esquiva/i},bloqueio:{nome:'Bloquear',per:'Fortitude',palavra:/bloqueio/i},contra:{nome:'Contra-atacar',per:'Luta',palavra:/contra-ataque/i}};
 const controladorDe=e=>{const s=e&&e.s;const gm=state.camp&&state.camp.ownerId;if(s&&s.type==='pc'&&s.ownerId&&s.ownerId!==gm&&!ehAliadoImp(s))return s.ownerId;return gm};
 const nomeUsuario=id=>(state.users&&state.users[id]&&state.users[id].name)||'o jogador';
+
+/* reações de habilidades (não são reações de defesa: não travam esquiva/bloqueio/contra-ataque)
+   · porGolpe: escolhe em quais ataques usar; cada uso paga o custo
+   · def: bônus na Defesa contra o golpe · metade: reduz o dano final à metade
+   · contra: depois de aplicar, abre a tela de ataque contra o atacante (bônus) */
+const PARANORMAL_T=['sangue','morte','conhecimento','energia','medo'];
+const REAC_HAB=[
+  {id:'ripostar',re:/^Ripostar Ousado/i,custo:2,porGolpe:true,def:5,contra:{bonus:5,se:'errou'},pode:c=>c.melee&&c.golpes,txt:'+5 na Defesa contra o golpe; se ele errar, contra-ataca com +5'},
+  {id:'revidar',re:/^Revidar$/i,custo:2,contra:{bonus:0,se:'bloqueio'},pode:c=>c.melee&&c.reac==='bloqueio',txt:'depois do bloqueio, ataca quem atacou você',falta:'só depois de bloquear'},
+  {id:'duro',re:/^Duro de Matar/i,custo:2,metade:true,pode:c=>!PARANORMAL_T.includes(c.tipo)||c.nex>=85,txt:'reduz o dano à metade',falta:'só contra dano não paranormal (antes do NEX 85%)'},
+  {id:'dor',re:/^Abraçar a Dor/i,custo:2,metade:true,pode:c=>!PARANORMAL_T.includes(c.tipo),txt:'reduz o dano à metade',falta:'só contra dano não paranormal'},
+];
+const reacHabsDe=s=>s&&s.type==='pc'?REAC_HAB.map(r=>({...r,h:(s.habilidades||[]).find(h=>r.re.test(h.nome))})).filter(r=>r.h):[];
 
 /* reações gastas nesta rodada (guardadas na própria ficha) */
 function reacoesDe(s){const R=bmCfg().rodada||1;const r=s.reacoes||{};return r.rodada===R?r.usadas||[]:[]}
@@ -7106,21 +7174,23 @@ function abrirReceberDano(entryId,pre={}){
   if(!e){if(pre.reqId){Col.set('dmgReq',pre.reqId,{feito:true});toast('O alvo desse ataque não está mais na campanha.','err')}return}
   const golpes=(pre.golpes||[]).map(g=>({...g}));
   const tipo0=pre.tipo&&TIPOS_DANO.includes(String(pre.tipo).toLowerCase())?String(pre.tipo).toLowerCase():(pre.tipo||'corte');
-  const st={modo:pre.modo||'dano',valor:pre.valor||'',valorMan:false,tipo:tipo0,melee:!!pre.melee,bloq:false,rdMan:null,reac:'',alvoG:Math.max(0,golpes.findIndex(g=>g.acertou)),venenos:(pre.venenos||[]).map(v=>({...v,bonus:0,dados:0,usa:[],rol:null}))};
+  const st={modo:pre.modo||'dano',valor:pre.valor||'',valorMan:false,tipo:tipo0,melee:!!pre.melee,bloq:false,rdMan:null,reac:'',esp:{},alvoG:Math.max(0,golpes.findIndex(g=>g.acertou)),venenos:(pre.venenos||[]).map(v=>({...v,bonus:0,dados:0,usa:[],rol:null}))};
   const isPC=e.s&&e.s.type==='pc';
   const ctx=()=>({melee:st.melee,errou:golpes.some(g=>!g.acertou)});
   /* aplica esquiva/bloqueio nos golpes */
   function golpesEf(){
     const d=isPC?derive(e.s):null;
     return golpes.map((g,ix)=>{let def=g.def,acertou=g.acertou,rdB=0;
-      if(ix===st.alvoG&&st.reac==='esquiva'&&d){def=(g.def||0)+d.per.Reflexos.total;acertou=g.atk>=def}
+      if(ix===st.alvoG&&st.reac==='esquiva'&&d){def=(g.def||0)+d.per.Reflexos.total;acertou=g.nat===20||g.atk>=def}
       if(ix===st.alvoG&&st.reac==='bloqueio'&&d)rdB=d.per.Fortitude.total;
+      reacHabsDe(e.s).forEach(r=>{if(r.porGolpe&&r.def&&(st.esp[r.id]||[]).includes(ix)){def=(def||0)+r.def;acertou=g.nat===20||g.atk>=def}});
       return{...g,defEf:def,acertou,rdB}});
   }
   function calc(){
     const rdBase=st.rdMan!=null&&st.rdMan!==''?num(st.rdMan):rdContra(e,st.tipo,st.melee,st.bloq);
-    if(golpes.length&&!st.valorMan){const G=golpesEf();let v=0,fin=0;G.forEach(g=>{if(!g.acertou)return;v+=g.dano;fin+=Math.max(0,g.dano-rdBase-g.rdB)});return{v,rd:rdBase,final:fin,G}}
-    const v=Math.max(0,num(st.valor));return{v,rd:rdBase,final:Math.max(0,v-rdBase),G:golpes.length?golpesEf():[]};
+    const met=reacHabsDe(e.s).some(r=>r.metade&&st.esp[r.id]&&r.pode(espCtx()));
+    if(golpes.length&&!st.valorMan){const G=golpesEf();let v=0,fin=0;G.forEach(g=>{if(!g.acertou)return;v+=g.dano;fin+=Math.max(0,g.dano-rdBase-g.rdB)});return{v,rd:rdBase,final:met?Math.floor(fin/2):fin,G,met}}
+    const v=Math.max(0,num(st.valor));const f0=Math.max(0,v-rdBase);return{v,rd:rdBase,final:met?Math.floor(f0/2):f0,G:golpes.length?golpesEf():[],met};
   }
   function venenoHtml(){
     if(!st.venenos.length)return'';const d=isPC?derive(e.s):null;
@@ -7130,6 +7200,17 @@ function abrirReceberDano(entryId,pre={}){
         ${habs.length?`<div class="rd-habs">${habs.map(h=>`<label class="chk" title="${esc(h.descricao||'')}"><input type="checkbox" data-vh="${ix}" value="${esc(h.nome)}" ${v.usa.includes(h.nome)?'checked':''}> ${esc(h.nome)}</label>`).join('')}</div>`:''}
         <button class="btn sm solid" data-vrol="${ix}">${v.rol?'Rolar de novo':'Rolar '+esc(v.res)}</button>${v.rol?`<span class="rd-vres ${v.rol.ok?'ok':'falha'}">${v.rol.total}: ${v.rol.ok?'resistiu':'falhou'}</span>`:''}</div>
         ${p?'':'<p class="fx-help">Usa a Fortitude/Reflexos/Vontade da ficha da ameaça.</p>'}</div>`}).join('')}</div>`;
+  }
+  function espCtx(){return{melee:st.melee,golpes:golpes.length>0,reac:st.reac,tipo:String(st.tipo||'').toLowerCase(),nex:+(e.s&&e.s.nex)||0}}
+  function espCusto(){const s=e.s;let n=0,c=0;reacHabsDe(s).forEach(r=>{const u=r.porGolpe?(st.esp[r.id]||[]).length:st.esp[r.id]?1:0;n+=u;c+=u*r.custo});return{n,c}}
+  function espHtml(){
+    if(!isPC||st.modo!=='dano')return'';const L=reacHabsDe(e.s);if(!L.length)return'';const c=espCtx();const d=derive(e.s);
+    const rows=L.map(r=>{const ok=r.pode(c);
+      if(r.porGolpe){const sel=st.esp[r.id]||[];const alvo=golpes.map((g,ix)=>({g,ix})).filter(x=>x.g.acertou||sel.includes(x.ix));
+        return `<div class="rh-it ${sel.length?'on':''}"><div><b>${esc(r.h.nome)}</b> <span class="hmeta">${r.custo} PE por ataque · ${esc(r.txt)}</span></div>${ok&&alvo.length?`<div class="rh-gs">${alvo.map(({g,ix})=>`<label class="chk"><input type="checkbox" data-esp="${r.id}" data-g="${ix}" ${sel.includes(ix)?'checked':''}> Ataque ${ix+1} (${g.atk})</label>`).join('')}</div>`:`<small class="muted">${ok?'nenhum ataque acertou':'só contra ataque corpo a corpo'}</small>`}</div>`}
+      const on=!!st.esp[r.id];return `<div class="rh-it ${on?'on':''}"><label class="chk"><input type="checkbox" data-esp="${r.id}" ${on?'checked':''} ${ok?'':'disabled'}> <b>${esc(r.h.nome)}</b></label> <span class="hmeta">${r.custo} PE · ${esc(ok?r.txt:(r.falta||r.txt))}</span></div>`}).join('');
+    const k=espCusto();
+    return `<div class="rd-reac rh"><div class="lbl">Habilidades de reação <small class="mono muted">não contam como esquiva, bloqueio ou contra-ataque${k.n?` · ${k.c+d.custoExtra*k.n} PE`:''}</small></div>${rows}</div>`;
   }
   function reacHtml(){
     if(!isPC||!golpes.length)return'';const s=e.s;const d=derive(s);const c=ctx();
@@ -7144,7 +7225,7 @@ function abrirReceberDano(entryId,pre={}){
     const i=cbInfo(e);const c=calc();const pcMental=isPC&&st.tipo==='mental';const d=isPC?derive(e.s):null;
     $('#rdBody').innerHTML=`${pre.atacante?`<p class="rd-de">${pre.modo==='cura'?'✚':'⚔'} <b>${esc(pre.atacante)}</b> ${pre.modo==='cura'?'curou você':'atacou'}${pre.arma?' com '+esc(pre.arma):''}.</p>`:''}
       ${golpes.length?`<div class="rd-golpes">${c.G.map((g,ix)=>`<div class="rd-g ${g.acertou?'hit':'miss'}"><span>Ataque ${ix+1}</span><b>${g.atk}</b><span>contra Defesa ${g.defEf??'—'}</span><span>${g.acertou?`${g.crit?'<b class="crit">crítico</b> · ':''}${g.dano} de dano${g.rdB?` (bloqueio −${g.rdB})`:''}`:'errou'}</span></div>`).join('')}</div>`:''}
-      ${reacHtml()}
+      ${reacHtml()}${espHtml()}
       <div class="seg"><button class="seg-btn ${st.modo==='dano'?'on':''}" data-m="dano">🩸 Dano</button><button class="seg-btn ${st.modo==='cura'?'on':''}" data-m="cura">✚ Cura</button>${isPC?`<button class="seg-btn ${st.modo==='san'?'on':''}" data-m="san">🧠 Sanidade</button>`:''}</div>
       <p class="mono" style="font-size:15px;margin:10px 0 4px">${esc(e.nome)} · PV <b>${i.pv??'—'}/${i.pvMax||'—'}</b>${i.pvTemp?` (+${i.pvTemp} temp.)`:''}${isPC?` · SAN <b>${e.s.san}/${d.sanMax}</b>`:''}</p>
       <div class="mgrid c3"><label class="field"><span>${st.modo==='dano'?(golpes.length?'Dano total (antes da RD)':'Dano'):st.modo==='cura'?'PV curados':'SAN (– perde, + recupera)'}</span><input class="inp" id="rdV" type="number" value="${esc(golpes.length&&!st.valorMan&&st.modo==='dano'?c.v:st.valor)}"></label>
@@ -7161,6 +7242,7 @@ function abrirReceberDano(entryId,pre={}){
   body.addEventListener('input',ev=>{const t=ev.target;if(t.id==='rdV'){st.valor=t.value;st.valorMan=true;const c=calc();const fin=body.querySelector('.atk-resumo b');if(fin)fin.textContent=c.final}if(t.id==='rdRD')st.rdMan=t.value;
     if(t.dataset.vb!=null)st.venenos[+t.dataset.vb].bonus=num(t.value);if(t.dataset.vd!=null)st.venenos[+t.dataset.vd].dados=num(t.value)});
   body.addEventListener('change',ev=>{const t=ev.target;if(t.id==='rdTipo'){st.tipo=t.value;st.rdMan=null;draw()}if(t.id==='rdMelee'){st.melee=t.checked;st.rdMan=null;draw()}if(t.id==='rdRD'){st.rdMan=t.value;draw()}if(t.id==='rdAlvoG'){st.alvoG=+t.value;draw()}
+    if(t.dataset.esp){const r=REAC_HAB.find(x=>x.id===t.dataset.esp);if(r.porGolpe){const g=+t.dataset.g;const L=st.esp[r.id]||[];st.esp[r.id]=t.checked?[...new Set([...L,g])]:L.filter(x=>x!==g)}else st.esp[r.id]=t.checked;st.valorMan=false;draw();return}
     if(t.dataset.vh!=null){const v=st.venenos[+t.dataset.vh];v.usa=t.checked?[...v.usa,t.value]:v.usa.filter(x=>x!==t.value)}});
   body.addEventListener('click',async ev=>{
     const b=ev.target.closest('[data-m],[data-rolar],#rdGo,#rdDepois,[data-reac],[data-vrol]');if(!b||b.disabled)return;
@@ -7178,7 +7260,7 @@ function abrirReceberDano(entryId,pre={}){
     const s=e.s;const d=derive(s);const w=attacksOf(s).find(a=>atkInfo(a,d).melee);if(!w){toast('Sem arma corpo a corpo equipada para contra-atacar.','err');return}
     const i=atkInfo(w,d);const at=combateEntradas().find(x=>x.id===pre.atacanteId);const def=at?cbInfo(at).def:null;
     const t=mkLine(`Contra-ataque · ${w.nome}${at?' → '+at.nome:''}`,testExpr(i.base,i.dmod,i.atkB),i.crit,def||null);const lines=[t];let dano=0;
-    const ok=!def||t.total>=def;if(ok){const dm=mkLine(`Dano${t.crit?' crítico':''} · ${w.nome}`,t.crit?critExpr(i.baseDano,i.mult)+(i.extras.length?'+'+i.extras.join('+'):'')+(i.flat?fmtB(i.flat):''):i.dmg.replace(/\s*\(.*$/,''));lines.push(dm);dano=dm.total}
+    if(!acerta(t,def)&&t.crit)t.crit=false;const ok=acerta(t,def);if(ok){const dm=mkLine(`Dano${t.crit?' crítico':''} · ${w.nome}`,t.crit?critExpr(i.baseDano,i.mult)+(i.extras.length?'+'+i.extras.join('+'):'')+(i.flat?fmtB(i.flat):''):i.dmg.replace(/\s*\(.*$/,''));lines.push(dm);dano=dm.total}
     else lines.push({note:`Errou (${t.total} contra Defesa ${def}).`});
     logRoll(lines,{char:s.nome});
     if(at&&dano){const to=controladorDe(at);const g=[{atk:t.total,def,acertou:true,dano,crit:t.crit}];
@@ -7189,6 +7271,11 @@ function abrirReceberDano(entryId,pre={}){
   async function aplicar(){
     for(const v of st.venenos){if(!v.rol){toast(`Role ${v.res} contra ${esc(v.nome)} antes de confirmar.`,'err');return}}
     const c=calc();const s=e.s;let msg='';
+    let espUsadas=[];
+    if(isPC&&st.modo==='dano'){const cx=espCtx();espUsadas=reacHabsDe(s).filter(r=>r.pode(cx)&&(r.porGolpe?(st.esp[r.id]||[]).length:st.esp[r.id]));
+      const k={n:0,c:0};espUsadas.forEach(r=>{const u=r.porGolpe?st.esp[r.id].length:1;k.n+=u;k.c+=u*r.custo});
+      if(k.n&&!spendPE(s,derive(s),k.c,k.n))return;
+      espUsadas.forEach(r=>{msg+=`${e.nome} usou ${r.h.nome}${r.porGolpe&&st.esp[r.id].length>1?` (${st.esp[r.id].length}×)`:''}. `})}
     if(isPC&&st.reac){const p=reacaoPode(s,st.reac,ctx());if(!p.ok){toast('Essa reação não está disponível: '+p.motivo,'err');return}marcarReacao(s,st.reac)}
     if(st.modo==='cura'){
       const v=Math.max(0,num(st.valor));
@@ -7234,6 +7321,10 @@ function abrirReceberDano(entryId,pre={}){
     if(pre.reqId){Col.set('dmgReq',pre.reqId,{feito:true,resultado:msg});drAbertos.delete(pre.reqId)}
     closeModal();logRoll([{note:msg.trim()}],{char:e.nome,secret:e.tipo==='npc'&&privado()});
     toast(esc(msg.trim()),s&&s.pv===0?'err':'');render();setTimeout(drChecar,400);
+    const G=c.G||[];const cx=espUsadas.find(r=>r.contra&&(r.contra.se==='bloqueio'||(st.esp[r.id]||[]).some(ix=>G[ix]&&!G[ix].acertou)));
+    if(cx&&s&&s.pv>0){const d=derive(s);const w=attacksOf(s).find(a=>atkInfo(a,d).melee);
+      if(!w)toast('Sem arma corpo a corpo equipada para o contra-ataque.','err');
+      else setTimeout(()=>{state.sheet=s;abrirAtaque(s.id,w.id,{alvo:pre.atacanteId,mod:cx.contra.bonus});toast(`${esc(cx.h.nome)}: contra-ataque${cx.contra.bonus?' com +'+cx.contra.bonus:''}.`)},600)}
   }
 }
 Object.assign(A,{reacLiberar:async el=>{const s=state.sheet;s.reacoes=null;await saveSheet(s);toast('Reações liberadas.')}});
