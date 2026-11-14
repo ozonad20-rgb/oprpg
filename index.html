@@ -1852,6 +1852,9 @@ details.hcard[open]>summary .hc-tg{transform:rotate(90deg)}
 .ci.ci-oculto{opacity:.55;border-style:dashed}
 .ci-bts{display:inline-flex;gap:2px;align-items:center}
 .ci-bts .ico-btn.on{background:var(--stamp-soft);color:var(--stamp)}
+
+.ci-bts{grid-column:1/-1;justify-content:flex-end;margin-top:-2px;border-top:1px dashed var(--paper-edge);padding-top:2px}
+.ci-bts .ico-btn{width:30px;height:28px;font-size:14px}
 </style>
 <div id="app"><div class="boot"><div><div class="logo">NE<span>X</span></div><p>Abrindo o arquivo de agentes…</p><div class="bar"><i></i></div>
 <noscript><p style="color:#e5e2d9">O NEX precisa de JavaScript para funcionar. Abra pela página publicada ou em um navegador com JavaScript ativado; visualizadores de arquivo costumam bloquear scripts.</p></noscript></div></div></div>
@@ -4838,7 +4841,7 @@ const A={
   blankSheet:async el=>{closeModal();const s=blankSheet(state.camp.id,el.dataset.gm?null:state.user.id,state.user.id);await Store.saveSheet(s);state.sheets.push(s);state.sheet=s;state.view='sheet';state.sheetTab='combate';render();window.scrollTo(0,0)},
   newNpc:()=>npcPresetModal(),
   createNpc:async el=>{closeModal();const i=+el.dataset.i;const s=blankNpc(state.camp.id,state.user.id,i>=0?AMEACAS[i]:null);await Store.saveSheet(s);state.sheets.push(s);state.sheet=s;state.view='sheet';render();window.scrollTo(0,0)},
-  dupNpc:async el=>{const o=state.sheets.find(x=>x.id===el.dataset.id);const s=clone(o);s.id=uid('s_');s.nome=o.nome+' (cópia)';s.createdAt=Date.now();s.pv=s.pvMax;s.condicoes=[];await Store.saveSheet(s);state.sheets.push(s);render();toast('Ameaça duplicada.')},
+  dupNpc:async el=>{const o=state.sheets.find(x=>x.id===el.dataset.id);const s=clone(o);s.id=uid('s_');s.nome=nomeNumerado(o.nome,state.sheets.map(x=>x.nome));s.createdAt=Date.now();s.pv=s.pvMax;s.condicoes=[];await Store.saveSheet(s);state.sheets.push(s);render();toast('Ameaça duplicada.')},
   // mestre
   gmRoll:()=>{const n=clamp(num($('#gm-n').value)||1,1,100),sd=clamp(num($('#gm-s').value)||20,2,1000),m=num($('#gm-m').value);doGmRoll(`${n}d${sd}${m?fmtB(m):''}`)},
   gmRollExpr:()=>doGmRoll($('#gm-expr').value),
@@ -6769,11 +6772,17 @@ const sheetById=id=>state.sheets.find(s=>s.id===id)||null;
 const souDono=s=>!!(s&&s.type==='pc'&&s.ownerId===state.user.id);
 const podeControlar=s=>state.isGM||souDono(s);
 
+/* Ameaças e avulsos ficam presos à cena em que entraram no combate (os agentes valem em todas).
+   Fora da cena deles, saem da iniciativa e do mapa; a posição no mapa já é guardada por cena. */
+const cenaFora=(r,c=bmCfg())=>!!(r&&r.cena&&c.cenaAtiva&&r.cena!==c.cenaAtiva&&(c.cenas||{})[r.cena]);
+const cenaDeEntrada=s=>{const c=bmCfg();return (!s||s.type!=='pc')&&c.cenaAtiva?c.cenaAtiva:null};
+function nomeNumerado(base0,nomes){const base=String(base0||'Inimigo').replace(/\s+\d+$/,'').replace(/\s*\(cópia\)$/,'');const re=new RegExp('^'+base.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:\\s+(\\d+))?$');let mx=0;nomes.forEach(n=>{const m=re.exec(String(n||'').trim());if(m)mx=Math.max(mx,m[1]?+m[1]:1)});return `${base} ${Math.max(2,mx+1)}`}
 function combateEntradas(){
-  const ini=Col.all('ini');const out=[];
+  const ini=Col.all('ini');const out=[];const cfgC=bmCfg();
   Object.entries(ini).forEach(([id,e])=>{
     const s=e.sheetId?sheetById(e.sheetId):null;
     if(e.sheetId&&!s)return;
+    if(cenaFora(e,cfgC))return; /* preso a outra cena: volta quando a cena voltar */
     if(e.oculto&&!state.isGM&&!(s&&s.type==='pc'&&s.ownerId===state.user.id))return; /* oculto pelo mestre: some da iniciativa e do mapa */
     out.push({id,sheetId:e.sheetId||null,s,nome:s?(s.nome||'Sem nome'):(e.nome||'Sem nome'),valor:+e.valor||0,desempate:e.desempate||0,tipo:s?s.type:'avulso',ownerId:s?s.ownerId:null,raw:e});
   });
@@ -6811,7 +6820,7 @@ function viewCombate(){
       <button class="ci-ini" ${gm||(e.s&&souDono(e.s))?`data-act="cbEditIni" data-id="${e.id}" title="Editar a iniciativa"`:'disabled'}>${e.valor}</button>
       <span class="ci-corpo">${naVez?'<span class="ci-vez">▶ Na vez</span>':''}<span class="ci-nome">${cbIcone(e)} ${esc(e.nome)}${e.s&&e.s.type==='pc'&&state.users[e.ownerId]?` <small>(${esc(state.users[e.ownerId].name)})</small>`:''}</span>
         <span class="ci-mini">${(e.tipo==='pc'||gm||i.falso)&&i.pv!=null?`Def ${i.def} · PV ${i.pv}/${i.pvMax}`:''}${gm&&e.raw.oculto?' · <b>oculto</b>':''}${gm&&e.raw.semStats?' · <b>stats ocultos</b>':''}${conds.length?' · '+conds.map(c=>COND_ICONE[c]||'').join(''):''}</span></span>
-      ${gm?`<span class="ci-bts"><button class="ico-btn ${e.raw.oculto?'on':''}" data-act="cbOcultar" data-id="${e.id}" aria-pressed="${!!e.raw.oculto}" title="${e.raw.oculto?'Mostrar aos jogadores na iniciativa e no mapa':'Ocultar dos jogadores (iniciativa e mapa)'}" aria-label="${e.raw.oculto?'Mostrar aos jogadores':'Ocultar dos jogadores'}">${e.raw.oculto?'🙈':'👁'}</button><button class="ico-btn ${e.raw.semStats?'on':''}" data-act="cbSemStats" data-id="${e.id}" aria-pressed="${!!e.raw.semStats}" title="${e.raw.semStats?'Stats ocultos: os jogadores veem Defesa 10 e PV 1/1. Clique para mostrar os reais.':'Ocultar stats: os jogadores passam a ver Defesa 10 e PV 1/1'}" aria-label="Ocultar stats">${e.raw.semStats?'❓':'📊'}</button><button class="ico-btn" data-act="cbRemove" data-id="${e.id}" title="Tirar do combate" aria-label="Tirar do combate">✕</button></span>`:''}
+      ${gm?`<span class="ci-bts"><button class="ico-btn ${e.raw.oculto?'on':''}" data-act="cbOcultar" data-id="${e.id}" aria-pressed="${!!e.raw.oculto}" title="${e.raw.oculto?'Mostrar aos jogadores na iniciativa e no mapa':'Ocultar dos jogadores (iniciativa e mapa)'}" aria-label="${e.raw.oculto?'Mostrar aos jogadores':'Ocultar dos jogadores'}">${e.raw.oculto?'🙈':'👁'}</button><button class="ico-btn ${e.raw.semStats?'on':''}" data-act="cbSemStats" data-id="${e.id}" aria-pressed="${!!e.raw.semStats}" title="${e.raw.semStats?'Stats ocultos: os jogadores veem Defesa 10 e PV 1/1. Clique para mostrar os reais.':'Ocultar stats: os jogadores passam a ver Defesa 10 e PV 1/1'}" aria-label="Ocultar stats">${e.raw.semStats?'❓':'📊'}</button>${e.tipo!=='pc'?`${cfg.cenaAtiva?`<button class="ico-btn ${e.raw.cena?'on':''}" data-act="cbCenaFix" data-id="${e.id}" aria-pressed="${!!e.raw.cena}" title="${e.raw.cena?'Só nesta cena: sai da iniciativa ao trocar de cena. Clique para valer em todas.':'Vale em todas as cenas. Clique para prender a esta cena.'}" aria-label="Prender a esta cena">${e.raw.cena?'📍':'🌐'}</button>`:''}<button class="ico-btn" data-act="cbDuplicar" data-id="${e.id}" title="Duplicar: cria outro igual, numerado" aria-label="Duplicar">⧉</button>`:''}<button class="ico-btn" data-act="cbRemove" data-id="${e.id}" title="Tirar do combate" aria-label="Tirar do combate">✕</button></span>`:''}
     </div>`}).join(''):`<div class="empty">Ninguém entrou na ordem de combate ainda.${gm?' Use “Adicionar ao combate”.':' Role sua iniciativa para entrar.'}</div>`;
   return `<div id="combateWrap" class="cb-layout ${gm?'mestre':'jogador'}">
     <div class="cb-lista">
@@ -6902,12 +6911,12 @@ function rolarIniFicha(s,quiet){
   if(s.type==='pc'){const d=derive(s);const r=d.per.Iniciativa;expr=testExpr(r.base,r.dmod,r.total)}
   else{const v=(s.sentidos||{}).ini||{d:1,b:0};expr=testExpr(+v.d||1,0,+v.b||0)}
   const L=mkLine(label,expr);
-  const id=s.id;const cur=Col.get('ini',id);
-  Col.set('ini',id,{sheetId:s.id,valor:L.total,desempate:Math.random()});
+  const id=s.id;const cur=Col.get('ini',id);const cn=cenaDeEntrada(s);
+  Col.set('ini',id,{sheetId:s.id,valor:L.total,desempate:Math.random(),...((!cur||cenaFora(cur))&&cn?{cena:cn}:{})});
   logRoll([L],{char:s.nome,secret:s.type==='npc'&&privado(),quiet});
   return L.total;
 }
-function addAoCombate(s,rolar=true){if(Col.get('ini',s.id))return;if(rolar)rolarIniFicha(s,true);else Col.set('ini',s.id,{sheetId:s.id,valor:0,desempate:Math.random()})}
+function addAoCombate(s,rolar=true){const cur=Col.get('ini',s.id);const cn=cenaDeEntrada(s);if(cur){if(cenaFora(cur)&&cn)Col.set('ini',s.id,{cena:cn});return}if(rolar)rolarIniFicha(s,true);else Col.set('ini',s.id,{sheetId:s.id,valor:0,desempate:Math.random(),...(cn?{cena:cn}:{})})}
 function cbTurnoAvancar(dir){
   const ents=combateEntradas();if(!ents.length)return;const cfg=bmCfg();
   let i=ents.findIndex(x=>x.id===cfg.turno);let rod=cfg.rodada||1;
@@ -7143,7 +7152,13 @@ Object.assign(A,{
   cbIniFicha:el=>{const s=sheetById(el.dataset.sid);if(s)rolarIniFicha(s)},
   cbAddModal:()=>abrirAddCombatente(),
   cbAddAvulso:()=>{const nome=$('#cbAvNome').value.trim();if(!nome){toast('Dê um nome ao combatente.','err');return}
-    const pv=num($('#cbAvPv').value);Col.set('ini',uid('av_'),{nome,valor:num($('#cbAvIni').value),defesa:num($('#cbAvDef').value)||0,pv:pv||0,pvMax:pv||0,desempate:Math.random()});render()},
+    const pv=num($('#cbAvPv').value);Col.set('ini',uid('av_'),{nome,valor:num($('#cbAvIni').value),defesa:num($('#cbAvDef').value)||0,pv:pv||0,pvMax:pv||0,desempate:Math.random(),...(cenaDeEntrada(null)?{cena:cenaDeEntrada(null)}:{})});render()},
+  cbCenaFix:el=>{const r=Col.get('ini',el.dataset.id);const c=bmCfg();if(!r||!state.isGM||!c.cenaAtiva)return;Col.set('ini',el.dataset.id,{cena:r.cena?null:c.cenaAtiva});toast(r.cena?'Agora vale em todas as cenas.':'Preso a esta cena.');render()},
+  cbDuplicar:async el=>{if(!state.isGM)return;const e=combateEntradas().find(x=>x.id===el.dataset.id);if(!e)return;const r=e.raw;const extra={valor:e.valor,desempate:e.desempate||0,...(r.cena?{cena:r.cena}:{}),...(r.oculto?{oculto:true}:{}),...(r.semStats?{semStats:true}:{})};let novoId,nome;
+    if(e.s){const s=clone(e.s);s.id=uid('s_');nome=s.nome=nomeNumerado(e.s.nome,state.sheets.map(x=>x.nome));s.createdAt=Date.now();s.pv=s.pvMax;s.condicoes=[];s.sangra=0;await Store.saveSheet(s);state.sheets.push(s);novoId=s.id;Col.set('ini',novoId,{sheetId:s.id,...extra})}
+    else{novoId=uid('av_');nome=nomeNumerado(r.nome,combateEntradas().map(x=>x.nome));Col.set('ini',novoId,{nome,defesa:r.defesa||0,pv:r.pvMax||0,pvMax:r.pvMax||0,iniB:r.iniB||0,...extra})}
+    const cid=bmCfg().cenaAtiva;if(cid){const tk=Col.get('bmTok',cid+'__'+e.id);if(tk){const n=Object.keys(Col.all('bmTok')).filter(k=>k.startsWith(cid+'__')).length;Col.set('bmTok',cid+'__'+novoId,{...tk,x:tk.x+(tk.tam||1)*(1+(n%4)),y:tk.y+Math.floor(n/4)%3,marcas:[]})}}
+    toast(`${esc(nome)} entrou no combate.`);render()},
   cbOcultar:el=>{const r=Col.get('ini',el.dataset.id);if(!r||!state.isGM)return;Col.set('ini',el.dataset.id,{oculto:!r.oculto});toast(r.oculto?'Visível para os jogadores de novo.':'Oculto: some da iniciativa e do mapa dos jogadores.');render()},
   cbSemStats:el=>{const r=Col.get('ini',el.dataset.id);if(!r||!state.isGM)return;Col.set('ini',el.dataset.id,{semStats:!r.semStats});toast(r.semStats?'Stats reais visíveis de novo.':'Stats ocultos: os jogadores veem Defesa 10 e PV 1/1.');render()},
   cbRemove:el=>{const id=el.dataset.id;Col.del('ini',id);const cfg=bmCfg();if(cfg.turno===id)bmSaveCfg({turno:null})},
