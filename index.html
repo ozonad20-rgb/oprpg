@@ -1848,6 +1848,10 @@ details.hcard[open]>summary .hc-tg{transform:rotate(90deg)}
 .sangra-ctl{display:inline-flex;gap:3px;align-items:center}
 .sangra-ctl .cond{min-width:30px;justify-content:center}
 .sangra-ctl .sangra-rol{border-color:var(--pv);color:var(--pv);font-weight:700}
+
+.ci.ci-oculto{opacity:.55;border-style:dashed}
+.ci-bts{display:inline-flex;gap:2px;align-items:center}
+.ci-bts .ico-btn.on{background:var(--stamp-soft);color:var(--stamp)}
 </style>
 <div id="app"><div class="boot"><div><div class="logo">NE<span>X</span></div><p>Abrindo o arquivo de agentes…</p><div class="bar"><i></i></div>
 <noscript><p style="color:#e5e2d9">O NEX precisa de JavaScript para funcionar. Abra pela página publicada ou em um navegador com JavaScript ativado; visualizadores de arquivo costumam bloquear scripts.</p></noscript></div></div></div>
@@ -4480,7 +4484,7 @@ function rollCard(r){
     <div class="rc-label">${esc(L.label)}</div>
     <div class="rc-nums ${nums.length>1?'multi':''}">${nums.map(l=>{const e=extremo(l);return `<div class="rc-n ${e||''}"><b class="tnum">${l.total}</b>${nums.length>1?`<small>${esc(l.label.replace(/^(Ataque|Dano)( crítico)?\s*\d*\s*·\s*/,'$1$2 '))}</small>`:''}</div>`}).join('')}</div>
     ${top==='crit'?'<div class="rc-ext">Acerto crítico</div>':top==='falha'?'<div class="rc-ext">Falha crítica</div>':''}
-    ${L.vs?(()=>{const atq=/Ataque/.test(L.label);const ok=atq?acerta(L,L.vs):L.total>=L.vs;return `<div class="rc-dt ${ok?'ok':'no'}">${atq?'Defesa':'DT'} ${L.vs} · ${ok?(atq?(L.total<L.vs?'acertou (20 natural)':'acertou'):'passou'):(atq?'errou':'falhou')}</div>`})():''}
+    ${L.vs?(()=>{const atq=/Ataque/.test(L.label);const ok=atq?acerta(L,L.vs):L.total>=L.vs;return `<div class="rc-dt ${ok?'ok':'no'}">${atq?'Defesa':'DT'} ${L.vsOculto?'?':L.vs} · ${ok?(atq?(L.total<L.vs?'acertou (20 natural)':'acertou'):'passou'):(atq?'errou':'falhou')}</div>`})():''}
     <div class="rc-expr">${esc(prettyExpr(L.expr))}</div>${diceHtml(L.parts,L.critAt)}</div>`;
   el.classList.add('on');
   clearTimeout(rcTimer);rcTimer=setTimeout(()=>{el.classList.remove('on');el.classList.add('off')},top?3600:2600);
@@ -6770,11 +6774,15 @@ function combateEntradas(){
   Object.entries(ini).forEach(([id,e])=>{
     const s=e.sheetId?sheetById(e.sheetId):null;
     if(e.sheetId&&!s)return;
+    if(e.oculto&&!state.isGM&&!(s&&s.type==='pc'&&s.ownerId===state.user.id))return; /* oculto pelo mestre: some da iniciativa e do mapa */
     out.push({id,sheetId:e.sheetId||null,s,nome:s?(s.nome||'Sem nome'):(e.nome||'Sem nome'),valor:+e.valor||0,desempate:e.desempate||0,tipo:s?s.type:'avulso',ownerId:s?s.ownerId:null,raw:e});
   });
   out.sort((a,b)=>(b.valor-a.valor)||(b.desempate-a.desempate)||a.nome.localeCompare(b.nome));
   return out;
 }
+/* "Ocultar stats": quem não é o mestre nem o dono vê Defesa 10 e PV 1/1 */
+const statsOcultos=e=>!!(e&&e.raw&&e.raw.semStats)&&!state.isGM&&!(e.s&&souDono(e.s));
+function cbInfoPub(e){const i=cbInfo(e);return statsOcultos(e)?{...i,def:10,pv:1,pvMax:1,pvTemp:0,falso:true}:i}
 /* valores rápidos de qualquer participante */
 function cbInfo(e){
   const s=e.s;
@@ -6797,13 +6805,13 @@ function viewCombate(){
   const sel=state.cbSel?sheetById(state.cbSel):null;
   const vez=ents.find(e=>e.id===cfg.turno);
   const lista=ents.length?ents.map(e=>{
-    const pode=!!e.s&&podeControlar(e.s);const i=cbInfo(e);const naVez=cfg.turno===e.id;
+    const pode=!!e.s&&podeControlar(e.s);const i=cbInfoPub(e);const naVez=cfg.turno===e.id;
     const conds=e.s?(e.s.condicoes||[]):(e.raw.cond||[]);
-    return `<div class="ci ${pode?'clic':''} ${e.s&&e.s.id===state.cbSel?'sel':''} ${e.s&&souDono(e.s)?'meu':''} ${naVez?'vez':''} ${i.pv===0?'zero':''}" ${pode?`data-act="cbSel" data-id="${e.s.id}"`:''}>
+    return `<div class="ci ${e.raw.oculto?'ci-oculto':''} ${pode?'clic':''} ${e.s&&e.s.id===state.cbSel?'sel':''} ${e.s&&souDono(e.s)?'meu':''} ${naVez?'vez':''} ${i.pv===0?'zero':''}" ${pode?`data-act="cbSel" data-id="${e.s.id}"`:''}>
       <button class="ci-ini" ${gm||(e.s&&souDono(e.s))?`data-act="cbEditIni" data-id="${e.id}" title="Editar a iniciativa"`:'disabled'}>${e.valor}</button>
       <span class="ci-corpo">${naVez?'<span class="ci-vez">▶ Na vez</span>':''}<span class="ci-nome">${cbIcone(e)} ${esc(e.nome)}${e.s&&e.s.type==='pc'&&state.users[e.ownerId]?` <small>(${esc(state.users[e.ownerId].name)})</small>`:''}</span>
-        <span class="ci-mini">${(e.tipo==='pc'||gm)&&i.pv!=null?`Def ${i.def} · PV ${i.pv}/${i.pvMax}`:''}${conds.length?' · '+conds.map(c=>COND_ICONE[c]||'').join(''):''}</span></span>
-      ${gm?`<button class="ico-btn" data-act="cbRemove" data-id="${e.id}" title="Tirar do combate" aria-label="Tirar do combate">✕</button>`:''}
+        <span class="ci-mini">${(e.tipo==='pc'||gm||i.falso)&&i.pv!=null?`Def ${i.def} · PV ${i.pv}/${i.pvMax}`:''}${gm&&e.raw.oculto?' · <b>oculto</b>':''}${gm&&e.raw.semStats?' · <b>stats ocultos</b>':''}${conds.length?' · '+conds.map(c=>COND_ICONE[c]||'').join(''):''}</span></span>
+      ${gm?`<span class="ci-bts"><button class="ico-btn ${e.raw.oculto?'on':''}" data-act="cbOcultar" data-id="${e.id}" aria-pressed="${!!e.raw.oculto}" title="${e.raw.oculto?'Mostrar aos jogadores na iniciativa e no mapa':'Ocultar dos jogadores (iniciativa e mapa)'}" aria-label="${e.raw.oculto?'Mostrar aos jogadores':'Ocultar dos jogadores'}">${e.raw.oculto?'🙈':'👁'}</button><button class="ico-btn ${e.raw.semStats?'on':''}" data-act="cbSemStats" data-id="${e.id}" aria-pressed="${!!e.raw.semStats}" title="${e.raw.semStats?'Stats ocultos: os jogadores veem Defesa 10 e PV 1/1. Clique para mostrar os reais.':'Ocultar stats: os jogadores passam a ver Defesa 10 e PV 1/1'}" aria-label="Ocultar stats">${e.raw.semStats?'❓':'📊'}</button><button class="ico-btn" data-act="cbRemove" data-id="${e.id}" title="Tirar do combate" aria-label="Tirar do combate">✕</button></span>`:''}
     </div>`}).join(''):`<div class="empty">Ninguém entrou na ordem de combate ainda.${gm?' Use “Adicionar ao combate”.':' Role sua iniciativa para entrar.'}</div>`;
   return `<div id="combateWrap" class="cb-layout ${gm?'mestre':'jogador'}">
     <div class="cb-lista">
@@ -6966,7 +6974,7 @@ function abrirAtaque(sid,atkKey,opt={}){
     const m=montar();const alvoE=alvos.find(x=>x.id===st.alvo);const df=defDe(alvoE);
     $('#atkBody').innerHTML=`
       <div class="atk-passo"><span class="atk-num">1</span> Alvo</div>
-      <div class="atk-alvos">${alvos.map(e=>{const i=cbInfo(e);return `<button type="button" class="atk-alvo ${e.id===st.alvo?'on':''}" data-alvo="${e.id}"><b>${cbIcone(e)} ${esc(e.nome)}</b><small>${e.s||e.raw.defesa?`Defesa ${i.def}`:'Defesa ?'}${i.pv!=null&&(e.tipo==='pc'||state.isGM)?` · PV ${i.pv}/${i.pvMax}`:''}</small></button>`}).join('')||'<p class="fx-help">Ninguém mais está no combate. Você ainda pode rolar o ataque.</p>'}</div>
+      <div class="atk-alvos">${alvos.map(e=>{const i=cbInfoPub(e);return `<button type="button" class="atk-alvo ${e.id===st.alvo?'on':''}" data-alvo="${e.id}"><b>${cbIcone(e)} ${esc(e.nome)}</b><small>${e.s||e.raw.defesa?`Defesa ${i.def}`:'Defesa ?'}${i.pv!=null&&(e.tipo==='pc'||state.isGM||i.falso)?` · PV ${i.pv}/${i.pvMax}`:''}</small></button>`}).join('')||'<p class="fx-help">Ninguém mais está no combate. Você ainda pode rolar o ataque.</p>'}</div>
       ${alvoE&&!alvoE.s&&!alvoE.raw.defesa?`<label class="field" style="max-width:160px"><span>Defesa de ${esc(alvoE.nome)}</span><input class="inp" type="number" data-defman value="${st.defManual[alvoE.id]||''}"></label>`:''}
       <div class="atk-passo"><span class="atk-num">2</span> Como vai atacar</div>
       <div class="seg"><button type="button" class="seg-btn ${st.modo==='arma'?'on':''}" data-modo="arma" ${armas.length?'':'disabled'}>${isPC?'Arma':'Ataque da ficha'}</button><button type="button" class="seg-btn ${st.modo==='custom'?'on':''}" data-modo="custom">Personalizado</button><button type="button" class="seg-btn ${st.modo==='manobra'?'on':''}" data-modo="manobra">🤼 Manobra</button></div>
@@ -7021,11 +7029,11 @@ function abrirAtaque(sid,atkKey,opt={}){
       if(bst.consumir.length)s.habilidades=(s.habilidades||[]).filter(h=>!bst.consumir.includes(h.id));if(bst.assassinar){assDt=(s.assassinar&&s.assassinar.dt)||0;s.assassinar=null}state.nr=freshNR();await Store.saveSheet(s)}
     try{rollExpr(m.dano)}catch(x){toast('Confira a expressão de dano.','err');return}
     const df=defDe(alvoE);const lines=[];const golpes=[];
-    const nAt=Math.max(1,Math.min(st.vezes||m.qtd,m.qtd));let unicoUsado=false,salvarAtacante=false;
+    const nAt=Math.max(1,Math.min(st.vezes||m.qtd,m.qtd));const mask=statsOcultos(alvoE);let unicoUsado=false,salvarAtacante=false;
     for(let k=0;k<nAt;k++){
-      const t=mkLine(`Ataque${nAt>1?' '+(k+1):''} · ${m.nome}${alvoE?' → '+alvoE.nome:''}`,m.expr,m.crit,df&&df.v?df.v:null);lines.push(t);const acertou=acerta(t,df&&df.v?df.v:null);
+      const t=mkLine(`Ataque${nAt>1?' '+(k+1):''} · ${m.nome}${alvoE?' → '+alvoE.nome:''}`,m.expr,m.crit,df&&df.v?df.v:null);lines.push(t);if(mask)t.vsOculto=true;const acertou=acerta(t,df&&df.v?df.v:null);
       if(!acertou&&t.crit){t.crit=false;t.label+=' · margem de crítico, mas não passou a Defesa'}
-      if(s.type==='npc'&&acertou)confirmaCritAmeaca(t,lines);if(acertou&&df&&df.v&&t.total<df.v)lines.push({note:`20 natural: acerto automático (${t.total} não passaria a Defesa ${df.v}).`});
+      if(s.type==='npc'&&acertou)confirmaCritAmeaca(t,lines);if(acertou&&df&&df.v&&t.total<df.v)lines.push({note:mask?'20 natural: acerto automático.':`20 natural: acerto automático (${t.total} não passaria a Defesa ${df.v}).`});
       if(acertou){const lbl=`Dano${t.crit?' crítico':''} · ${m.nome}`;let dm;
         if(m.segs){const S=m.segs;dm=mkLineT(lbl,[{expr:(t.crit?critExpr(S.base,m.mult):S.base)+(S.flat?fmtB(S.flat):''),tipo:S.tipo},...S.extras.filter(x=>!x.unico||!unicoUsado),...(t.crit?S.soCrit:[])]);if(S.extras.some(x=>x.unico))unicoUsado=true}
         else{dm=mkLine(lbl,t.crit?critExpr(m.base,m.mult)+m.resto+(m.soCrit||''):m.dano);dm.partes=[{tipo:normTipo(m.danoTipo),valor:dm.total}]}
@@ -7033,7 +7041,7 @@ function abrirAtaque(sid,atkKey,opt={}){
         const gc=[];if(malsArma.includes('sanguinaria')){gc.push('sangrando');if(t.crit){gc.push('fraco');const tp=mkLine('Sanguinária · PV temporários','2d10');lines.push(tp);s.pvTemp=Math.max(+s.pvTemp||0,tp.total);salvarAtacante=true}}
         if(malsArma.includes('consumidora'))gc.push('lento');
         golpes.push({total:dm.total,crit:t.crit,atk:t.total,nat:t.nat,def:df?df.v:null,acertou:true,dano:dm.total,partes:dm.partes,conds:gc})}
-      else{lines.push({note:`Errou (${t.total} contra Defesa ${df.v}).`});golpes.push({total:0,crit:false,atk:t.total,nat:t.nat,def:df.v,acertou:false,dano:0})}
+      else{lines.push({note:mask?`Errou (${t.total}).`:`Errou (${t.total} contra Defesa ${df.v}).`});golpes.push({total:0,crit:false,atk:t.total,nat:t.nat,def:df.v,acertou:false,dano:0})}
     }
     if(unicoUsado&&isPC&&st.modo==='arma'){const it=(s.itens||[]).find(x=>x.id===st.arma);const us=[...(it?ritModsDe(it).filter(x=>x.unico):[]),...(s.proxAtaque||[])];if(it)encerrarModsUnicos(s,it);s.proxAtaque=[];lines.push({note:`${us.map(x=>x.nome).join(', ')}: descarregado no acerto.`});salvarAtacante=true}
     if(salvarAtacante)Store.saveSheet(s);
@@ -7054,7 +7062,7 @@ function abrirAtaque(sid,atkKey,opt={}){
 /* resultado do ataque com atalhos para aplicar no alvo */
 const cbUltimo={};
 function cbResultado(titulo,lines,danos,conds,aviso){
-  openModal(`<h3>${esc(titulo)}</h3>${lines.map(l=>l.note?`<p class="mono" style="font-size:15px;margin:4px 0">${esc(l.note)}</p>`:`<div class="result-box"><div class="row"><span class="big">${l.total}</span><div><div class="mono" style="font-size:15px">${esc(l.label)} · ${esc(l.expr)}${l.vs?` · Defesa ${l.vs}: <b style="color:${acerta(l,l.vs)?'var(--ok)':'var(--stamp)'}">${acerta(l,l.vs)?(l.total<l.vs?'acertou (20 natural)':'acertou'):'errou'}</b>`:''}${l.crit?' · <b style="color:var(--stamp)">CRÍTICO</b>':''}</div>${diceHtml(l.parts,l.critAt)}</div></div></div>`).join('')}
+  openModal(`<h3>${esc(titulo)}</h3>${lines.map(l=>l.note?`<p class="mono" style="font-size:15px;margin:4px 0">${esc(l.note)}</p>`:`<div class="result-box"><div class="row"><span class="big">${l.total}</span><div><div class="mono" style="font-size:15px">${esc(l.label)} · ${esc(l.expr)}${l.vs?` · Defesa ${l.vsOculto?'?':l.vs}: <b style="color:${acerta(l,l.vs)?'var(--ok)':'var(--stamp)'}">${acerta(l,l.vs)?(l.total<l.vs?'acertou (20 natural)':'acertou'):'errou'}</b>`:''}${l.crit?' · <b style="color:var(--stamp)">CRÍTICO</b>':''}</div>${diceHtml(l.parts,l.critAt)}</div></div></div>`).join('')}
     ${aviso?`<p class="aud-ver">${esc(aviso)}</p>`:''}<div class="mfoot">${danos.map(x=>`<button class="btn red ${x.fora?'':'solid'}" data-act="cbDanoPre" data-id="${x.e.id}" data-v="${x.valor}" data-t="${esc(x.tipo||'')}" data-m="${x.melee?1:0}">${x.fora?'Resolver eu mesmo':`Aplicar ${x.valor} de dano em ${esc(x.e.nome)}`}</button>`).join('')}
       ${conds.map(x=>`<button class="btn solid" data-act="cbCondAplicar" data-id="${x.e.id}" data-k="${x.c}">Deixar ${esc(x.e.nome)} ${esc((CONDICOES[x.c]||{}).nome||x.c).toLowerCase()}</button>`).join('')}
       <button class="btn" data-act="closeModal">Fechar</button></div>`);
@@ -7136,6 +7144,8 @@ Object.assign(A,{
   cbAddModal:()=>abrirAddCombatente(),
   cbAddAvulso:()=>{const nome=$('#cbAvNome').value.trim();if(!nome){toast('Dê um nome ao combatente.','err');return}
     const pv=num($('#cbAvPv').value);Col.set('ini',uid('av_'),{nome,valor:num($('#cbAvIni').value),defesa:num($('#cbAvDef').value)||0,pv:pv||0,pvMax:pv||0,desempate:Math.random()});render()},
+  cbOcultar:el=>{const r=Col.get('ini',el.dataset.id);if(!r||!state.isGM)return;Col.set('ini',el.dataset.id,{oculto:!r.oculto});toast(r.oculto?'Visível para os jogadores de novo.':'Oculto: some da iniciativa e do mapa dos jogadores.');render()},
+  cbSemStats:el=>{const r=Col.get('ini',el.dataset.id);if(!r||!state.isGM)return;Col.set('ini',el.dataset.id,{semStats:!r.semStats});toast(r.semStats?'Stats reais visíveis de novo.':'Stats ocultos: os jogadores veem Defesa 10 e PV 1/1.');render()},
   cbRemove:el=>{const id=el.dataset.id;Col.del('ini',id);const cfg=bmCfg();if(cfg.turno===id)bmSaveCfg({turno:null})},
   cbEditIni:el=>{const id=el.dataset.id;const cur=Col.get('ini',id);if(!cur)return;
     const inp=document.createElement('input');inp.type='number';inp.value=cur.valor||0;inp.className='ci-ini-edit';el.replaceWith(inp);inp.focus();inp.select();
@@ -7622,11 +7632,11 @@ function bmEhDono(e){return!!(e&&e.s&&souDono(e.s))}
 function bmPodeMover(e){if(bmEhMestre())return true;if(!bmEhDono(e))return false;const c=bmCfg();return!!(c.livre||!c.turno||c.turno===e.id)}
 function bmEntradas(){try{return combateEntradas()}catch(e){return[]}}
 function bmTokenDe(e,i,cena){const t=Col.get('bmTok',bmCfg().cenaAtiva+'__'+e.id);if(t)return t;const L=bmLimites(cena);return{x:Math.floor(L.x/BM_CELL)+1+(i%8),y:Math.floor(L.y/BM_CELL)+1+Math.floor(i/8),tam:e.s&&e.s.type==='npc'?({Grande:2,Enorme:3,Colossal:4}[e.s.tamanho]||1):1,padrao:true}}
-function bmVidaInfo(e){const i=cbInfo(e);if(i.pv==null&&!i.pvMax)return{def:i.def,mov:i.desloc,corrida:i.desloc*2};return{at:i.pv,max:i.pvMax,pc:i.pvMax?Math.round(i.pv/i.pvMax*100):0,def:i.def,mov:i.desloc,corrida:i.desloc*2}}
+function bmVidaInfo(e){const i=cbInfoPub(e);if(i.pv==null&&!i.pvMax)return{def:i.def,mov:i.desloc,corrida:i.desloc*2};return{at:i.pv,max:i.pvMax,pc:i.pvMax?Math.round(i.pv/i.pvMax*100):0,def:i.def,mov:i.desloc,corrida:i.desloc*2,falso:!!i.falso}}
 function bmConds(e,t){const base=e.s?(e.s.condicoes||[]):(e.raw.cond||[]);return[...base.filter(c=>COND_ICONE[c]),...((t&&t.marcas)||[]).filter(m=>BM_MARCAS[m])]}
 function bmCondInfo(c){return BM_MARCAS[c]?{i:BM_MARCAS[c][0],n:BM_MARCAS[c][1],d:BM_MARCAS[c][2]}:{i:COND_ICONE[c]||'•',n:(CONDICOES[c]||{}).nome||c,d:(CONDICOES[c]||{}).desc||''}}
 function bmTokenInner(e,t){
-  const v=bmVidaInfo(e);const vida=v.max&&(e.tipo==='pc'||bmEhMestre())?`<div class="bm-tk-vida ${v.pc<=25?'baixa':v.pc<=50?'media':''}"><i style="width:${v.pc}%"></i></div>`:'';
+  const v=bmVidaInfo(e);const vida=v.max&&(e.tipo==='pc'||bmEhMestre()||v.falso)?`<div class="bm-tk-vida ${v.pc<=25?'baixa':v.pc<=50?'media':''}"><i style="width:${v.pc}%"></i></div>`:'';
   const anel=e.s&&(ehAliado(e.s)||ehAliadoImp(e.s))?'#2f9e5a':e.s&&e.s.type==='npc'?anelElem(e.s.elementos):'';
   const foto=(anel?`<span class="bm-tk-anel" style="background:${anel}"></span>`:'')+(e.s&&e.s.foto?`<span class="bm-tk-img ${anel?'com-anel':''}" style="${bgCss(e.s.foto,1)}"></span>`:`<span class="bm-tk-img vazio ${anel?'com-anel':''}">${esc((e.nome||'?').trim().charAt(0).toUpperCase())}</span>`);
   const cs=bmConds(e,t);
@@ -7699,7 +7709,7 @@ function bmRender(){
     if(!el){el=document.createElement('div');el.dataset.tk=e.id;camada.appendChild(el)}
     const tam=t.tam||1;const cs=bmConds(e,t);const v=bmVidaInfo(e);
     const noEscuro=esc0&&!bmPontoIluminado(esc0,luzes,(t.x+tam/2)*BM_CELL,(t.y+tam/2)*BM_CELL);
-    el.className=`bm-token tipo-${e.tipo} ${e.s&&souDono(e.s)?'meu':''} ${bmSel===e.id?'sel':''} ${t.oculto?'oculto':''} ${bmPodeMover(e)?'movel':''} ${vez&&vez.id===e.id?'na-vez':''} ${cs.includes('morto')||(v.max&&v.at===0)?'morto':''} ${cs.includes('caido')?'caido':''} ${t.luz&&BM_LUZES[t.luz]?'com-luz':''} ${noEscuro?(mestre?'no-escuro-mestre':'no-escuro'):''}`;
+    el.className=`bm-token tipo-${e.tipo} ${e.s&&souDono(e.s)?'meu':''} ${bmSel===e.id?'sel':''} ${t.oculto||e.raw.oculto?'oculto':''} ${bmPodeMover(e)?'movel':''} ${vez&&vez.id===e.id?'na-vez':''} ${cs.includes('morto')||(v.max&&v.at===0)?'morto':''} ${cs.includes('caido')?'caido':''} ${t.luz&&BM_LUZES[t.luz]?'com-luz':''} ${noEscuro?(mestre?'no-escuro-mestre':'no-escuro'):''}`;
     el.style.left=t.x*BM_CELL+'px';el.style.top=t.y*BM_CELL+'px';el.style.width=el.style.height=tam*BM_CELL+'px';
     const inner=bmTokenInner(e,t);if(el._inner!==inner){el.innerHTML=inner;el._inner=inner}
   });
@@ -7769,7 +7779,7 @@ function bmPainelHtml(cena,ents,cenasIds){
   const mestre=bmEhMestre();const e=bmSel?ents.find(x=>x.id===bmSel):null;const t=e?bmTokenDe(e,ents.indexOf(e),cena):null;let tok='';
   if(e){const v=bmVidaInfo(e);const pode=mestre||bmEhDono(e);const cs=bmConds(e,t);
     tok=`<div class="bm-box"><h5>Token</h5><div class="bm-tok-info">${e.s&&e.s.foto?`<span class="bm-tok-av" style="${bgCss(e.s.foto,1)}"></span>`:`<span class="bm-tok-av vazio">${esc((e.nome||'?').charAt(0))}</span>`}<div><b>${esc(e.nome)}</b><small>${e.tipo==='pc'?'Agente':e.tipo==='npc'?'Ameaça':'Avulso'} · iniciativa ${e.valor}</small></div></div>
-      ${v.max&&(e.tipo==='pc'||mestre)?`<div class="bm-tok-stats"><span>🛡 <b>${v.def}</b></span><span>❤ <b>${v.at}/${v.max}</b></span><span>👣 <b>${v.mov}m</b></span></div>`:''}
+      ${v.max&&(e.tipo==='pc'||mestre||v.falso)?`<div class="bm-tok-stats"><span>🛡 <b>${v.def}</b></span><span>❤ <b>${v.at}/${v.max}</b></span><span>👣 <b>${v.mov}m</b></span></div>`:''}
       <label class="lbl">Condições</label><div class="bm-conds">${BM_COND_MAPA.map(k=>`<button type="button" class="bm-cond ${cs.includes(k)?'on':''}" data-bmcond="${k}" ${pode?'':'disabled'} title="${esc((CONDICOES[k]||{}).desc||'')}">${COND_ICONE[k]} ${(CONDICOES[k]||{}).nome||k}</button>`).join('')}${Object.keys(BM_MARCAS).map(k=>`<button type="button" class="bm-cond ${cs.includes(k)?'on':''}" data-bmmarca="${k}" ${pode?'':'disabled'} title="${esc(BM_MARCAS[k][2])}">${BM_MARCAS[k][0]} ${BM_MARCAS[k][1]}</button>`).join('')}</div>
       <label class="lbl">Luz</label><div class="seg bm-seg">${[['','Apagada',''],...Object.entries(BM_LUZES).map(([k,l])=>[k,l.nome,l.icone])].map(([k,n,i])=>`<button type="button" class="seg-btn ${(t.luz||'')===k?'on':''}" data-bmluz="${k}" ${pode?'':'disabled'}>${i} ${n}</button>`).join('')}</div>
       ${mestre?`<label class="lbl">Tamanho</label><div class="seg bm-seg">${[1,2,3,4].map(n=>`<button type="button" class="seg-btn ${(t.tam||1)===n?'on':''}" data-bmtam="${n}">${n}×${n}</button>`).join('')}</div><button type="button" class="btn sm ${t.oculto?'solid':''}" data-bmoculto style="margin-top:6px">${t.oculto?'🫥 Oculto dos jogadores':'👁 Visível a todos'}</button>`:''}
@@ -7868,7 +7878,7 @@ function bmWireViewport(vp){
     const tk=ev.target.closest&&ev.target.closest('.bm-token');if(!tk){hover.classList.remove('on');return}
     const ents=bmEntradas();const e=ents.find(x=>x.id===tk.dataset.tk);if(!e){hover.classList.remove('on');return}
     const t=bmTokenDe(e,ents.indexOf(e),bmCena());const v=bmVidaInfo(e);const cs=bmConds(e,t);
-    hover.innerHTML=`<b>${esc(e.nome)}</b>${v.max&&(e.tipo==='pc'||bmEhMestre())?`<small>🛡 Defesa ${v.def} · ❤ ${v.at}/${v.max}</small>`:''}${cs.length?cs.map(c=>{const ci=bmCondInfo(c);return `<div class="bm-hover-cond"><span>${ci.i} ${esc(ci.n)}</span><em>${esc(ci.d)}</em></div>`}).join(''):'<small class="muted">Sem condições.</small>'}`;
+    hover.innerHTML=`<b>${esc(e.nome)}</b>${v.max&&(e.tipo==='pc'||bmEhMestre()||v.falso)?`<small>🛡 Defesa ${v.def} · ❤ ${v.at}/${v.max}</small>`:''}${cs.length?cs.map(c=>{const ci=bmCondInfo(c);return `<div class="bm-hover-cond"><span>${ci.i} ${esc(ci.n)}</span><em>${esc(ci.d)}</em></div>`}).join(''):'<small class="muted">Sem condições.</small>'}`;
     const r=vp.getBoundingClientRect();let x=ev.clientX-r.left+16,y=ev.clientY-r.top+16;hover.classList.add('on');
     if(x+hover.offsetWidth>r.width-8)x=ev.clientX-r.left-hover.offsetWidth-12;if(y+hover.offsetHeight>r.height-8)y=ev.clientY-r.top-hover.offsetHeight-12;hover.style.left=x+'px';hover.style.top=y+'px';
   });
