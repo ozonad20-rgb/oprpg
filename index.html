@@ -1808,6 +1808,42 @@ details.hcard[open]>summary .hc-tg{transform:rotate(90deg)}
 .tempbox small{flex-basis:100%;font-size:12.5px}
 .tempbox.on .tb-ctl b,.tempbox.on .tb-ctl input{color:var(--pv);font-weight:700}
 .cc .tempbox{margin:2px 0 6px}
+
+.gal-item.oculta .gal-thumb{opacity:.45;filter:grayscale(.7)}
+.gal-bt.ocu{right:78px}.gal-item.oculta .gal-bt.ocu{opacity:1}
+.gal-oculta-selo{position:absolute;left:10px;top:48px;background:var(--ink);color:var(--paper);font-family:var(--f-mono);font-size:12px;padding:2px 6px;pointer-events:none}
+
+.envio-alvo{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;margin-top:12px;padding:10px;border:1px dashed var(--ink-faint)}
+.envio-alvo .field{flex:1;min-width:200px}.envio-alvo small{flex-basis:100%}
+
+/* ---------- atalhos da ficha (telas estreitas) ---------- */
+.sheet-quick{display:none}
+@media (max-width:900px){
+  .sheet-quick{display:flex;gap:6px;position:sticky;top:0;z-index:40;margin:0 -4px 10px;padding:6px 4px;background:var(--desk);border-bottom:1px solid var(--desk-line);overflow-x:auto;scrollbar-width:none}
+  .sheet-quick::-webkit-scrollbar{display:none}
+  .sq{flex:0 0 auto;display:flex;align-items:baseline;gap:4px;min-height:40px;padding:4px 10px;border:1px solid var(--desk-line);background:var(--desk-2,rgba(255,255,255,.04));color:var(--on-desk);font-family:var(--f-mono);font-size:13px;border-left-width:4px}
+  .sq small{font-family:var(--f-ui);font-weight:700;letter-spacing:.1em;font-size:11px;color:var(--on-desk-soft)}
+  .sq b{font-family:var(--f-type);font-weight:400;font-size:19px}.sq b i{font-style:normal;font-size:13px;color:var(--pv);margin-left:2px}
+  .sq span{color:var(--on-desk-soft)}
+  .sq.pv{border-left-color:var(--pv)}.sq.san{border-left-color:var(--san)}.sq.pe{border-left-color:var(--pe)}.sq.def{border-left-color:var(--on-desk-soft)}
+  .sq.pv.low b{color:var(--pv)}
+  .sq.ir{align-items:center;border-left-width:1px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;font-size:12px}
+  button.sq{cursor:pointer}button.sq:active{background:rgba(255,255,255,.1)}
+}
+/* ---------- cabeçalho e capa mais enxutos no celular ---------- */
+@media (max-width:640px){
+  .topbar{gap:8px 12px;padding-block:10px;margin-bottom:14px}
+  .brand{font-size:24px}.brand small{display:none}
+  .topbar .who{gap:8px;font-size:13px;margin-left:auto}.topbar .who>span{display:none}
+  .camp-hero{grid-template-columns:96px 1fr;gap:14px;margin-bottom:14px;align-items:center}
+  .camp-hero .cover{border-width:3px}
+  .camp-hero .cover-empty{font-size:11px;letter-spacing:.06em}
+  .camp-hero h1{font-size:26px}
+  .camp-hero p{font-size:13.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+}
+/* o cartão de rolagem não cobre uma janela aberta */
+#rollcard.dock{place-items:start center;padding-top:8px}
+#rollcard.dock .rc{zoom:.6}
 </style>
 <div id="app"><div class="boot"><div><div class="logo">NE<span>X</span></div><p>Abrindo o arquivo de agentes…</p><div class="bar"><i></i></div>
 <noscript><p style="color:#e5e2d9">O NEX precisa de JavaScript para funcionar. Abra pela página publicada ou em um navegador com JavaScript ativado; visualizadores de arquivo costumam bloquear scripts.</p></noscript></div></div></div>
@@ -3489,7 +3525,11 @@ function atkInfo(a,d){
   const spec=diceSpec(base,dmod);
   const extras=[...extrasArma,...mf.extra,...d.allyDmg];
   const tipos=[a.danoTipo,...comps.map(c=>c.tipo),...rm.filter(m=>m.dano).map(m=>m.danoTipo)].map(x=>(x||'').trim().toLowerCase()).filter(Boolean);
-  return{pericia,atAttr,base,dmod,spec,atkB,flat,baseDano,extras,soCrit,crit,mult,auto:!!(a.auto||mf.auto),compensador:!!mf.compensador,melee,tipos:[...new Set(tipos)],
+  /* mesmas partes, com o tipo de dano de cada uma (para RD, imunidade e vulnerabilidade por tipo) */
+  const tB=(a.danoTipo||'').trim();const malEl=malIds.map(id=>(MAL_A.find(x=>x.id===id)||{}));
+  const extrasT=[...comps.filter(c=>c.crit==='nao').map(c=>({expr:cl(c),tipo:c.tipo||tB})),...malEl.filter(m=>m.fx&&m.fx.extra).map(m=>({expr:m.fx.extra,tipo:m.el||tB})),...rm.filter(m=>m.dano).map(m=>({expr:m.dano,tipo:m.danoTipo||tB,unico:!!m.unico})),...mf.extra.map(x=>({expr:x,tipo:tB})),...d.allyDmg.map(x=>({expr:x,tipo:tB}))];
+  const soCritT=comps.filter(c=>c.crit==='so').map(c=>({expr:cl(c),tipo:c.tipo||tB}));
+  return{pericia,atAttr,base,dmod,spec,atkB,flat,baseDano,extras,soCrit,extrasT,soCritT,crit,mult,auto:!!(a.auto||mf.auto),compensador:!!mf.compensador,melee,tipos:[...new Set(tipos)],
     dmg:baseDano+(extras.length?'+'+extras.join('+'):'')+(flat?fmtB(flat):'')+(soCrit.length?` (+${soCrit.join('+')} no crítico)`:'')};
 }
 
@@ -4105,6 +4145,12 @@ function viewSheet(){
   return `${topbar(`<div class="crumb">${esc(state.camp.name)} / <b>${esc(s.nome||'Agente sem nome')}</b></div>`)}
   <div class="sheet-bar"><button class="btn sm" data-act="backCamp">‹ Voltar</button><span class="muted mono" style="font-size:14.5px;color:var(--on-desk-soft)">${ed?'Alterações salvas automaticamente':'Somente leitura'}</span><span class="spacer"></span>
     ${ed?`<button class="btn sm ${state.editMode?'solid on-desk-solid':''}" data-act="toggleEdit" aria-pressed="${!!state.editMode}">${state.editMode?'✓ Concluir edição':'✎ Editar ficha'}</button>`:''}${ed?`<button class="btn sm" data-act="transferirFicha" data-id="${s.id}" title="Criar uma cópia desta ficha em outra campanha">⇄ Transferir</button>`:''}${state.isGM&&state.editMode?`<button class="btn sm red" data-act="delSheet" data-id="${s.id}">Excluir ficha</button>`:''}</div>
+  ${s.type==='pc'?`<nav class="sheet-quick" aria-label="Atalhos da ficha">
+    <button class="sq pv ${d.machucado?'low':''}" data-act="${ed?'sqDano':'irPara'}" data-t="an-vida" title="${ed?'Receber dano ou curar':'Ir para a vida'}"><small>PV</small><b class="tnum">${s.pv}${+s.pvTemp?`<i>+${s.pvTemp}</i>`:''}</b><span>/${d.pvMax}</span></button>
+    <button class="sq san" data-act="irPara" data-t="an-vida"><small>SAN</small><b class="tnum">${s.san}</b><span>/${d.sanMax}</span></button>
+    <button class="sq pe" data-act="irPara" data-t="an-vida"><small>PE</small><b class="tnum">${s.pe}</b><span>/${d.peMax}</span></button>
+    <span class="sq def"><small>DEF</small><b class="tnum">${d.defesa}</b></span>
+    <button class="sq ir" data-act="irPara" data-t="an-per">Perícias</button><button class="sq ir" data-act="irPara" data-t="an-abas">${({combate:'Combate',habilidades:'Habilidades',rituais:'Rituais',inventario:'Inventário',aliados:'Aliados',descricao:'Descrição'})[state.sheetTab]||'Abas'}</button></nav>`:''}
   <article class="paper dossier ${d.M?'masked':''} ${ed&&state.editMode?'editing':'play'}">
     <header class="dossier-head"><span class="org">Ordo Realitas · Arquivo de Agente</span><span class="fileno">Nº ${s.id.slice(-6).toUpperCase()} · ${esc(state.camp.name)}</span>${maskSwitch(s,d,ed)}<span class="stamp">${d.morrendo?'Morrendo':d.enlouquecendo?'Enlouquecendo':d.M?'Forma suprema':'Confidencial'}</span></header>
     <div class="dgrid">
@@ -4129,7 +4175,7 @@ function viewSheet(){
           <div class="statbox"><span class="lbl">Deslocamento</span><span class="v tnum">${d.desloc}m · ${Math.floor(d.desloc/1.5)}q</span></div>
         </div>
         ${maskPanel(s,d,ed)}
-        <div class="bars">${bar('pv','Vida',d.pvMax)}${bar('san','Sanidade',d.sanMax)}${bar('pe','Esforço',d.peMax)}
+        <div class="bars" id="an-vida">${bar('pv','Vida',d.pvMax)}${bar('san','Sanidade',d.sanMax)}${bar('pe','Esforço',d.peMax)}
           <div class="states">
             <span class="state ${d.machucado?'on':''}" title="Metade ou menos dos PV">Machucado</span>
             <span class="state ${d.morrendo?'on':''}" title="0 PV: três turnos morrendo na cena e o agente morre. Medicina DT 20 estabiliza.">Morrendo ${d.morrendo?pips('morte',s.morte||0):''}</span>
@@ -4159,7 +4205,7 @@ function viewSheet(){
         </div>
       </section>
       <section class="col col-b">
-        <div><div class="skills-head"><h3>Perícias</h3>${state.editMode&&ed?'<span class="mono muted" style="font-size:13.5px">clique no ícone para rolar</span>':`<button class="linkbtn per-tog" data-act="perTodas">${state.perTodas?'só treinadas':'mostrar todas ('+PERICIAS.length+')'}</button>`}</div>
+        <div id="an-per"><div class="skills-head"><h3>Perícias</h3>${state.editMode&&ed?'<span class="mono muted" style="font-size:13.5px">clique no ícone para rolar</span>':`<button class="linkbtn per-tog" data-act="perTodas">${state.perTodas?'só treinadas':'mostrar todas ('+PERICIAS.length+')'}</button>`}</div>
         <div class="per-wrap ${!state.perTodas&&!(state.editMode&&ed)?'so-tr':''}"><div class="per-grid"><div class="per-hd"><span></span><span>Perícia</span><span style="text-align:center">Atr</span><span style="text-align:center">Dados</span><span style="text-align:center">Bônus</span><span style="text-align:center">Treino</span><span style="text-align:center">Outros</span></div>
         ${PERICIAS.map(([nome,,fl])=>{const r=d.per[nome];const sp=diceSpec(r.base,r.dmod);return `<div class="per-row ${r.treino?'tr':''} ${r.lock?'lock':''}">
           <button class="ico-btn" data-act="rollPer" data-p="${nome}" title="Rolar ${nome}" aria-label="Rolar ${nome}">${D20}</button>
@@ -4172,7 +4218,7 @@ function viewSheet(){
         <div class="per-foot help">+ penalidade de carga · * somente treinada · ■ treinada · Treino: +5 treinado, +10 veterano, +15 expert</div></div>
       </section>
       <section class="col col-c">
-        <nav class="stabs">${[['combate','Combate'],['habilidades',d.M?'Habilidades ✕':'Habilidades'],['rituais','Rituais'],['inventario','Inventário'],['aliados','Aliados'+((s.aliados||[]).length?' · '+s.aliados.length:'')],['descricao','Descrição']].map(([k,l])=>`<button class="stab ${state.sheetTab===k?'on':''}" data-act="sheetTab" data-t="${k}">${l}</button>`).join('')}</nav>
+        <nav class="stabs" id="an-abas">${[['combate','Combate'],['habilidades',d.M?'Habilidades ✕':'Habilidades'],['rituais','Rituais'],['inventario','Inventário'],['aliados','Aliados'+((s.aliados||[]).length?' · '+s.aliados.length:'')],['descricao','Descrição']].map(([k,l])=>`<button class="stab ${state.sheetTab===k?'on':''}" data-act="sheetTab" data-t="${k}">${l}</button>`).join('')}</nav>
         <div class="tabbody">${(({combate:tabCombate,habilidades:tabHab,rituais:tabRit,inventario:tabInv,aliados:tabAliados,descricao:tabDesc})[state.sheetTab]||tabCombate)(s,d,ed)}</div>
       </section>
     </div>
@@ -4420,7 +4466,7 @@ function rollCard(r){
   const main=r.lines.filter(l=>!l.note);const L=main[0];const ext=main.map(extremo);const top=ext.includes('crit')?'crit':ext.includes('falha')?'falha':'';
   let el=document.getElementById('rollcard');if(!el){el=document.createElement('div');el.id='rollcard';el.setAttribute('role','status');el.setAttribute('aria-live','polite');document.body.appendChild(el)}
   const nums=main.slice(0,6);
-  el.className='rc-wrap';void el.offsetWidth;
+  el.className='rc-wrap'+(document.querySelector('#modal .overlay')?' dock':'');void el.offsetWidth;
   el.innerHTML=`<div class="rc ${top}" data-rcfechar><div class="rc-sigil" aria-hidden="true"></div>
     <div class="rc-quem">${esc(r.charName||r.userName||'')}${r.secret?' · <span class="rc-priv">privada</span>':''}</div>
     <div class="rc-label">${esc(L.label)}</div>
@@ -4482,7 +4528,8 @@ async function rollAttack(id,rajada){
   if(b.consumir.length)s.habilidades=(s.habilidades||[]).filter(h=>!b.consumir.includes(h.id));if(b.assassinar){s.assassinar=null;toast('Assassinar usado: dados do Ataque Furtivo dobrados.')}
   const baseD=addDice(i.baseDano,rajada?1:0);const extras=[...i.extras,...b.dmgExtra];const flat=i.flat+b.dmgBonus;
   const dm=mkLine(`Dano${t.crit?' crítico':''} · ${a.nome}${i.tipos.length?' ('+i.tipos.join(', ')+')':''}`,(t.crit?critExpr(baseD,i.mult):baseD)+extras.map(x=>'+'+x).join('')+(t.crit?i.soCrit.map(x=>'+'+x).join(''):'')+(flat?fmtB(flat):''));dm.crit=t.crit;
-  state.nr=freshNR();await saveSheet(s);logRoll([t,dm,...venNota(s,id,i)]);
+  const itU=(s.itens||[]).find(x=>x.id===id);const unicos=itU?ritModsDe(itU).filter(x=>x.unico):[];if(unicos.length)encerrarModsUnicos(s,itU);
+  state.nr=freshNR();await saveSheet(s);logRoll([t,dm,...venNota(s,id,i),...(unicos.length?[{note:`${unicos.map(x=>x.nome).join(', ')} descarregado neste ataque (vale só se acertou).`}]:[])]);
 }
 
 /* ---------- Modais ---------- */
@@ -4575,9 +4622,11 @@ function npcPresetModal(opt={}){
     if(b.dataset.bestcb!=null){made.forEach(s=>addAoCombate(s,true));state.campTab='combate';state.cbSel=made[0].id;render();toast(`${made.length>1?made.length+'× ':''}${esc(preset.nome)} no combate.`);return}
     if(n===1){state.sheet=made[0];state.view='sheet';if(!preset)state.editMode=true;render();window.scrollTo(0,0)}else{render();toast(`${n} fichas de ${esc(preset.nome)} criadas.`)}});
 }
-function resultModal(title,lines,applies=[]){
+function resultModal(title,lines,applies=[],envio=null){
   openModal(`<h3>${esc(title)}</h3>${lines.map(l=>l.note?`<p class="mono" style="font-size:15px;margin:4px 0">${esc(l.note)}</p>`:`<div class="result-box"><div class="row"><span class="big">${l.total}</span><div><div class="mono" style="font-size:14.5px">${esc(l.label)} · ${esc(l.expr)}${l.vs?` · DT ${l.vs}: <b style="color:${l.total>=l.vs?'var(--ok)':'var(--stamp)'}">${l.total>=l.vs?'passou':'falhou'}</b>`:''}</div>${diceHtml(l.parts,l.critAt)}</div></div></div>`).join('')}
+    ${envio?(()=>{const L=(typeof combateEntradas==='function'?combateEntradas():[]).filter(x=>!state.sheet||x.sheetId!==state.sheet.id);return L.length?`<div class="envio-alvo"><label class="field"><span>Causar ${envio.valor} de ${esc(envio.tipo||'dano')} em</span><select class="inp" id="envAlvo">${L.map(x=>`<option value="${x.id}">${esc(x.nome)}</option>`).join('')}</select></label><button class="btn red solid" id="envGo">Enviar ao alvo</button>${envio.teste?`<small class="fx-help">O alvo rola ${esc(envio.teste.res)} contra DT ${envio.teste.dt} na tela dele (${esc(envio.teste.efeito)}). RD, imunidade e vulnerabilidade entram sozinhas.</small>`:'<small class="fx-help">RD, imunidade e vulnerabilidade entram sozinhas.</small>'}</div>`:''})():''}
     ${applies.length?`<div class="mfoot">${applies.map(a=>`<button class="btn solid" data-act="applyRes" data-k="${a.k}" data-v="${a.v}">${esc(a.label)}</button>`).join('')}</div>`:'<div class="mfoot"><button class="btn" data-act="closeModal">Fechar</button></div>'}`);
+  if(envio&&$('#envGo'))$('#envGo').onclick=()=>{const id=$('#envAlvo').value;closeModal();causarDanoAlvo(id,envio)};
 }
 
 /* ---------- Editor de efeitos ---------- */
@@ -4676,12 +4725,12 @@ function castModal(rid){
     $('#castBody').innerHTML=`<div class="forms">${opts.map(([k,l,desc,rol])=>{const c=ritualCost(s,d,r,k);const over=k!=='b'&&c>d.peTurnoRitual;const semAf=k!=='b'&&/afinidade/i.test((r.formas[k].req||'')+' '+(r.formas[k].desc||''))&&s.afinidade!==r.elemento;return `<button class="form-opt ${forma===k?'on':''}" data-forma="${k}" ${over||semAf?'disabled':''}>${semAf?`<small style="color:var(--stamp)">Requer afinidade com ${esc(r.elemento)}</small>`:''}<strong>${l} · ${c} PE</strong><small>${esc(desc||'')}</small>${rol?`<small>Rolagem: ${esc(rol)}</small>`:''}${over?`<small style="color:var(--stamp)">Acima do limite de ${d.peTurnoRitual} PE</small>`:''}</button>`}).join('')}</div>
       <div class="kv" style="margin-top:12px"><span><b>Custo</b>${cost} PE (você tem ${avail})</span><span><b>DT do ritual</b>${d.dtRitual}</span><span><b>Execução</b>${esc(r.execucao)}</span>${r.resistencia?`<span><b>Resistência</b>${esc(r.resistencia)}</span>`:''}</div>
       ${medo?`<p class="warn">Ritual de Medo: você perde ${cost} de Sanidade e ${forma==='v'?3:forma==='d'?2:1} de SAN permanente.</p>`:`<label class="chk" style="margin-top:10px"><input type="checkbox" id="castAuto" ${auto?'checked':''}> Rolar o custo do paranormal (Ocultismo contra DT ${20+cost})</label>`}
-      ${(()=>{const fx=ritArmaFx(r,forma);if(!fx)return'';return `<div class="cast-arma"><label class="field"><span>${fx.opcional?'Usar Chamejar em uma arma?':'Em qual arma?'}</span><select class="inp" id="castArma"><option value="">${fx.opcional?'Não, outra escolha do ritual':'Arma de outra pessoa / outro alvo'}</option>${ws.map(i=>`<option value="${i.id}" ${i.id===alvoArma?'selected':''}>${esc(i.nome)}${i.equipado?' (equipada)':''}${ritModsDe(i).length?' · já tem rituais':''}</option>`).join('')}</select></label><p class="fx-help">${alvoArma?`A arma fica com ${esc(fx.resumo)} até você encerrar os rituais nela.${fx.dano?' O dano extra é rolado junto com o ataque.':''}`:fx.opcional?'O efeito escolhido é resolvido normalmente.':'Nada muda na sua ficha: o efeito vai para a arma de quem você tocou.'}</p></div>`})()}
+      ${(()=>{const fx=ritArmaFx(r,forma);if(!fx)return'';return `<div class="cast-arma"><label class="field"><span>${fx.opcional?'Usar Chamejar em uma arma?':'Em qual arma?'}</span><select class="inp" id="castArma"><option value="">${fx.opcional?'Não, outra escolha do ritual':'Arma de outra pessoa / outro alvo'}</option>${(fx.soCorpo?ws.filter(i=>(i.arma.tipoAtq||'corpo')==='corpo'):ws).map(i=>`<option value="${i.id}" ${i.id===alvoArma?'selected':''}>${esc(i.nome)}${i.equipado?' (equipada)':''}${ritModsDe(i).length?' · já tem rituais':''}</option>`).join('')}</select></label><p class="fx-help">${alvoArma?`A arma fica com ${esc(fx.resumo)} até você encerrar os rituais nela.${fx.dano?' O dano extra é rolado junto com o ataque.':''}`:fx.opcional?'O efeito escolhido é resolvido normalmente.':'Nada muda na sua ficha: o efeito vai para a arma de quem você tocou.'}</p></div>`})()}
       ${cost>avail?`<p class="warn">PE insuficientes.</p>`:''}
       <div class="mfoot"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn red solid" id="castGo" ${cost>avail?'disabled':''}>Conjurar</button></div>`;
   };
   openModal(`<h3>Conjurar ${esc(r.nome)}</h3><div id="castBody"></div>`,'wide');draw();
-  $('#castBody').addEventListener('click',e=>{const b=e.target.closest('[data-forma]');if(b&&!b.disabled){forma=b.dataset.forma;draw();return}if(e.target.id==='castGo')doCast()});
+  $('#castBody').addEventListener('click',e=>{const b=e.target.closest('[data-forma]');if(b&&!b.disabled){forma=b.dataset.forma;const fx=ritArmaFx(r,forma);if(fx&&!fx.opcional&&!alvoArma){const wc=ws.find(i=>i.equipado&&(i.arma.tipoAtq||'corpo')==='corpo')||(fx.soCorpo?null:w0);if(wc)alvoArma=wc.id}if(!fx)alvoArma='';draw();return}if(e.target.id==='castGo')doCast()});
   $('#castBody').addEventListener('change',e=>{if(e.target.id==='castAuto')auto=e.target.checked;if(e.target.id==='castArma'){alvoArma=e.target.value;draw()}});
   async function doCast(){
     const d=derive(s);const cost=ritualCost(s,d,r,forma);if(!spendPE(s,d,cost-d.custoExtra,1))return;
@@ -4700,7 +4749,9 @@ function castModal(rid){
     const ef=f&&f.efeitos?f.efeitos:r.efeitos||[];
     if(fxA&&!fxA.opcional){}
     else if(ef.length||/sustentada/i.test(r.duracao)){r.ativo=true;r.formaAtiva=forma;lines.push({note:ef.length?'Efeitos aplicados na ficha enquanto o ritual durar.':'Ritual sustentado: pague 1 PE no início de cada turno.'})}
-    await saveSheet(s);logRoll(lines);resultModal(`${r.nome}${fl}`,lines,applies);
+    const Ld=rol&&tipo==='dano'?lines.filter(l=>!l.note).pop():null;
+    const envio=Ld?{valor:Ld.total,tipo:normTipo(r.danoTipo||(r.elemento==='Medo'?'mental':r.elemento)),atacante:s.nome,arma:r.nome+fl,teste:forma==='d'&&/Decad/i.test(r.nome)?null:testeDeRitual(r,d.dtRitual)}:null;
+    await saveSheet(s);logRoll(lines);resultModal(`${r.nome}${fl}`,lines,applies,envio);
   }
 }
 
@@ -4836,6 +4887,8 @@ const A={
   openCat:el=>catalogModal(el.dataset.k,null,el.dataset.t),
   rollAttr:el=>rollTest(ATTR_NOME[el.dataset.a],el.dataset.a,null),
   rollPer:el=>rollTest(el.dataset.p,null,el.dataset.p),
+  irPara:el=>{const n=document.getElementById(el.dataset.t);if(n){const y=n.getBoundingClientRect().top+window.scrollY-64;window.scrollTo({top:y,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}},
+  sqDano:()=>{const s=state.sheet;const e=(typeof combateEntradas==='function'?combateEntradas():[]).find(x=>x.sheetId===s.id);abrirReceberDano(e?e.id:'s:'+s.id)},
   perAttr:el=>{const s=state.sheet,d=derive(s);const nome=el.dataset.p;const r=d.per[nome];const pad=(PERICIAS.find(x=>x[0]===nome)||[])[1];const ed=canEdit(s);
     const opc=ATTRS.map(a=>{const dm=r.dmod-(d.dAttr[r.attr]||0)+(d.dAttr[a]||0);const sp=diceSpec(d.attrs[a],dm);
       return `<div class="pa-op ${a===r.attr?'on':''}"><button class="btn ${a===r.attr?'solid':''}" data-pa="${a}" ${ed?'':'disabled'} title="Passa a usar ${ATTR_NOME[a]} em ${esc(nome)}"><b>${a}</b> <small>${esc(ATTR_NOME[a])}${a===pad?' · padrão':''}</small><span class="mono">${sp.label}${fmtB(r.total)}</span></button><button class="ico-btn" data-par="${a}" title="Rolar ${esc(nome)} com ${a} só desta vez" aria-label="Rolar ${esc(nome)} com ${a} só desta vez">${D20}</button></div>`}).join('');
@@ -5632,11 +5685,14 @@ function ritArmaFx(r,forma='b'){
     return{tipo:'amaldicoar',dano,danoTipo:el,atq:0,margem:0,mult:0,resumo:`+${dano} de ${el}`,amaldicoada:true}}
   if(/^Arma Atroz/i.test(n)){const ef=(f&&f.efeitos)||r.efeitos||[];const atq=efVal(ef,'ataque_corpo')+efVal(ef,'ataque');const margem=efVal(ef,'margem_corpo')+efVal(ef,'margem');const mult=efVal(ef,'mult');
     return{tipo:'atroz',dano:'',danoTipo:'',atq,margem,mult,resumo:[atq?`+${atq} no ataque`:'',margem?`+${margem} na margem`:'',mult?`+${mult} no multiplicador`:''].filter(Boolean).join(', ')}}
+  if(/^Decad[eê]ncia/i.test(n)&&forma==='d'){const dano=(f&&f.rolagem)||'3d8+3';return{tipo:'decadencia',dano,danoTipo:'Morte',atq:0,margem:0,mult:0,resumo:`+${dano} de Morte no próximo acerto corpo a corpo (sem resistência)`,unico:true,soCorpo:true}}
   if(/^Chamas do Caos/i.test(n))return{tipo:'chamejar',dano:'1d6',danoTipo:'fogo',atq:0,margem:0,mult:0,resumo:'+1d6 de fogo (Chamejar)',opcional:true};
   return null;
 }
 const armasDe=s=>(s.itens||[]).filter(i=>i.tipo==='arma'&&i.arma);
 const ritModsDe=i=>(i&&i.arma&&i.arma.ritMods)||[];
+/* modificações de uso único (descarregam no primeiro acerto) */
+function encerrarModsUnicos(s,it){const L=ritModsDe(it);const fora=L.filter(m=>m.unico);if(!fora.length)return 0;it.arma.ritMods=L.filter(m=>!m.unico);return fora.length}
 const amaldicoada=i=>ritModsDe(i).some(m=>m.amaldicoada);
 
 /* liga o ritual à arma (substitui o mesmo ritual se já estava nela) */
@@ -5659,7 +5715,7 @@ function encerrarModsArma(s,it,modId){
 function ritModsHtml(i,ed){
   const mods=ritModsDe(i);if(!mods.length)return'';
   return `<div class="rit-mods"><div class="rm-h"><span class="lbl">Modificações por ritual</span><span class="spacer"></span>${ed?`<button class="btn sm" data-act="encerrarRitArma" data-id="${i.id}" title="Fim da cena: remove todas as modificações de ritual desta arma">Encerrar rituais</button>`:''}</div>
-    ${mods.map(m=>`<div class="rm-it ${ELS5.includes(m.elemento)?'hel hel-'+m.elemento:''}"><b>${esc(m.nome)}</b><span class="hmeta">${esc(m.resumo||'')}${m.dano?' · rolado ao atacar':''}${/sustentada/i.test(m.duracao)?' · sustentado (1 PE por turno)':m.duracao?' · '+esc(m.duracao.toLowerCase()):''}</span>${ed?`<button class="ico-btn" data-act="encerrarRitArma" data-id="${i.id}" data-m="${m.id}" title="Encerrar só este" aria-label="Encerrar ${esc(m.nome)}">✕</button>`:''}</div>`).join('')}</div>`;
+    ${mods.map(m=>`<div class="rm-it ${ELS5.includes(m.elemento)?'hel hel-'+m.elemento:''}"><b>${esc(m.nome)}</b><span class="hmeta">${esc(m.resumo||'')}${m.unico?' · uso único: rolado só se o ataque acertar':m.dano?' · rolado ao atacar':''}${/sustentada/i.test(m.duracao)?' · sustentado (1 PE por turno)':m.duracao?' · '+esc(m.duracao.toLowerCase()):''}</span>${ed?`<button class="ico-btn" data-act="encerrarRitArma" data-id="${i.id}" data-m="${m.id}" title="Encerrar só este" aria-label="Encerrar ${esc(m.nome)}">✕</button>`:''}</div>`).join('')}</div>`;
 }
 
 Object.assign(A,{
@@ -6788,7 +6844,7 @@ function combatCardHtml(s,ents){
     </article>`;
   }
   const d=derive(s);const atks=attacksOf(s);const pag=state.ccPag||'acoes';
-  const rituais=s.rituais||[];const habs=(s.habilidades||[]).filter(h=>h.modo==='acao'&&(h.rolagem||!h.boost));
+  const rituais=s.rituais||[];const habs=(s.habilidades||[]).filter(h=>h.modo==='acao'&&(h.rolagem||!h.boost)&&!(pode&&/^Assassinar/i.test(h.nome)));
   return `<article class="paper cc ${d.M?'masked':''} ${ehAliadoImp(s)?'ali':''}">${head(`${ehAliadoImp(s)?'<span class="chip ali-chip">aliado</span> ':''}${esc(s.classe||'Sem classe')} · ${nexTxt(s)}${own?' · '+esc(own):''}`,'')}
     <div class="cc-stats"><span class="cc-stat"><b>${d.defesa}</b>Defesa</span>${d.esquiva!=null?`<span class="cc-stat" title="Reação: soma Reflexos na Defesa"><b>${d.esquiva}</b>Esquiva</span>`:''}${d.bloqueio!=null?`<span class="cc-stat" title="Reação: RD contra corpo a corpo"><b>RD ${d.bloqueio}</b>Bloqueio</span>`:''}${d.rd||d.rdFisico?`<span class="cc-stat"><b>${d.rd+d.rdFisico}</b>RD</span>`:''}<span class="cc-stat"><b>${d.desloc}m</b>${Math.floor(d.desloc/1.5)} quadr.</span>
       <button class="cc-stat btn-stat" data-act="cbIniFicha" data-sid="${s.id}" ${dis} title="Rolar Iniciativa"><b>${d.per.Iniciativa?diceSpec(d.per.Iniciativa.base,d.per.Iniciativa.dmod).label+fmtB(d.per.Iniciativa.total):'—'}</b>Iniciativa 🎲</button></div>
@@ -6873,10 +6929,10 @@ function abrirAtaque(sid,atkKey,opt={}){
   const st={alvo:opt.alvo&&alvos.some(x=>x.id===opt.alvo)?opt.alvo:alvos.length===1?alvos[0].id:null,modo:armas.length?'arma':'custom',arma:atkKey&&armas.some(x=>x.key===atkKey)?atkKey:(armas[0]||{}).key,
     tipos:{},mod:+opt.mod||0,dados:0,cobertura:false,defManual:{},custom:{nome:'',pericia:'Luta',dano:'1d6',crit:20,mult:2,tipo:'impacto'},man:'derrubar',rajada:false,vezes:null};
   function montar(){
-    let spec,atkB=0,dano='',base='',resto='',soCrit='',crit=20,mult=2,nome='',qtd=1,danoTipo='',melee=true,avisos=[];
+    let segs=null,spec,atkB=0,dano='',base='',resto='',soCrit='',crit=20,mult=2,nome='',qtd=1,danoTipo='',melee=true,avisos=[];
     if(st.modo==='arma'){
       const w=armas.find(x=>x.key===st.arma);if(!w)return null;
-      if(isPC){const i=atkInfo(w.a,d);spec={base:i.base,mod:i.dmod};atkB=i.atkB;base=addDice(i.baseDano,st.rajada?1:0);resto=(i.extras.length?'+'+i.extras.join('+'):'')+(i.flat?fmtB(i.flat):'');soCrit=i.soCrit.map(x=>'+'+x).join('');dano=base+resto;crit=i.crit;mult=i.mult;nome=w.nome;melee=i.melee;danoTipo=w.a.danoTipo||'';if(st.rajada&&!i.compensador)spec.mod-=1}
+      if(isPC){const i=atkInfo(w.a,d);spec={base:i.base,mod:i.dmod};atkB=i.atkB;base=addDice(i.baseDano,st.rajada?1:0);resto=(i.extras.length?'+'+i.extras.join('+'):'')+(i.flat?fmtB(i.flat):'');soCrit=i.soCrit.map(x=>'+'+x).join('');dano=base+resto;crit=i.crit;mult=i.mult;nome=w.nome;melee=i.melee;danoTipo=w.a.danoTipo||'';segs={base,flat:i.flat,tipo:danoTipo,extras:i.extrasT.slice(),soCrit:i.soCritT};if(st.rajada&&!i.compensador)spec.mod-=1}
       else{const a=w.a;spec={base:+a.d||1,mod:0};atkB=+a.b||0;dano=a.dano;crit=+a.crit||20;mult=+a.mult||2;nome=a.nome;qtd=Math.max(1,+a.qtd||1);qtd=Math.max(qtd,npcMaxAtaques(s));melee=a.tipo==='Corpo a corpo';danoTipo=a.danoTipo||''}
     }else{
       const c=st.custom;nome=c.nome||'Ataque personalizado';
@@ -6886,7 +6942,7 @@ function abrirAtaque(sid,atkKey,opt={}){
     let dmod=0,bon=0;Object.keys(st.tipos).filter(k=>st.tipos[k]).forEach(k=>{const t=ATAQUE_TIPOS[k];dmod+=t.dados||0;bon+=t.bonus||0});
     dmod+=+st.dados||0;bon+=+st.mod||0;
     if(!base){base=dano;resto=''}
-    return{spec,dmodT:dmod,atkT:atkB+bon,atAttr:st.modo==='arma'&&isPC?atkInfo(armas.find(x=>x.key===st.arma).a,d).atAttr:'FOR',nome,base,resto,soCrit,expr:testExpr(spec.base,spec.mod+dmod,atkB+bon),label:diceSpec(spec.base,spec.mod+dmod).label+fmtB(atkB+bon),dano,crit,mult,qtd,danoTipo,melee,avisos};
+    return{spec,dmodT:dmod,atkT:atkB+bon,atAttr:st.modo==='arma'&&isPC?atkInfo(armas.find(x=>x.key===st.arma).a,d).atAttr:'FOR',nome,base,resto,soCrit,expr:testExpr(spec.base,spec.mod+dmod,atkB+bon),label:diceSpec(spec.base,spec.mod+dmod).label+fmtB(atkB+bon),dano,crit,mult,qtd,danoTipo,melee,avisos,segs};
   }
   function defDe(e){if(!e)return null;const i=cbInfo(e);let v=e.s||e.raw.defesa?i.def:+st.defManual[e.id]||0;const conds=e.s?(e.s.condicoes||[]):(e.raw.cond||[]);const notas=[];
     if(conds.includes('desprevenido')||conds.includes('surpreendido')){v-=5;notas.push('desprevenido –5')}
@@ -6948,17 +7004,23 @@ function abrirAtaque(sid,atkKey,opt={}){
     let bst=null;if(isPC&&st.modo==='arma'){bst=collectBoosts(s,'ataque',{attr:m.atAttr});if(!spendPE(s,d,bst.cost,bst.used.length))return;
       if(bst.used.length||bst.dice||bst.bonus||bst.extra.length){m.expr=testExpr(m.spec.base,m.spec.mod+m.dmodT+bst.dice,m.atkT+bst.bonus)+bst.extra.map(x=>'+'+x).join('');m.nome+=bst.used.length?` (${bst.used.join(', ')})`:''}
       const ex=bst.dmgExtra.map(x=>'+'+x).join('')+(bst.dmgBonus?fmtB(bst.dmgBonus):'');if(ex){m.resto=(m.resto||'')+ex;m.dano=m.base+m.resto}
+      if(m.segs){bst.dmgExtra.forEach(x=>m.segs.extras.push({expr:x,tipo:m.danoTipo}));m.segs.flat+=bst.dmgBonus||0}
       if(bst.consumir.length)s.habilidades=(s.habilidades||[]).filter(h=>!bst.consumir.includes(h.id));if(bst.assassinar)s.assassinar=null;state.nr=freshNR();await Store.saveSheet(s)}
     try{rollExpr(m.dano)}catch(x){toast('Confira a expressão de dano.','err');return}
     const df=defDe(alvoE);const lines=[];const golpes=[];
-    const nAt=Math.max(1,Math.min(st.vezes||m.qtd,m.qtd));
+    const nAt=Math.max(1,Math.min(st.vezes||m.qtd,m.qtd));let unicoUsado=false;
     for(let k=0;k<nAt;k++){
       const t=mkLine(`Ataque${nAt>1?' '+(k+1):''} · ${m.nome}${alvoE?' → '+alvoE.nome:''}`,m.expr,m.crit,df&&df.v?df.v:null);lines.push(t);const acertou=acerta(t,df&&df.v?df.v:null);
       if(!acertou&&t.crit){t.crit=false;t.label+=' · margem de crítico, mas não passou a Defesa'}
       if(s.type==='npc'&&acertou)confirmaCritAmeaca(t,lines);if(acertou&&df&&df.v&&t.total<df.v)lines.push({note:`20 natural: acerto automático (${t.total} não passaria a Defesa ${df.v}).`});
-      if(acertou){const dm=mkLine(`Dano${t.crit?' crítico':''} · ${m.nome}`,t.crit?critExpr(m.base,m.mult)+m.resto+(m.soCrit||''):m.dano);dm.crit=t.crit;lines.push(dm);golpes.push({total:dm.total,crit:t.crit,atk:t.total,nat:t.nat,def:df?df.v:null,acertou:true,dano:dm.total})}
+      if(acertou){const lbl=`Dano${t.crit?' crítico':''} · ${m.nome}`;let dm;
+        if(m.segs){const S=m.segs;dm=mkLineT(lbl,[{expr:(t.crit?critExpr(S.base,m.mult):S.base)+(S.flat?fmtB(S.flat):''),tipo:S.tipo},...S.extras.filter(x=>!x.unico||!unicoUsado),...(t.crit?S.soCrit:[])]);if(S.extras.some(x=>x.unico))unicoUsado=true}
+        else{dm=mkLine(lbl,t.crit?critExpr(m.base,m.mult)+m.resto+(m.soCrit||''):m.dano);dm.partes=[{tipo:normTipo(m.danoTipo),valor:dm.total}]}
+        dm.crit=t.crit;lines.push(dm);if(dm.partes.length>1)lines.push({note:'Partes: '+dm.partes.map(p=>`${p.valor} ${p.tipo||'dano'}`).join(' + ')});
+        golpes.push({total:dm.total,crit:t.crit,atk:t.total,nat:t.nat,def:df?df.v:null,acertou:true,dano:dm.total,partes:dm.partes})}
       else{lines.push({note:`Errou (${t.total} contra Defesa ${df.v}).`});golpes.push({total:0,crit:false,atk:t.total,nat:t.nat,def:df.v,acertou:false,dano:0})}
     }
+    if(unicoUsado&&isPC&&st.modo==='arma'){const it=(s.itens||[]).find(x=>x.id===st.arma);if(it){const us=ritModsDe(it).filter(x=>x.unico);encerrarModsUnicos(s,it);lines.push({note:`${us.map(x=>x.nome).join(', ')}: descarregado no acerto.`});Store.saveSheet(s)}}
     if(st.tipos.investida)lines.push({note:`${s.nome} fez uma investida: –5 na Defesa até o próximo turno.`});
     logRoll(lines,{char:s.nome,secret:s.type==='npc'&&privado()});closeModal();
     const soma=golpes.reduce((a,g)=>a+g.total,0);
@@ -7082,7 +7144,7 @@ Object.assign(A,{
   cbNpcTeste:el=>{const s=sheetById(el.dataset.sid);const v=getPath(s,el.dataset.k)||{d:1,b:0};logRoll([mkLine(el.dataset.l,testExpr(+v.d||0,0,+v.b||0))],{char:s.nome,secret:privado()})},
   cbNpcPer:el=>{const s=sheetById(el.dataset.sid);const p=s.pericias[+el.dataset.i];logRoll([mkLine(p.nome,testExpr(+p.d||1,0,+p.b||0))],{char:s.nome,secret:privado()})},
   cbNpcUsar:el=>{const s=sheetById(el.dataset.sid);const a=s.acoes[+el.dataset.i];logRoll([{note:`${s.nome} usa ${a.nome}${a.desc?': '+a.desc:''}`}],{char:s.nome,secret:false})},
-  cbPresenca:el=>{const s=sheetById(el.dataset.sid);const P=s.presenca||{};try{logRoll([{note:`Presença perturbadora de ${s.nome}: Vontade DT ${P.dt||'—'} (metade se passar)${P.nex?' · imune com NEX '+P.nex:''}`},mkLine('Dano mental',P.dano)],{char:s.nome})}catch(x){toast('Dano mental inválido.','err')}},
+  cbPresenca:el=>abrirPresenca(el.dataset.sid),
   cbConjurar:el=>{const s=sheetById(el.dataset.sid);state.sheet=s;castModal(el.dataset.id)},
   cbUsarHab:el=>{const s=sheetById(el.dataset.sid);state.sheet=s;A.useHab({dataset:{id:el.dataset.id}})},
   cbMesaRit:el=>{const s=sheetById(el.dataset.sid);const r=(s.rituais||[]).find(x=>x.id===el.dataset.id);if(r){publicarCarta(cartaDeRitual(s,r));toast(`Mostrando ${esc(r.nome)} à mesa…`)}},
@@ -7099,6 +7161,85 @@ document.addEventListener('keydown',ev=>{
   const ids=combateEntradas().filter(e=>e.s&&podeControlar(e.s)).map(e=>e.s.id);if(!ids.length)return;
   ev.preventDefault();let i=ids.indexOf(state.cbSel);i=i<0?0:clamp(i+(ev.key==='ArrowDown'?1:-1),0,ids.length-1);state.cbSel=ids[i];render();
 });
+
+/* =====================================================================
+   DANO POR TIPO · RD, IMUNIDADE E VULNERABILIDADE
+   · O ataque guarda as partes do dano com o tipo de cada uma
+     (arma, danos adicionais, maldições, rituais na arma, Ataque Furtivo…).
+   · Contra o alvo: imune → 0; vulnerável → dobro e ignora RD;
+     RD do tipo desconta só daquela parte; RD geral desconta uma vez.
+   · Criaturas paranormais também são vulneráveis ao elemento que oprime
+     o delas (Sangue ← Morte, Morte ← Energia, Energia ← Conhecimento,
+     Conhecimento ← Sangue), além do que está escrito na ficha.
+   ===================================================================== */
+const TIPOS_FIS=['corte','impacto','perfuração','balístico'];
+const ELS_DANO=['Sangue','Morte','Conhecimento','Energia','Medo'];
+const normTipo=t=>{const l=String(t||'').trim().toLowerCase();if(!l)return'';return TIPOS_DANO.find(x=>x.toLowerCase()===l)||l};
+const tipoKey=t=>String(t||'').trim().toLowerCase();
+function tiposNoTexto(txt){
+  const l=String(txt||'').toLowerCase();const out=new Set();if(!l.trim())return out;
+  TIPOS_DANO.forEach(t=>{if(l.includes(t.toLowerCase()))out.add(t.toLowerCase())});
+  if(/balistic/.test(l.normalize('NFD').replace(/[̀-ͯ]/g,'')))out.add('balístico');
+  if(/paranormal/.test(l))ELS_DANO.forEach(e=>out.add(e.toLowerCase()));
+  if(/f[ií]sico/.test(l))TIPOS_FIS.forEach(e=>out.add(e));
+  return out;
+}
+function perfilDano(e){
+  const s=e&&e.s;const P={imun:new Set(),vuln:new Set(),vulnEl:new Set()};
+  if(s&&s.type==='npc'){
+    P.imun=tiposNoTexto(s.imun);P.vuln=tiposNoTexto(s.vuln);
+    (s.elementos||[]).forEach(el=>{const o=typeof OPRESSOR!=='undefined'?OPRESSOR[el]:'';if(o){const k=o.toLowerCase();if(!P.vuln.has(k))P.vulnEl.add(k);P.vuln.add(k)}});
+  }
+  return P;
+}
+/* rola várias partes tipadas como uma linha só */
+function mkLineT(label,segs){
+  const rs=segs.filter(x=>x&&String(x.expr||'').trim()).map(x=>({...x,r:rollExpr(String(x.expr).replace(/^\+/,''))}));
+  const total=rs.reduce((a,x)=>a+x.r.total,0);const by={};
+  rs.forEach(x=>{const k=normTipo(x.tipo);by[k]=(by[k]||0)+x.r.total});
+  return{label,expr:rs.map(x=>String(x.expr).replace(/^\+/,'')).join('+'),total,parts:rs.flatMap(x=>x.r.parts),crit:false,nat:null,critAt:null,vs:null,
+    partes:Object.entries(by).map(([tipo,valor])=>({tipo,valor}))};
+}
+/* quanto do dano chega, parte por parte */
+function danoFinal(e,partes,melee,rdExtra=0,rdMan=null){
+  const P=perfilDano(e);const gen=rdMan!=null?rdMan:rdContra(e,'',melee,false);let normal=0,vuln=0;const det=[];
+  (partes||[]).forEach(p=>{const t=tipoKey(p.tipo);const v=Math.max(0,+p.valor||0);
+    if(t==='perda de vida'){vuln+=v;det.push({...p,nota:'ignora RD',final:v});return}
+    if(P.imun.has(t)){det.push({...p,nota:'imune',final:0});return}
+    if(P.vuln.has(t)){vuln+=v*2;det.push({...p,nota:P.vulnEl.has(t)?'elemento opressor: ×2, sem RD':'vulnerável: ×2, sem RD',final:v*2});return}
+    const esp=rdMan!=null?0:Math.max(0,rdContra(e,t,melee,false)-gen);const f=Math.max(0,v-esp);normal+=f;det.push({...p,nota:esp?`RD ${esp}`:'',final:f})});
+  const final=Math.max(0,normal-gen-rdExtra)+vuln;
+  return{final,det,gen};
+}
+const partesTxt=det=>det.map(p=>`${p.valor} ${p.tipo||'dano'}${p.nota?` (${p.nota}${p.final!==p.valor&&!/RD/.test(p.nota)?' → '+p.final:''})`:''}`).join(' + ');
+
+/* teste de resistência de ritual a partir do texto ("Fortitude reduz à metade", "Vontade anula") */
+function testeDeRitual(r,dt){
+  const t=String(r.resistencia||'');const m=t.match(/Fortitude|Reflexos|Vontade/i);if(!m)return null;
+  const res=m[0][0].toUpperCase()+m[0].slice(1).toLowerCase();
+  return{nome:r.nome,res,dt,efeito:/metade/i.test(t)?'passar reduz o dano à metade':/anula|evita/i.test(t)?'passar anula o dano':t,metadeDano:/metade/i.test(t),anulaDano:/anula|evita/i.test(t)&&!/metade/i.test(t),ritual:true};
+}
+/* manda dano de ritual/habilidade para um alvo da iniciativa */
+function causarDanoAlvo(entryId,{valor,tipo,atacante,arma,teste}){
+  const e=combateEntradas().find(x=>x.id===entryId);if(!e)return;
+  const req={golpes:[],valor,tipo,melee:false,atacante,arma,venenos:teste?[teste]:[],atacanteId:(combateEntradas().find(x=>x.sheetId===(state.sheet||{}).id)||{}).id||null};
+  if(controladorDe(e)!==state.user.id){enviarDano(e,req);toast(`Dano enviado para ${esc(e.nome)}.`)}else abrirReceberDano(e.id,req);
+}
+
+/* Presença perturbadora: rola uma vez e manda o teste de Vontade para cada agente */
+function abrirPresenca(sid){
+  const s=sheetById(sid);if(!s)return;const P=s.presenca||{};const nexImune=parseInt(String(P.nex||'').replace(/\D/g,''))||null;
+  const pcs=combateEntradas().filter(x=>x.s&&x.s.type==='pc');
+  if(!pcs.length){toast('Nenhum agente na iniciativa.','err');return}
+  const imune=x=>nexImune!=null&&(+x.s.nex||0)>=nexImune;
+  openModal(`<h3>Presença perturbadora · ${esc(s.nome)}</h3><p class="fx-help">Rola ${esc(P.dano||'—')} de dano mental uma vez e manda para cada agente marcado. Cada um rola Vontade DT ${esc(P.dt||'—')} na própria tela: passando, sofre metade.${nexImune!=null?` NEX ${nexImune}% ou mais é imune.`:''}</p>
+    <div class="pres-lista">${pcs.map(x=>`<label class="chk"><input type="checkbox" value="${x.id}" ${imune(x)?'disabled':'checked'}> ${esc(x.nome)} <small class="muted">NEX ${x.s.nex||0}%${imune(x)?' · imune':''}</small></label>`).join('')}</div>
+    <div class="mfoot"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn red solid" id="presGo">Rolar e enviar</button></div>`);
+  $('#presGo').onclick=()=>{let L;try{L=mkLine(`Presença perturbadora · ${s.nome}`,P.dano)}catch(x){toast('Dano mental inválido na ficha.','err');return}
+    const ids=$$('.pres-lista input:checked').map(i=>i.value);closeModal();logRoll([L,{note:`Vontade DT ${P.dt} para ${ids.length} agente(s); metade se passar.`}],{char:s.nome,secret:privado()});
+    ids.forEach(id=>{const e=pcs.find(x=>x.id===id);enviarDano(e,{golpes:[],valor:L.total,tipo:'mental',melee:false,atacante:s.nome,arma:'Presença perturbadora',venenos:[{nome:'Presença perturbadora',res:'Vontade',dt:+P.dt||0,efeito:'passar reduz o dano à metade',metadeDano:true,ritual:true}]})});
+    toast(`${L.total} de dano mental enviado.`)};
+}
 
 /* =====================================================================
    RECEBER DANO · ROTEAMENTO E REAÇÕES
@@ -7159,7 +7300,10 @@ function drBadge(){
   el.onclick=ev=>{const b=ev.target.closest('[data-drab]');if(b)drAbrir(b.dataset.drab)};
 }
 function drAbrir(id){const r=Col.get('dmgReq',id);if(!r)return drBadge();drAbertos.add(id);abrirReceberDano(r.entryId||('s:'+r.sheetId),{...r,reqId:id})}
-function drChecar(){
+/* limpeza: o mestre apaga pedidos resolvidos há mais de 10 min e qualquer um com mais de 6 h */
+let drLimpo=0;
+function drLimpar(){if(!state.isGM||Date.now()-drLimpo<60000)return;drLimpo=Date.now();const ag=Date.now();Col.list('dmgReq').forEach(r=>{if((r.feito&&ag-r.ts>600e3)||ag-r.ts>6*3600e3)Col.del('dmgReq',r.id)})}
+function drChecar(){drLimpar();
   drBadge();if(!state.camp)return;const L=drPendentes().filter(r=>!drAbertos.has(r.id));
   if(L.length&&!document.querySelector('#modal .overlay'))drAbrir(L[0].id);
 }
@@ -7187,10 +7331,11 @@ function abrirReceberDano(entryId,pre={}){
       return{...g,defEf:def,acertou,rdB}});
   }
   function calc(){
-    const rdBase=st.rdMan!=null&&st.rdMan!==''?num(st.rdMan):rdContra(e,st.tipo,st.melee,st.bloq);
+    const man=st.rdMan!=null&&st.rdMan!==''?num(st.rdMan):null;
     const met=reacHabsDe(e.s).some(r=>r.metade&&st.esp[r.id]&&r.pode(espCtx()));
-    if(golpes.length&&!st.valorMan){const G=golpesEf();let v=0,fin=0;G.forEach(g=>{if(!g.acertou)return;v+=g.dano;fin+=Math.max(0,g.dano-rdBase-g.rdB)});return{v,rd:rdBase,final:met?Math.floor(fin/2):fin,G,met}}
-    const v=Math.max(0,num(st.valor));const f0=Math.max(0,v-rdBase);return{v,rd:rdBase,final:met?Math.floor(f0/2):f0,G:golpes.length?golpesEf():[],met};
+    if(golpes.length&&!st.valorMan){const G=golpesEf();let v=0,fin=0;G.forEach(g=>{if(!g.acertou)return;v+=g.dano;const r=danoFinal(e,g.partes&&g.partes.length?g.partes:[{tipo:st.tipo,valor:g.dano}],st.melee,g.rdB,man);g.det=r.det;g.fin=r.final;fin+=r.final});
+      return{v,rd:man!=null?man:rdContra(e,'',st.melee,false),final:met?Math.floor(fin/2):fin,G,met}}
+    const v=Math.max(0,num(st.valor));const r=danoFinal(e,[{tipo:st.tipo,valor:v}],st.melee,0,man);return{v,rd:r.gen,final:met?Math.floor(r.final/2):r.final,G:golpes.length?golpesEf():[],met,det:r.det};
   }
   function venenoHtml(){
     if(!st.venenos.length)return'';const d=isPC?derive(e.s):null;
@@ -7224,7 +7369,7 @@ function abrirReceberDano(entryId,pre={}){
   function draw(){
     const i=cbInfo(e);const c=calc();const pcMental=isPC&&st.tipo==='mental';const d=isPC?derive(e.s):null;
     $('#rdBody').innerHTML=`${pre.atacante?`<p class="rd-de">${pre.modo==='cura'?'✚':'⚔'} <b>${esc(pre.atacante)}</b> ${pre.modo==='cura'?'curou você':'atacou'}${pre.arma?' com '+esc(pre.arma):''}.</p>`:''}
-      ${golpes.length?`<div class="rd-golpes">${c.G.map((g,ix)=>`<div class="rd-g ${g.acertou?'hit':'miss'}"><span>Ataque ${ix+1}</span><b>${g.atk}</b><span>contra Defesa ${g.defEf??'—'}</span><span>${g.acertou?`${g.crit?'<b class="crit">crítico</b> · ':''}${g.dano} de dano${g.rdB?` (bloqueio −${g.rdB})`:''}`:'errou'}</span></div>`).join('')}</div>`:''}
+      ${golpes.length?`<div class="rd-golpes">${c.G.map((g,ix)=>`<div class="rd-g ${g.acertou?'hit':'miss'}"><span>Ataque ${ix+1}</span><b>${g.atk}</b><span>contra Defesa ${g.defEf??'—'}</span><span>${g.acertou?`${g.crit?'<b class="crit">crítico</b> · ':''}${g.det&&(g.det.length>1||g.det.some(x=>x.nota))?esc(partesTxt(g.det)):g.dano+' de dano'}${g.rdB?` (bloqueio −${g.rdB})`:''} → <b>${g.fin}</b>`:'errou'}</span></div>`).join('')}</div>`:''}
       ${reacHtml()}${espHtml()}
       <div class="seg"><button class="seg-btn ${st.modo==='dano'?'on':''}" data-m="dano">🩸 Dano</button><button class="seg-btn ${st.modo==='cura'?'on':''}" data-m="cura">✚ Cura</button>${isPC?`<button class="seg-btn ${st.modo==='san'?'on':''}" data-m="san">🧠 Sanidade</button>`:''}</div>
       <p class="mono" style="font-size:15px;margin:10px 0 4px">${esc(e.nome)} · PV <b>${i.pv??'—'}/${i.pvMax||'—'}</b>${i.pvTemp?` (+${i.pvTemp} temp.)`:''}${isPC?` · SAN <b>${e.s.san}/${d.sanMax}</b>`:''}</p>
@@ -7233,7 +7378,7 @@ function abrirReceberDano(entryId,pre={}){
         ${st.modo==='dano'?`<label class="field"><span>Tipo</span><select class="inp" id="rdTipo">${TIPOS_DANO.map(t=>`<option ${t===st.tipo?'selected':''}>${t}</option>`).join('')}</select></label>`:''}</div>
       ${st.modo==='dano'?`<div class="row" style="flex-wrap:wrap;gap:14px;margin-top:6px"><label class="chk"><input type="checkbox" id="rdMelee" ${st.melee?'checked':''}> Ataque corpo a corpo</label>
         <label class="field" style="max-width:150px"><span>RD por golpe</span><input class="inp" id="rdRD" type="number" value="${c.rd}"></label></div>
-        <div class="atk-resumo"><span>Dano final: <b>${c.final}</b>${c.rd&&!golpes.length?` (${c.v} – RD ${c.rd})`:''}${pcMental?' · vai para a Sanidade':''}</span>${c.final&&i.pvMax&&!pcMental&&c.final>=i.pvMax/2?`<span class="warn" style="margin:0">Dano massivo: Fortitude DT ${15+2*Math.floor(c.final/10)} ou cai a 0 PV.</span>`:''}</div>`:''}
+        <div class="atk-resumo"><span>Dano final: <b>${c.final}</b>${c.det&&c.det.some(x=>x.nota)?` · ${esc(c.det.map(x=>x.nota).filter(Boolean).join(', '))}`:''}${(()=>{const P=perfilDano(e);const L=[...P.vuln].map(x=>x+(P.vulnEl.has(x)?' (elemento)':''));return L.length||P.imun.size?` <small class="muted">· ${L.length?'vulnerável a '+esc(L.join(', ')):''}${L.length&&P.imun.size?' · ':''}${P.imun.size?'imune a '+esc([...P.imun].join(', ')):''}</small>`:''})()}${c.rd&&!golpes.length?` (${c.v} – RD ${c.rd})`:''}${pcMental?' · vai para a Sanidade':''}</span>${c.final&&i.pvMax&&!pcMental&&c.final>=i.pvMax/2?`<span class="warn" style="margin:0">Dano massivo: Fortitude DT ${15+2*Math.floor(c.final/10)} ou cai a 0 PV.</span>`:''}</div>`:''}
       ${venenoHtml()}
       <div class="mfoot">${pre.reqId?`<button class="btn" id="rdDepois">Depois</button>`:'<button class="btn" data-act="closeModal">Cancelar</button>'}<button class="btn ${st.modo==='dano'?'red':''} solid" id="rdGo">${st.modo==='dano'?(c.final?'Aplicar dano':'Confirmar'):st.modo==='cura'?'Curar':'Aplicar'}</button></div>`;
   }
@@ -7286,7 +7431,8 @@ function abrirReceberDano(entryId,pre={}){
       const v=num(st.valor);const d=derive(s);const b=+s.san||0;s.san=clamp(b+v,0,d.sanMax);if(s.san>0)s.loucura=0;msg=`${s.nome}: SAN ${b} → ${s.san}.`;
       if(b>0&&s.san===0)msg+=' Enlouquecendo!';
     }else{
-      const fin=c.final;
+      let fin=c.final;const resOk=st.venenos.filter(v=>v.rol&&v.rol.ok);
+      if(fin&&resOk.some(v=>v.anulaDano)){fin=0;msg+=`${e.nome} resistiu e anulou o dano. `}else if(fin&&resOk.some(v=>v.metadeDano)){fin=Math.floor(fin/2);msg+=`${e.nome} resistiu: metade do dano. `}
       if(st.reac==='esquiva')msg+=`${e.nome} se esquivou${c.G[st.alvoG]&&!c.G[st.alvoG].acertou?' e evitou o golpe':', mas foi atingido'}. `;
       if(st.reac==='bloqueio')msg+=`${e.nome} bloqueou (RD +${c.G[st.alvoG]?.rdB||0}). `;
       if(st.reac==='contra')msg+=await contraAtacar()+' ';
@@ -7311,6 +7457,7 @@ function abrirReceberDano(entryId,pre={}){
         if(v.danoTipo==='mental'&&isPC)s.san=Math.max(0,(+s.san||0)-n);else perderPV(n);return ` (${n} de dano${v.danoTipo?' '+v.danoTipo:''}${v.rodadas?`, repete por ${v.rodadas} rodadas`:''})`}catch(x){return''}};
       const addCond=cs=>{if(cs&&cs.length&&s)s.condicoes=[...new Set([...(s.condicoes||[]),...cs])]};
       for(const v of st.venenos){
+        if(v.ritual){if(!v.rol.ok)msg+=` Falhou na resistência contra ${v.nome}.`;continue}
         if(!v.rol.ok){msg+=` Falhou contra ${v.nome}: ${String(v.efeito||'sofre o efeito').replace(/\.$/,'').toLowerCase()}`;
           if(v.zeraPV){if(s){s.pv=0;if(isPC)s.condicoes=[...new Set([...(s.condicoes||[]),'inconsciente'])]}else if(e.raw&&e.raw.pvMax)Col.set('ini',e.id,{pv:0})}
           if(v.dano)msg+=rolarDano(v,v.dano,false);addCond(v.cond);msg+='.';
@@ -7754,6 +7901,10 @@ const galCanView=p=>state.isGM||p.ownerId===state.user.id||!!p.visivel;
 const galCanEdit=p=>state.isGM||p.ownerId===state.user.id||(!!p.colaborativa&&galCanView(p));
 const galCanDelete=p=>state.isGM||p.ownerId===state.user.id;
 const galPlural=n=>`${n} ${n===1?'imagem':'imagens'}`;
+/* imagens ocultas dentro de uma pasta: só o dono da pasta e o mestre veem.
+   Mostrar à mesa (👁) tira do oculto. */
+const galVeOcultas=p=>state.isGM||(p&&p.ownerId===state.user.id);
+function galImgsVis(pid){const p=Col.get('galPastas',pid);const L=galImgsDe(pid);return galVeOcultas(p)?L:L.filter(i=>!i.oculta)}
 function galImgsDe(pid){return Col.list('galImgs').filter(i=>i.pasta===pid).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0))}
 
 function viewGalerias(){
@@ -7762,7 +7913,7 @@ function viewGalerias(){
   gal.pasta=null;
   const ids=Object.keys(P).filter(id=>galCanView(P[id])).sort((a,b)=>(P[a].nome||'').localeCompare(P[b].nome||''));
   const todasImgs=Col.list('galImgs');
-  const card=id=>{const p=P[id];const n=todasImgs.filter(i=>i.pasta===id).length;const prev=(p.previas||[]).slice(0,3);const meu=p.ownerId===state.user.id;
+  const card=id=>{const p=P[id];const n=todasImgs.filter(i=>i.pasta===id&&(!i.oculta||galVeOcultas(p))).length;const prev=(p.previas||[]).slice(0,3);const meu=p.ownerId===state.user.id;
     return `<button type="button" class="gal-pasta paper" data-act="galAbrir" data-id="${id}"><span class="gal-capa n${prev.length||0}">${prev.length?prev.map(k=>{const s=ImgDB.src(k);return s?`<img src="${s}" alt="">`:'<i></i>'}).join(''):'<span class="gal-vz">▦</span>'}</span>
       <span class="gal-pasta-corpo"><span class="gal-pasta-nome">${esc(p.nome||'Sem nome')}</span><span class="gal-pasta-meta">${galPlural(n)} · ${meu?'sua':esc(p.ownerNome||'?')}</span>
       <span class="gal-selos">${p.visivel?'<span class="chip">visível</span>':'<span class="chip">privada</span>'}${p.colaborativa?'<span class="chip">colaborativa</span>':''}</span></span></button>`};
@@ -7778,7 +7929,7 @@ function viewGalerias(){
 }
 function viewGaleriaPasta(id,p){
   const ed=galCanEdit(p),dono=state.isGM||p.ownerId===state.user.id,del=galCanDelete(p);
-  const imgs=galImgsDe(id);const tags=p.tags||[];const porId={};tags.forEach(t=>porId[t.id]=t);
+  const imgs=galImgsVis(id);const tags=p.tags||[];const porId={};tags.forEach(t=>porId[t.id]=t);
   const filtro=gal.filtro[id]||(gal.filtro[id]=new Set());[...filtro].forEach(t=>{if(t!=='__sem'&&!porId[t])filtro.delete(t)});
   const tagsDe=i=>(i.tags||[]).filter(t=>porId[t]);
   const passa=i=>{if(!filtro.size)return true;const ts=tagsDe(i);return[...filtro].some(f=>f==='__sem'?!ts.length:ts.includes(f))};
@@ -7789,7 +7940,7 @@ function viewGaleriaPasta(id,p){
   return `<div class="gal-pagina">
     <div class="gal-topo"><button class="btn" data-act="galVoltar">‹ Galerias</button>
       ${dono?`<input class="gal-nome" id="galNome" data-act-change="galNome" value="${esc(p.nome||'')}" placeholder="Nome da pasta" aria-label="Nome da pasta">`:`<h2 class="gal-nome">${esc(p.nome||'Sem nome')}</h2>`}
-      <span class="muted mono">${galPlural(imgs.length)}${p.ownerId!==state.user.id?' · de '+esc(p.ownerNome||'?'):''}</span></div>
+      <span class="muted mono">${galPlural(imgs.length)}${dono&&imgs.some(i=>i.oculta)?` · ${imgs.filter(i=>i.oculta).length} oculta(s)`:''}${p.ownerId!==state.user.id?' · de '+esc(p.ownerNome||'?'):''}</span></div>
     ${dono?`<div class="gal-opcoes">${p.ownerId===state.user.id?`<div class="seg" title="O mestre sempre vê"><button class="seg-btn ${!p.visivel?'on':''}" data-act="galVis" data-v="0">🔒 Privada</button><button class="seg-btn ${p.visivel?'on':''}" data-act="galVis" data-v="1">🌐 Visível</button></div>
       <button class="cond ${p.colaborativa?'on':''}" data-act="galColab" title="Quem vê a pasta também pode adicionar imagens">🤝 Colaborativa</button>`:''}<span class="spacer"></span>${del?`<button class="btn sm red" data-act="galDelPasta">Excluir pasta</button>`:''}</div>`:''}
     ${ed?`<label class="gal-drop" id="galDrop"><span class="gal-drop-ico">📷</span><span><b>Adicionar imagens</b><small>Clique para escolher ou arraste arquivos para cá.</small></span><span id="galStatus" class="gal-status"></span><input type="file" id="galUp" accept="image/*" multiple hidden></label>`:''}
@@ -7800,17 +7951,18 @@ function viewGaleriaPasta(id,p){
       ${ed?`<input class="inp gal-tag-nova" id="galTagNova" placeholder="+ Nova tag e Enter" maxlength="24" aria-label="Nova tag">${tags.length?`<button class="cond ${gal.pincel||gal.escolhendo===id?'on':''}" data-act="galPincel" title="Escolha uma tag e clique nas imagens">🖌 Etiquetar várias</button><button class="cond ${gal.gerenciar?'on':''}" data-act="galGerenciar" title="Excluir tags">⚙</button>`:''}`:''}</div>`:''}
     ${gal.pincel||gal.escolhendo===id?`<div class="gal-pincel">${pincel?`🖌 Clique nas imagens para aplicar ou tirar <b class="gal-tag on" style="--tc:${pincel.cor}"><i></i>${esc(pincel.nome)}</b>`:'Escolha a tag do pincel:'} ${tags.map(t=>`<button class="gal-tag ${pincel&&pincel.id===t.id?'on':''}" style="--tc:${t.cor}" data-act="galPincelTag" data-t="${t.id}"><i></i>${esc(t.nome)}</button>`).join('')}<button class="btn sm" data-act="galPincelFim">Concluir</button></div>`:''}
     ${filtro.size?`<p class="fx-help">${galPlural(vis.length)} de ${imgs.length} com o filtro.</p>`:''}
-    <div class="gal-grade ${pincel?'modo-pincel':''}">${vis.map(i=>{const s=ImgDB.src(i.img);return `<figure class="gal-item ${pincel&&tagsDe(i).includes(pincel.id)?'com-pincel':''}" data-act="galVer" data-id="${i.id}" tabindex="0">
+    <div class="gal-grade ${pincel?'modo-pincel':''}">${vis.map(i=>{const s=ImgDB.src(i.img);return `<figure class="gal-item ${pincel&&tagsDe(i).includes(pincel.id)?'com-pincel':''} ${i.oculta?'oculta':''}" data-act="galVer" data-id="${i.id}" tabindex="0">
       <div class="gal-thumb">${s?`<img src="${s}" alt="${esc(i.legenda||'')}" loading="lazy">`:'<span class="gal-vz">…</span>'}</div>
       ${tagsDe(i).length?`<div class="gal-item-tags">${tagsDe(i).map(t=>`<span style="--tc:${porId[t].cor}">${esc(porId[t].nome)}</span>`).join('')}</div>`:''}
       ${i.legenda?`<figcaption>${esc(i.legenda)}</figcaption>`:''}
       ${ed?`<button class="gal-bt tag" data-act="galTagImg" data-id="${i.id}" title="Tags desta imagem" aria-label="Tags">🏷</button>`:''}
+      ${i.oculta?'<span class="gal-oculta-selo">🙈 oculta</span>':''}${dono?`<button class="gal-bt ocu" data-act="galOcultar" data-id="${i.id}" title="${i.oculta?'Deixar visível para quem vê a pasta':'Ocultar dos jogadores'}" aria-label="${i.oculta?'Mostrar na pasta':'Ocultar'}" aria-pressed="${!!i.oculta}">${i.oculta?'🙈':'🐵'}</button>`:''}
       <button class="gal-bt ver" data-act="galMesa" data-id="${i.id}" title="Mostrar à mesa" aria-label="Mostrar à mesa">👁</button>
       ${del?`<button class="gal-bt del" data-act="galDelImg" data-id="${i.id}" title="Remover" aria-label="Remover">✕</button>`:''}</figure>`}).join('')||`<div class="empty">${imgs.length?'Nenhuma imagem com essas tags.':'Nenhuma imagem ainda.'+(ed?' Use a área acima para adicionar.':'')}</div>`}</div>
   </div>`;
 }
 function galAtualizarPrevias(id,p,imgs){
-  if(!galCanEdit(p))return;const ks=imgs.slice(0,3).map(i=>i.img);
+  if(!galCanEdit(p))return;const ks=imgs.filter(i=>!i.oculta).slice(0,3).map(i=>i.img);
   if(JSON.stringify(ks)!==JSON.stringify((p.previas||[]).slice(0,3)))setTimeout(()=>Col.set('galPastas',id,{previas:ks}),0);
 }
 async function galEnviar(id,files){
@@ -7835,7 +7987,7 @@ function galAlternarTag(imgId,tagId){const i=Col.get('galImgs',imgId);if(!i)retu
 function galCriarTag(pid,nome){nome=(nome||'').trim();if(!nome)return null;const p=Col.get('galPastas',pid);const tags=p.tags||[];const ex=tags.find(t=>t.nome.toLowerCase()===nome.toLowerCase());if(ex)return ex;const t={id:uid('tg'),nome,cor:GAL_TAG_CORES[tags.length%GAL_TAG_CORES.length]};Col.set('galPastas',pid,{tags:[...tags,t]});return t}
 function abrirFashionWeek(){
   const P=Col.all('galPastas');const pids=Object.keys(P).filter(id=>galCanView(P[id])).sort((a,b)=>(P[a].nome||'').localeCompare(P[b].nome||''));
-  const imgs=Col.list('galImgs').filter(i=>pids.includes(i.pasta)).map(i=>{const tg={};(P[i.pasta].tags||[]).forEach(t=>tg[t.id]=t);return{...i,tagsO:(i.tags||[]).map(t=>tg[t]).filter(Boolean)}});
+  const imgs=Col.list('galImgs').filter(i=>pids.includes(i.pasta)&&(!i.oculta||galVeOcultas(P[i.pasta]))).map(i=>{const tg={};(P[i.pasta].tags||[]).forEach(t=>tg[t.id]=t);return{...i,tagsO:(i.tags||[]).map(t=>tg[t]).filter(Boolean)}});
   const fP=new Set(),fT=new Set();let sel=[];
   const comoOps=state.isGM?[['','O Mestre'],...state.sheets.filter(s=>s.type==='npc').map(s=>[s.id,s.nome||'NPC'])]:[...state.sheets.filter(s=>souDono(s)).map(s=>[s.id,s.nome||'Personagem']),['',myName()]];let como=comoOps[0][0];
   const vis=()=>imgs.filter(i=>(!fP.size||fP.has(i.pasta))&&(!fT.size||[...fT].some(t=>t==='__sem'?!i.tagsO.length:i.tagsO.some(x=>x.nome.toLowerCase()===t))));
@@ -7853,7 +8005,7 @@ function abrirFashionWeek(){
     else if(b.dataset.fi){const k=b.dataset.fi;const i=sel.indexOf(k);if(i>=0)sel.splice(i,1);else if(sel.length>=30)toast('No máximo 30 imagens por apresentação.');else sel.push(k)}
     else if(b.hasAttribute('data-ftodas'))vis().forEach(i=>{if(!sel.includes(i.id)&&sel.length<30)sel.push(i.id)});
     else if(b.hasAttribute('data-flimpar'))sel=[];
-    else if(b.hasAttribute('data-fgo')){const lista=sel.map(k=>imgs.find(i=>i.id===k)).filter(Boolean).map(i=>({img:i.img,legenda:i.legenda||'',pasta:P[i.pasta].nome||''}));const nm=(comoOps.find(o=>o[0]===como)||[,''])[1];publicarCarta({tipo:'apresentacao',imagens:lista,apresentador:nm,fichaId:como||null,nome:`${nm} está apresentando`});toast('Apresentação enviada à mesa.');closeModal();return}
+    else if(b.hasAttribute('data-fgo')){sel.forEach(k=>{const i=imgs.find(x=>x.id===k);if(i&&i.oculta)Col.set('galImgs',k,{oculta:false})});const lista=sel.map(k=>imgs.find(i=>i.id===k)).filter(Boolean).map(i=>({img:i.img,legenda:i.legenda||'',pasta:P[i.pasta].nome||''}));const nm=(comoOps.find(o=>o[0]===como)||[,''])[1];publicarCarta({tipo:'apresentacao',imagens:lista,apresentador:nm,fichaId:como||null,nome:`${nm} está apresentando`});toast('Apresentação enviada à mesa.');closeModal();return}
     draw()});
   $('#fwBody').addEventListener('change',ev=>{if(ev.target.matches('[data-fcomo]'))como=ev.target.value});
 }
@@ -7881,9 +8033,10 @@ Object.assign(A,{
   galGerenciar:()=>{gal.gerenciar=!gal.gerenciar;render()},
   galTagImg:el=>{const i=Col.get('galImgs',el.dataset.id);if(i)galPopoverTags(el,{id:el.dataset.id,...i},gal.pasta)},
   galVer:el=>{if(gal.pincel){galAlternarTag(el.dataset.id,gal.pincel.tag);render();return}
-    const p=Col.get('galPastas',gal.pasta);const lista=galImgsDe(gal.pasta);const idx=lista.findIndex(x=>x.id===el.dataset.id);
+    const p=Col.get('galPastas',gal.pasta);const lista=galImgsVis(gal.pasta);const idx=lista.findIndex(x=>x.id===el.dataset.id);
     abrirLightbox(lista,Math.max(0,idx),{podeEditar:galCanEdit(p),titulo:p.nome,onLegenda:(img,v)=>{Col.set('galImgs',img.id,{legenda:v})}})},
-  galMesa:el=>{const i=Col.get('galImgs',el.dataset.id);const p=Col.get('galPastas',gal.pasta);if(i)mostrarImagemMesa(i.img,i.legenda||'',p.nome)},
+  galMesa:el=>{const i=Col.get('galImgs',el.dataset.id);const p=Col.get('galPastas',gal.pasta);if(!i)return;if(i.oculta){Col.set('galImgs',el.dataset.id,{oculta:false});toast('Mostrada à mesa: agora também aparece na pasta.');render()}mostrarImagemMesa(i.img,i.legenda||'',p.nome)},
+  galOcultar:el=>{const i=Col.get('galImgs',el.dataset.id);if(!i)return;Col.set('galImgs',el.dataset.id,{oculta:!i.oculta});toast(i.oculta?'Imagem visível na pasta.':state.isGM?'Imagem oculta: só você vê.':'Imagem oculta: só você e o mestre veem.');render()},
   galDelImg:async el=>{if(!await confirmBox('Remover esta imagem da galeria?','Remover'))return;const i=Col.get('galImgs',el.dataset.id);if(i)ImgDB.del(i.img);Col.del('galImgs',el.dataset.id);render()},
   galFashion:()=>abrirFashionWeek(),
 });
