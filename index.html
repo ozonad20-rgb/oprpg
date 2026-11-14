@@ -1770,6 +1770,19 @@ details.hcard[open]>summary .hc-tg{transform:rotate(90deg)}
 .rd-habs{display:flex;flex-wrap:wrap;gap:4px 12px}
 .rd-vres{font-family:var(--f-mono);font-weight:700}.rd-vres.ok{color:var(--ok)}.rd-vres.falha{color:var(--stamp)}
 @media (max-width:560px){.rd-g{grid-template-columns:62px 40px minmax(0,1fr)}.rd-g>span:last-child{grid-column:1/-1}}
+
+.per-row .pa-btn{background:none;border:0;border-bottom:1px dashed currentColor;padding:0 2px;cursor:pointer;justify-self:center;line-height:1.3}
+.per-row .pa-btn:hover,.per-row .pa-btn:focus-visible{color:var(--ink)}
+.per-row .pa-btn.troca{color:var(--stamp);font-weight:700}
+.pa-ops{display:grid;gap:8px;margin:10px 0}
+.pa-op{display:flex;gap:8px;align-items:center}
+.pa-op>.btn{flex:1;display:flex;gap:10px;align-items:baseline;justify-content:flex-start;text-transform:none;letter-spacing:0}
+.pa-op>.btn .mono{margin-left:auto}
+
+.tr-camps{display:grid;gap:8px;margin:12px 0}
+.tr-camp{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--ink-faint);cursor:pointer}
+.tr-camp:has(input:checked){border-color:var(--ink);background:var(--stamp-soft)}
+.tr-camp span{display:flex;flex-direction:column}.tr-camp small{font-family:var(--f-mono);color:var(--ink-soft)}
 </style>
 <div id="app"><div class="boot"><div><div class="logo">NE<span>X</span></div><p>Abrindo o arquivo de agentes…</p><div class="bar"><i></i></div>
 <noscript><p style="color:#e5e2d9">O NEX precisa de JavaScript para funcionar. Abra pela página publicada ou em um navegador com JavaScript ativado; visualizadores de arquivo costumam bloquear scripts.</p></noscript></div></div></div>
@@ -3354,7 +3367,7 @@ function ritualEfeitos(r){const f=r.formaAtiva&&r.formaAtiva!=='b'?(r.formas||{}
 function effectsOf(s){
   const out=[];
   (s.habilidades||[]).forEach(h=>{if(h.modo==='passiva'||(h.modo==='ativavel'&&h.ativa))(h.efeitos||[]).forEach(e=>out.push({...e,fonte:h.nome}))});
-  (s.itens||[]).forEach(i=>{if(i.equipado){(i.efeitos||[]).forEach(e=>out.push({...e,fonte:i.nome}));if(typeof malItemFx==='function')malItemFx(i).forEach(m=>(m.efeitos||[]).forEach(e=>out.push({...e,fonte:`${i.nome} (${m.nome})`})))}});
+  (s.itens||[]).forEach(i=>{if(i.equipado){(i.efeitos||[]).forEach(e=>out.push({...e,fonte:i.nome}));if(typeof modItemEfeitos==='function')modItemEfeitos(i).forEach(e=>out.push({...e,fonte:`${i.nome} (modificação)`}));if(typeof malItemFx==='function')malItemFx(i).forEach(m=>(m.efeitos||[]).forEach(e=>out.push({...e,fonte:`${i.nome} (${m.nome})`})))}});
   (s.rituais||[]).forEach(r=>{if(r.ativo&&!r.armaVinc)ritualEfeitos(r).forEach(e=>out.push({...e,fonte:r.nome}))});
   (s.aliados||[]).forEach(a=>{if(a.presente&&(+a.feridas||0)<2)(a.efeitos||[]).forEach(e=>out.push({...e,fonte:'Aliado '+a.nome}))});
   return out;
@@ -3386,7 +3399,7 @@ function derive(s){
   const peTurnoRitual=peTurno+S('pe_turno_ritual');
   const peTurnoAcao=S('pe_turno_acao');
   const cargaLim=(attrs.FOR>0?attrs.FOR*5:2)+S('carga');
-  const cargaUso=(s.itens||[]).reduce((a,i)=>a+Math.max(0,num(i.espaco)-((i.arma&&(i.arma.mods||i.mods||[]).includes('discreta'))||(i.mods||[]).includes('discreta')?1:0))*Math.max(1,num(i.qtd)||1),0);
+  const cargaUso=(s.itens||[]).reduce((a,i)=>a+espacoItem(i)*Math.max(1,num(i.qtd)||1),0);
   const over=cargaUso>cargaLim,overMax=cargaUso>cargaLim*2;
   const testeM=M?+M.teste||0:0;const allP=S('per:*')+testeM,carga=S('per_carga'),resist=S('resist');
   const dAll=S('dados:*')+C('d:*'),dRes=S('dados:resist');
@@ -3513,6 +3526,7 @@ const Store={
   async leaveCampaign(id,uid){const t=this._t('campaigns');if(t[id]){t[id].members=t[id].members.filter(m=>m!==uid);this._w('campaigns',t)}},
   async sheetsFor(cid){return Object.values(this._t('sheets')).filter(s=>s.campaignId===cid).map(normalizeSheet).sort((a,b)=>a.createdAt-b.createdAt)},
   async saveSheet(s){s.updatedAt=Date.now();const t=this._t('sheets');t[s.id]=s;this._w('sheets',t);return s},
+  async copySheetTo(s){const t=this._t('sheets');t[s.id]=s;this._w('sheets',t);return s},
   async deleteSheet(id){const t=this._t('sheets');delete t[id];this._w('sheets',t)},
   async addRoll(r){const t=this._t('rolls');t[r.id]=r;
     Object.values(t).filter(x=>x.campaignId===r.campaignId).sort((a,b)=>b.ts-a.ts).slice(300).forEach(x=>delete t[x.id]);
@@ -3778,6 +3792,7 @@ const Nuvem={
       async sheetsFor(cid){await N.abrirCamp(cid);return Object.values(N.sheets).map(s=>normalizeSheet(clone(s))).sort((a,b)=>a.createdAt-b.createdAt)},
       async saveSheet(s){s.updatedAt=Date.now();const cid=s.campaignId;const c=clone(s);N.sheets[s.id]=c;
         F.setDoc(N.ref('campaigns',cid,'sheets',s.id),{ownerId:s.ownerId||null,type:s.type||'pc',updatedAt:s.updatedAt,j:N.enc(c)}).catch(e=>N.falha(e,'salvar ficha'));return s},
+      async copySheetTo(s){await F.setDoc(N.ref('campaigns',s.campaignId,'sheets',s.id),{ownerId:s.ownerId||null,type:s.type||'pc',updatedAt:s.updatedAt,j:N.enc(clone(s))});return s},
       async deleteSheet(id){const cid=N.cid||state.camp&&state.camp.id;delete N.sheets[id];try{await F.deleteDoc(N.ref('campaigns',cid,'sheets',id))}catch(e){N.falha(e,'excluir ficha')}},
       async addRoll(r){(r.secret?N.priv:N.rolls)[r.id]=r;F.setDoc(N.ref('campaigns',r.campaignId,r.secret?'rollsPriv':'rolls',r.id),{userId:r.userId,ts:r.ts,secret:!!r.secret,j:N.enc(r)}).catch(e=>N.falha(e,'rolagem'));return r},
       async rollsFor(cid){await N.abrirCamp(cid);return[...Object.values(N.rolls),...Object.values(N.priv)].sort((a,b)=>b.ts-a.ts).slice(0,200)},
@@ -3976,7 +3991,7 @@ function viewGM(){
     <section class="paper panel"><div class="panel-head"><h2>Fichas dos jogadores</h2><span class="idx">${pcs.length}</span><span class="spacer"></span><button class="btn sm solid" data-act="newSheet" data-gm="1">Nova ficha</button></div>
       <div class="list">${pcs.length?pcs.map(s=>{const d=derive(s);return `<div class="list-row">${sheetThumb(s)}
         <div style="min-width:0"><div class="nm">${esc(s.nome||'Agente sem nome')}</div><div class="sub">${esc(s.classe||'Sem classe')} · ${nexTxt(s)} · PV ${s.pv}/${d.pvMax} · SAN ${s.san}/${d.sanMax} · Def ${d.defesa}${(s.condicoes||[]).length?' · <span style="color:var(--stamp)">'+s.condicoes.map(k=>CONDICOES[k]?.nome).join(', ')+'</span>':''}</div></div>
-        <div class="ctl"><select class="inp" data-act-change="assign" data-id="${s.id}" aria-label="Jogador da ficha">${userOpts(s.ownerId)}</select><button class="btn sm" data-act="openSheet" data-id="${s.id}">Abrir</button><button class="ico-btn" data-act="delSheet" data-id="${s.id}" title="Excluir ficha" aria-label="Excluir ficha">✕</button></div></div>`}).join(''):'<div class="empty">Nenhuma ficha de agente nesta campanha.</div>'}</div>
+        <div class="ctl"><select class="inp" data-act-change="assign" data-id="${s.id}" aria-label="Jogador da ficha">${userOpts(s.ownerId)}</select><button class="btn sm" data-act="openSheet" data-id="${s.id}">Abrir</button><button class="ico-btn" data-act="transferirFicha" data-id="${s.id}" title="Transferir (copiar) para outra campanha" aria-label="Transferir para outra campanha">⇄</button><button class="ico-btn" data-act="delSheet" data-id="${s.id}" title="Excluir ficha" aria-label="Excluir ficha">✕</button></div></div>`}).join(''):'<div class="empty">Nenhuma ficha de agente nesta campanha.</div>'}</div>
     </section>
     <section class="paper panel"><div class="panel-head"><h2>Ameaças e NPCs</h2><span class="idx">${npcs.length}</span><span class="spacer"></span><button class="btn sm" data-act="newNpc">Do livro</button><button class="btn sm solid" data-act="criarAmeaca" title="Gera uma ameaça pelo VD, elemento e arquétipo">⚡ Criar ameaça</button></div>
       <div class="crit-regra"><label class="field"><span>Crítico das ameaças</span><select class="inp" data-act-change="critAmeaca" aria-label="Crítico das ameaças">${Object.entries(CRIT_AMEACA).map(([k,r])=>`<option value="${k}" ${k===critAmeacaRegra()?'selected':''}>${r.nome}</option>`).join('')}</select></label><small class="fx-help">${esc(CRIT_AMEACA[critAmeacaRegra()].txt)}</small></div>
@@ -4064,7 +4079,7 @@ function viewSheet(){
   const rdTxt=[d.rd?`RD ${d.rd}`:'',d.rdFisico?`RD ${d.rdFisico} balístico/corte/impacto/perfuração`:'',d.rdMental?`RD mental ${d.rdMental}`:''].filter(Boolean).join(' · ');
   return `${topbar(`<div class="crumb">${esc(state.camp.name)} / <b>${esc(s.nome||'Agente sem nome')}</b></div>`)}
   <div class="sheet-bar"><button class="btn sm" data-act="backCamp">‹ Voltar</button><span class="muted mono" style="font-size:14.5px;color:var(--on-desk-soft)">${ed?'Alterações salvas automaticamente':'Somente leitura'}</span><span class="spacer"></span>
-    ${ed?`<button class="btn sm ${state.editMode?'solid on-desk-solid':''}" data-act="toggleEdit" aria-pressed="${!!state.editMode}">${state.editMode?'✓ Concluir edição':'✎ Editar ficha'}</button>`:''}${state.isGM&&state.editMode?`<button class="btn sm red" data-act="delSheet" data-id="${s.id}">Excluir ficha</button>`:''}</div>
+    ${ed?`<button class="btn sm ${state.editMode?'solid on-desk-solid':''}" data-act="toggleEdit" aria-pressed="${!!state.editMode}">${state.editMode?'✓ Concluir edição':'✎ Editar ficha'}</button>`:''}${ed?`<button class="btn sm" data-act="transferirFicha" data-id="${s.id}" title="Criar uma cópia desta ficha em outra campanha">⇄ Transferir</button>`:''}${state.isGM&&state.editMode?`<button class="btn sm red" data-act="delSheet" data-id="${s.id}">Excluir ficha</button>`:''}</div>
   <article class="paper dossier ${d.M?'masked':''} ${ed&&state.editMode?'editing':'play'}">
     <header class="dossier-head"><span class="org">Ordo Realitas · Arquivo de Agente</span><span class="fileno">Nº ${s.id.slice(-6).toUpperCase()} · ${esc(state.camp.name)}</span>${maskSwitch(s,d,ed)}<span class="stamp">${d.morrendo?'Morrendo':d.enlouquecendo?'Enlouquecendo':d.M?'Forma suprema':'Confidencial'}</span></header>
     <div class="dgrid">
@@ -4124,7 +4139,7 @@ function viewSheet(){
         ${PERICIAS.map(([nome,,fl])=>{const r=d.per[nome];const sp=diceSpec(r.base,r.dmod);return `<div class="per-row ${r.treino?'tr':''} ${r.lock?'lock':''}">
           <button class="ico-btn" data-act="rollPer" data-p="${nome}" title="Rolar ${nome}" aria-label="Rolar ${nome}">${D20}</button>
           <span class="pn" title="${r.lock?'Somente treinada':''}">${nome}<sup>${fl}</sup></span>
-          <span class="pa">${r.attr}</span><span class="pd" style="${r.dmod?'color:var(--stamp);font-weight:700':''}" title="${r.dmod?'Modificador de dados '+fmtB(r.dmod):''}">${sp.label}</span>
+          <button class="pa pa-btn ${r.attr!==PERICIAS.find(x=>x[0]===nome)[1]?'troca':''}" data-act="perAttr" data-p="${nome}" title="Trocar o atributo de ${nome}" aria-label="Atributo de ${nome}: ${r.attr}. Trocar">${r.attr}</button><span class="pd" style="${r.dmod?'color:var(--stamp);font-weight:700':''}" title="${r.dmod?'Modificador de dados '+fmtB(r.dmod):''}">${sp.label}</span>
           <span class="pb ${r.fx?'mod':''}" title="${r.fx?'Inclui efeitos: '+fmtB(r.fx):''}">${fmtB(r.total)}</span>
           <select id="f-per-${nome}-t" data-f="pericias.${nome}.treino" data-n ${dis} aria-label="Treino em ${nome}">${TREINO.map(([v])=>`<option value="${v}" ${v===r.treino?'selected':''}>${v?'+'+v:'—'}</option>`).join('')}</select>
           <input id="f-per-${nome}-o" data-f="pericias.${nome}.outros" data-n type="number" value="${r.outros}" ${dis} aria-label="Outros bônus em ${nome}">
@@ -4224,12 +4239,12 @@ function tabInv(s,d,ed){
     <div class="carga-track ${d.over?'over':''}"><i style="width:${pct}%"></i></div>
     <div class="row"><span class="lbl">Itens por categoria (${d.pat.nome})</span><div class="catlim">${[0,1,2,3].map(i=>`<span class="${d.catUso[i]>d.pat.lim[i]?'over':''}">${ROMAN[i+1]}: ${d.catUso[i]}/${d.pat.lim[i]}</span>`).join('')}</div></div></div>
   <div class="row"><span class="lbl">Itens</span><span class="spacer"></span>${ed?`<button class="btn sm" data-act="addFromCat" data-k="itens">Arsenal</button><button class="btn sm solid" data-act="editItem">Novo item</button>`:''}</div>
-  ${it.length?it.map(i=>`<div class="card ${i.equipado&&(i.efeitos||[]).length?'active':''}"><div class="card-h"><h4>${esc(i.nome)}${num(i.qtd)>1?` <span class="mono" style="font-size:15.5px">×${i.qtd}</span>`:''}</h4><span class="chip">${esc(TIPO_ITEM[i.tipo]||i.tipo)}</span><span class="chip">Cat. ${ROMAN[itemCategoria(i)]||itemCategoria(i)}</span><span class="chip">${i.espaco} esp.</span>${amaldicoada(i)?'<span class="chip amald-chip" title="Amaldiçoar Arma ativo nesta arma">Amaldiçoada</span>':''}${malItemFx(i).length?`<span class="chip amald-chip">${malItemFx(i).length>1?malItemFx(i).length+' maldições':'Maldição: '+esc(malItemFx(i)[0].nome)}</span>`:''}${i.mascara||i.tipo==='mascara'?'<span class="chip mask-chip">habilita a Máscara</span>':''}${i.livro?`<span class="chip livro">${esc(i.livro)}</span>`:''}
+  ${it.length?it.map(i=>`<div class="card ${i.equipado&&(i.efeitos||[]).length?'active':''}"><div class="card-h"><h4>${esc(i.nome)}${num(i.qtd)>1?` <span class="mono" style="font-size:15.5px">×${i.qtd}</span>`:''}</h4><span class="chip">${esc(TIPO_ITEM[i.tipo]||i.tipo)}</span><span class="chip">Cat. ${ROMAN[itemCategoria(i)]||itemCategoria(i)}</span><span class="chip">${espacoItem(i)} esp.</span>${amaldicoada(i)?'<span class="chip amald-chip" title="Amaldiçoar Arma ativo nesta arma">Amaldiçoada</span>':''}${malItemFx(i).length?`<span class="chip amald-chip">${malItemFx(i).length>1?malItemFx(i).length+' maldições':'Maldição: '+esc(malItemFx(i)[0].nome)}</span>`:''}${i.mascara||i.tipo==='mascara'?'<span class="chip mask-chip">habilita a Máscara</span>':''}${i.livro?`<span class="chip livro">${esc(i.livro)}</span>`:''}
     <div class="acts">${i.tipo!=='municao'&&i.tipo!=='veneno'?`<button class="toggle ${i.equipado?'on':''}" data-act="toggleFx" data-k="itens" data-id="${i.id}" ${ed?'':'disabled'}>${i.tipo==='arma'||i.tipo==='protecao'?(i.equipado?'Equipado':'Equipar'):(i.equipado?'Em uso':'Usar')}</button>`:''}
     ${i.uso?.rolagem?`<button class="btn sm solid" data-act="useItem" data-id="${i.id}" ${ed?'':'disabled'}>Usar</button>`:''}${venBotoes(i,ed)}
     <button class="ico-btn" data-act="mesaItem" data-id="${i.id}" ${ed?'':'disabled'} title="Mostrar à mesa" aria-label="Mostrar à mesa">👁</button>${ed&&state.editMode?`<button class="ico-btn" data-act="editItem" data-id="${i.id}" title="Editar" aria-label="Editar">✎</button><button class="ico-btn" data-act="delEntry" data-k="itens" data-id="${i.id}" title="Remover" aria-label="Remover">✕</button>`:''}</div></div>
     ${i.tipo==='arma'&&i.arma?`<div class="kv"><span><b>Dano</b>${esc(i.arma.dano)} ${esc((i.arma.danoTipo||'').toLowerCase())}</span><span><b>Crítico</b>${i.arma.crit}/x${i.arma.mult}</span><span><b>Perícia</b>${esc(i.arma.pericia)}</span><span><b>Proficiência</b>${esc(i.arma.prof||'—')}</span>${i.ferramenta?'<span><b>Ferramenta</b>+1 ataque, dano e margem</span>':''}</div>`:''}
-    ${i.tipo==='arma'?ritModsHtml(i,ed)+venArmaHtml(s,i,ed):''}${malItemCard(i)}${i.descricao?`<p>${esc(i.descricao)}</p>`:''}${fxChips(i.efeitos)}</div>`).join(''):'<div class="empty">Inventário vazio.</div>'}`;
+    ${i.tipo==='arma'?ritModsHtml(i,ed)+venArmaHtml(s,i,ed):''}${modItemCard(i)}${malItemCard(i)}${i.descricao?`<p>${esc(i.descricao)}</p>`:''}${fxChips(i.efeitos)}</div>`).join(''):'<div class="empty">Inventário vazio.</div>'}`;
 }
 function tabDesc(s,d,ed){
   const dis=ed?'':'disabled';const D=s.descricao||{};
@@ -4412,9 +4427,10 @@ function spendPE(s,d,cost,count=1){
   const lim=d.peTurno+d.peTurnoAcao;if(cost>lim&&count>1)toast(`Atenção: ${cost} PE passa do limite de ${lim} por turno.`,'err');
   let t=+s.peTemp||0;const fromT=Math.min(t,cost);s.peTemp=t-fromT;s.pe=(+s.pe||0)-(cost-fromT);return true;
 }
-async function rollTest(label,attr,per){
+async function rollTest(label,attr,per,troca){
   const s=state.sheet,d=derive(s);let base,dmod,bonus,useAttr=attr,treino=0;
-  if(per){const r=d.per[per];base=r.base;dmod=r.dmod;bonus=r.total;useAttr=r.attr;treino=r.treino}
+  if(per){const r=d.per[per];base=r.base;dmod=r.dmod;bonus=r.total;useAttr=r.attr;treino=r.treino;
+    if(troca&&troca!==r.attr){base=d.attrs[troca];dmod=r.dmod-(d.dAttr[r.attr]||0)+(d.dAttr[troca]||0);useAttr=troca;label+=` (com ${troca})`}}
   else{base=d.attrs[attr];dmod=d.dAll+(d.dAttr[attr]||0);bonus=d.testeM}
   const b=collectBoosts(s,'teste',{attr:useAttr,per,treino});
   if(per&&d.per[per].lock&&!b.unlock)toast(`${per} é somente treinada: sem treino, o mestre pode não permitir o teste.`,'err');
@@ -4584,7 +4600,7 @@ function entryModal(kind,id){
   if(kind==='itens')html=`${I('e-nome','Nome',o.nome,'text','full')}<label class="field"><span>Tipo</span>${sel('e-tipo',Object.entries(TIPO_ITEM),o.tipo)}</label>
     <label class="field"><span>Categoria base</span>${sel('e-cat',[[0,'0'],[1,'I'],[2,'II'],[3,'III'],[4,'IV']],o.categoria)}</label>${I('e-esp','Espaços',o.espaco,'number')}${I('e-qtd','Quantidade',o.qtd,'number')}${I('e-red','Redução de categoria (habilidades)',o.reducaoCat||0,'number')}<label class="chk full"><input type="checkbox" id="e-masc" ${o.mascara?'checked':''}> É uma máscara (habilita a forma suprema na ficha, AS #02)</label>
     <fieldset class="box full" id="e-wbox" ${o.tipo==='arma'?'':'hidden'}><legend>Arma</legend><div class="mgrid">${weaponFields(o.arma||blankWeapon)}<label class="chk full"><input type="checkbox" id="e-tool" ${o.ferramenta?'checked':''}> Ferramenta de trabalho (Operário: +1 em ataque, dano e margem)</label></div></fieldset>
-    ${malItemEditor(o)}
+    ${modItemEditor(o)}${malItemEditor(o)}
     ${I('e-uso','Rolagem ao usar (opcional)',o.uso?.rolagem||'')}<label class="field"><span>Tipo da rolagem</span>${sel('e-utipo',[['cura','Cura'],['pvtemp','PV temporários'],['dano','Dano'],['outro','Outro']],o.uso?.tipo||'cura')}</label>
     <label class="field full"><span>Descrição</span><textarea class="inp" id="e-desc">${esc(o.descricao)}</textarea></label>${fxEditor(o.efeitos,'Efeitos enquanto equipado ou em uso')}`;
   if(kind==='ataques')html=`${I('e-nome','Nome',o.nome,'text','full')}${weaponFields(o)}<label class="field full"><span>Observações</span><textarea class="inp" id="e-desc">${esc(o.obs)}</textarea></label>`;
@@ -4597,7 +4613,7 @@ function entryModal(kind,id){
     const nm=$$('#modLista .mod-row.on').length,nl=$$('#malLista .mod-row.on').length;if($('#modsN'))$('#modsN').textContent=nm?`${nm} · +${nm} categoria(s)`:'+1 categoria cada';if($('#malsN'))$('#malsN').textContent=nl?`${nl} · +${nl+1} categoria(s)`:'a primeira +II, as seguintes +I'});
   if($('#e-tatq'))$('#e-tatq').addEventListener('change',e=>{const p=$('#e-per');if(p&&['Luta','Pontaria'].includes(p.value))p.value=e.target.value==='corpo'?'Luta':'Pontaria'});
   if($('#e-tipo'))$('#e-tipo').onchange=e=>{$('#e-wbox').hidden=e.target.value!=='arma'};
-  bindMalItem();
+  bindMalItem();bindModItem();
   if($('#e-circ'))$('#e-circ').onchange=e=>{$('#e-custo').value=CUSTO_CIRCULO[e.target.value]};
   $('#entryForm').onsubmit=async e=>{e.preventDefault();
     const n=$('#e-nome').value.trim();if(!n){$('#e-nome').focus();toast('Dê um nome antes de salvar.','err');return}
@@ -4606,7 +4622,7 @@ function entryModal(kind,id){
     if(kind==='habilidades'){Object.assign(o,{fonte:$('#e-fonte').value,modo:$('#e-modo').value,custo:num($('#e-custo').value),rolagem:$('#e-rol').value.trim(),rolagemTipo:$('#e-rtipo').value,descricao:$('#e-desc').value,efeitos:readFx()});if($('.e-perito'))o.pericias=$$('.e-perito').filter(c=>c.checked).map(c=>c.value)}
     if(kind==='rituais'){Object.assign(o,{elemento:$('#e-el').value,circulo:+$('#e-circ').value,custo:num($('#e-custo').value),ajusteCusto:num($('#e-aj').value),execucao:$('#e-exec').value,alcance:$('#e-alc').value,alvo:$('#e-alvo').value,duracao:$('#e-dur').value,resistencia:$('#e-res').value,rolagem:$('#e-rol').value.trim(),rolagemTipo:$('#e-rtipo').value,descricao:$('#e-desc').value,efeitos:readFx()});
       o.formas=o.formas||{};[['d','e-d'],['v','e-v']].forEach(([k,p])=>{const pe=num($('#'+p+'pe').value),desc=$('#'+p+'desc').value.trim(),rol=$('#'+p+'rol').value.trim();if(pe||desc||rol)o.formas[k]=Object.assign(o.formas[k]||{},{pe,desc,rolagem:rol});else delete o.formas[k]})}
-    if(kind==='itens'){Object.assign(o,{tipo:$('#e-tipo').value,categoria:+$('#e-cat').value,espaco:num($('#e-esp').value),qtd:Math.max(1,num($('#e-qtd').value)),reducaoCat:num($('#e-red').value),mascara:$('#e-masc').checked,descricao:$('#e-desc').value,efeitos:readFx()});if(o.tipo==='arma'){o.arma=readWeapon();o.ferramenta=$('#e-tool').checked}else o.maldicoes=lerMalItem();const u=$('#e-uso').value.trim();o.uso=u?{rolagem:u,tipo:$('#e-utipo').value}:null}
+    if(kind==='itens'){Object.assign(o,{tipo:$('#e-tipo').value,categoria:+$('#e-cat').value,espaco:num($('#e-esp').value),qtd:Math.max(1,num($('#e-qtd').value)),reducaoCat:num($('#e-red').value),mascara:$('#e-masc').checked,descricao:$('#e-desc').value,efeitos:readFx()});if(o.tipo==='arma'){o.arma=readWeapon();o.ferramenta=$('#e-tool').checked}else{o.maldicoes=lerMalItem();Object.assign(o,lerModItem())}const u=$('#e-uso').value.trim();o.uso=u?{rolagem:u,tipo:$('#e-utipo').value}:null}
     if(kind==='ataques')Object.assign(o,readWeapon(),{obs:$('#e-desc').value});
     if(cur)Object.assign(cur,o);else{o.id=uid('e_');(s[kind]=s[kind]||[]).push(o)}
     closeModal();await saveSheet();toast(`${esc(o.nome)} salvo.`);
@@ -4785,6 +4801,13 @@ const A={
   openCat:el=>catalogModal(el.dataset.k,null,el.dataset.t),
   rollAttr:el=>rollTest(ATTR_NOME[el.dataset.a],el.dataset.a,null),
   rollPer:el=>rollTest(el.dataset.p,null,el.dataset.p),
+  perAttr:el=>{const s=state.sheet,d=derive(s);const nome=el.dataset.p;const r=d.per[nome];const pad=(PERICIAS.find(x=>x[0]===nome)||[])[1];const ed=canEdit(s);
+    const opc=ATTRS.map(a=>{const dm=r.dmod-(d.dAttr[r.attr]||0)+(d.dAttr[a]||0);const sp=diceSpec(d.attrs[a],dm);
+      return `<div class="pa-op ${a===r.attr?'on':''}"><button class="btn ${a===r.attr?'solid':''}" data-pa="${a}" ${ed?'':'disabled'} title="Passa a usar ${ATTR_NOME[a]} em ${esc(nome)}"><b>${a}</b> <small>${esc(ATTR_NOME[a])}${a===pad?' · padrão':''}</small><span class="mono">${sp.label}${fmtB(r.total)}</span></button><button class="ico-btn" data-par="${a}" title="Rolar ${esc(nome)} com ${a} só desta vez" aria-label="Rolar ${esc(nome)} com ${a} só desta vez">${D20}</button></div>`}).join('');
+    openModal(`<h3>Atributo de ${esc(nome)}</h3><p class="fx-help">Escolha o atributo-base da perícia. O dado ao lado rola só uma vez com aquele atributo, sem mudar a ficha.</p><div class="pa-ops">${opc}</div><div class="mfoot"><button class="btn" data-act="closeModal">Fechar</button></div>`,'sm');
+    $('#modal .pa-ops').addEventListener('click',async ev=>{const b=ev.target.closest('[data-pa],[data-par]');if(!b)return;
+      if(b.dataset.par){closeModal();rollTest(nome,null,nome,b.dataset.par);return}
+      const a=b.dataset.pa;s.pericias=s.pericias||{};const o=s.pericias[nome]=s.pericias[nome]||{};if(a===pad)delete o.attr;else o.attr=a;closeModal();await saveSheet(s);toast(a===pad?`${esc(nome)} voltou para ${a}.`:`${esc(nome)} agora usa ${a}.`)})},
   sheetRoll:()=>{try{logRoll([mkLine('Rolagem livre',$('#s-expr').value)])}catch(x){toast(esc(x.message),'err')}},
   attack:el=>rollAttack(el.dataset.id,!!el.dataset.rajada),
   damage:el=>{const s=state.sheet,d=derive(s),a=attacksOf(s).find(x=>x.id===el.dataset.id);const i=atkInfo(a,d);logRoll([mkLine(`Dano · ${a.nome}${i.tipos.length?' ('+i.tipos.join(', ')+')':''}`,i.baseDano+i.extras.map(x=>'+'+x).join('')+(i.flat?fmtB(i.flat):''))])},
@@ -5646,6 +5669,59 @@ function malItemCard(i){
 }
 
 /* =====================================================================
+   MODIFICAÇÕES EM PROTEÇÕES E ACESSÓRIOS (livro p. 62–64; SaH p. 39)
+   Ficam em item.mods (ids). Cada uma sobe a categoria em I.
+   Função adicional guarda a perícia em item.modPer; Instrumental, o kit
+   em item.modKit.
+   ===================================================================== */
+const MODS_ITEM=[
+  {id:'antibombas',nome:'Antibombas',para:'protecao',so:'pesada',desc:'+5 em testes de resistência contra efeitos de área.'},
+  {id:'blindada',nome:'Blindada',para:'protecao',so:'pesada',desc:'Resistência a dano física passa para 5; +1 espaço.',espaco:1,efeitos:[{alvo:'rd_fisico',valor:'3'}]},
+  {id:'discreta',nome:'Discreta',para:'protecao',so:'leve',desc:'–1 espaço; +5 em Crime para ocultá-la (pode testar sem treino). Não combina com Reforçada.',espaco:-1,exclui:'reforcada'},
+  {id:'reforcada',nome:'Reforçada',para:'protecao',desc:'+2 na Defesa e +1 espaço. Não combina com Discreta.',espaco:1,exclui:'discreta',efeitos:[{alvo:'defesa',valor:'2'}]},
+  {id:'aprimorado',nome:'Aprimorado',para:'acessorio',desc:'O bônus em perícia do acessório sobe de +2 para +5.'},
+  {id:'funcao',nome:'Função adicional',para:'acessorio',desc:'+2 em uma perícia adicional, à sua escolha.'},
+  {id:'instrumental',nome:'Instrumental',para:'acessorio',desc:'Funciona como um kit de perícia (escolha qual).'},
+  {id:'bateria',nome:'Bateria potente',para:'acessorio',livro:'SaH',desc:'Objetos elétricos: dobra a bateria e o alcance da luz; num taser, dobra os usos, dano 1d8 e DT +5.'},
+  {id:'lente',nome:'Lente de revelação',para:'acessorio',livro:'SaH',desc:'Câmera de aura: vê seres invisíveis e incorpóreos; ação padrão e 1 PE para fotografar uma criatura e revelá-la.'},
+];
+const modItemGrupo=t=>t==='protecao'?'protecao':(t==='arma'||t==='municao')?null:'acessorio';
+const modsItemDe=i=>(i&&i.tipo!=='arma'?(i.mods||[]):[]).map(id=>MODS_ITEM.find(m=>m.id===id)).filter(Boolean);
+/* efeitos numéricos que as modificações somam na ficha */
+function modItemEfeitos(i){
+  const out=[];modsItemDe(i).forEach(m=>{(m.efeitos||[]).forEach(e=>out.push({...e}))
+    if(m.id==='aprimorado'){const e=(i.efeitos||[]).find(x=>/^per:/.test(x.alvo)&&+x.valor===2)||(i.modPer?{alvo:'per:'+i.modPer}:null);if(e)out.push({alvo:e.alvo,valor:'3'})}
+    if(m.id==='funcao'&&i.modPer)out.push({alvo:'per:'+i.modPer,valor:'2'})});
+  return out;
+}
+const modItemEspaco=i=>modsItemDe(i).reduce((a,m)=>a+(m.espaco||0),0);
+function espacoItem(i){const wdisc=i.arma&&(i.arma.mods||i.mods||[]).includes('discreta')?-1:0;return Math.max(0,num(i.espaco)+(i.tipo==='arma'?wdisc:modItemEspaco(i)))}
+function modItemLista(tipo,sel){
+  const g=modItemGrupo(tipo);if(!g)return'';
+  return MODS_ITEM.filter(m=>m.para===g).map(m=>{const on=sel.includes(m.id);return `<div class="mod-row ${on?'on':''}" data-imod="${m.id}"><button type="button" class="mod-tg" aria-pressed="${on}" aria-label="${on?'Remover':'Adicionar'} ${esc(m.nome)}">${on?'−':'+'}</button><div><div class="mod-h"><b>${esc(m.nome)}</b>${m.so?`<span class="mod-tag">só ${m.so}s</span>`:''}${m.livro?`<span class="mod-tag">${esc(m.livro)}</span>`:''}</div><small>${esc(m.desc)}</small></div></div>`}).join('');
+}
+function modItemEditor(o){
+  const sel=o.tipo!=='arma'?(o.mods||[]):[];const g=modItemGrupo(o.tipo);
+  return `<details class="sec mods-sec full" id="e-ibox" data-k="ed-imods" ${g?'':'hidden'} ${sel.length?'open':''}><summary><span class="type sec-t">Modificações</span><small class="mono muted" id="imodsN">${sel.length?sel.length+' · +'+sel.length+' categoria(s)':'+1 categoria cada'}</small></summary>
+    <div class="mod-lista" id="imodLista">${modItemLista(o.tipo,sel)}</div>
+    <div class="mgrid c2" id="imodExtra" style="${g==='acessorio'?'':'display:none'}"><label class="field"><span>Perícia da função adicional</span><select class="inp" id="imodPer"><option value="">—</option>${PERICIAS.map(([p])=>`<option ${o.modPer===p?'selected':''}>${p}</option>`).join('')}</select></label>
+    <label class="field"><span>Kit do instrumental</span><input class="inp" id="imodKit" value="${esc(o.modKit||'')}" placeholder="ex.: kit de medicina"></label></div>
+    <p class="fx-help">Defesa, RD, espaço e bônus em perícia entram sozinhos na ficha enquanto o item estiver equipado ou em uso. Aprimorado sobe para +5 o bônus de +2 do acessório (ou o da função adicional).</p></details>`;
+}
+function bindModItem(){
+  const box=$('#e-ibox');if(!box)return;
+  box.addEventListener('click',ev=>{const r=ev.target.closest('[data-imod]');if(r){const m=MODS_ITEM.find(x=>x.id===r.dataset.imod);
+      setTimeout(()=>{if(m&&m.exclui&&r.classList.contains('on')){const o=box.querySelector(`[data-imod="${m.exclui}"]`);if(o&&o.classList.contains('on')){o.classList.remove('on');const t=o.querySelector('.mod-tg');t.textContent='+';t.setAttribute('aria-pressed','false');toast(`${m.nome} substitui a outra: as duas não combinam.`)}}
+        const n=$$('#imodLista .mod-row.on').length;$('#imodsN').textContent=n?`${n} · +${n} categoria(s)`:'+1 categoria cada'})}});
+  const t=$('#e-tipo');if(t)t.addEventListener('change',e=>{const g=modItemGrupo(e.target.value);box.hidden=!g;$('#imodExtra').style.display=g==='acessorio'?'':'none';$('#imodLista').innerHTML=modItemLista(e.target.value,[])});
+}
+const lerModItem=()=>({mods:$$('#imodLista .mod-row.on').map(r=>r.dataset.imod),modPer:($('#imodPer')||{}).value||'',modKit:(($('#imodKit')||{}).value||'').trim()});
+function modItemCard(i){
+  const ms=modsItemDe(i);if(!ms.length)return'';
+  return `<div class="mal-item">${ms.map(m=>`<div class="rm-it"><b>${esc(m.nome)}${m.id==='funcao'&&i.modPer?': '+esc(i.modPer):''}${m.id==='instrumental'&&i.modKit?': '+esc(i.modKit):''}</b><span class="hmeta">${esc(m.desc)}</span></div>`).join('')}</div>`;
+}
+
+/* =====================================================================
    VENENOS (livro p. 293)
    · Itens do tipo "veneno" com dados estruturados em item.veneno.
    · Contato e ferimento: "Usar em arma" passa uma dose para uma arma
@@ -6115,6 +6191,30 @@ function auditoriaDados(){
   draw();$('#audBody').addEventListener('click',e=>{const b=e.target.closest('[data-aud]');if(b){so=b.dataset.aud;draw()}});
 }
 Object.assign(A,{auditoriaDados:()=>auditoriaDados()});
+
+/* =====================================================================
+   TRANSFERIR PERSONAGEM ENTRE CAMPANHAS
+   Cria uma cópia idêntica da ficha em outra campanha em que a pessoa
+   é mestre ou jogadora. O original continua onde está.
+   ===================================================================== */
+async function abrirTransferir(sid){
+  const s=state.sheets.find(x=>x.id===sid)||state.sheet;if(!s||!canEdit(s))return;
+  let camps=[];try{camps=(await Store.campaignsFor(state.user.id)).filter(c=>c.id!==state.camp.id)}catch(e){}
+  if(!camps.length){toast('Você não participa de outra campanha. Crie uma ou entre com um código primeiro.','err');return}
+  const papel=c=>c.ownerId===state.user.id?'mestre':'jogador';
+  openModal(`<h3>Transferir ${esc(s.nome||'personagem')}</h3><p class="fx-help">Cria uma cópia idêntica da ficha (atributos, perícias, poderes, rituais, itens, PV/PE/SAN atuais, foto e anotações) na campanha escolhida. A ficha desta campanha continua aqui.</p>
+    <div class="tr-camps" role="radiogroup" aria-label="Campanha de destino">${camps.map((c,i)=>`<label class="tr-camp"><input type="radio" name="trC" value="${c.id}" ${i?'':'checked'}><span><b>${esc(c.name||'Campanha')}</b><small>você é ${papel(c)}</small></span></label>`).join('')}</div>
+    <div class="mfoot"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn solid" id="trGo">Criar cópia</button></div>`);
+  $('#trGo').onclick=async()=>{const cid=($('input[name=trC]:checked')||{}).value;const c=camps.find(x=>x.id===cid);if(!c)return;
+    const n=clone(s);const agora=Date.now();
+    n.id=uid('s_');n.campaignId=c.id;n.createdAt=agora;n.updatedAt=agora;n.createdBy=state.user.id;n.reacoes=null;n.transferidoDe={campanha:state.camp.name||'',em:agora};
+    const donoFica=s.ownerId&&(c.ownerId===s.ownerId||(c.members||[]).includes(s.ownerId));
+    if(!donoFica)n.ownerId=s.type==='pc'&&!s.aliado?state.user.id:null;
+    $('#trGo').disabled=true;
+    try{await (Store.copySheetTo?Store.copySheetTo(n):Store.saveSheet(n));closeModal();toast(`Cópia de ${esc(s.nome||'personagem')} criada em ${esc(c.name||'outra campanha')}.`)}
+    catch(e){$('#trGo').disabled=false;toast('Não deu para criar a cópia: '+esc(e.message||e),'err')}};
+}
+Object.assign(A,{transferirFicha:el=>abrirTransferir(el.dataset.id)});
 
 /* =====================================================================
    SOBREVIVENTE (Sobrevivendo ao Horror) — estágios 1 a 5, depois agente
