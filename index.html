@@ -1751,6 +1751,25 @@ details.hcard[open]>summary .hc-tg{transform:rotate(90deg)}
 .chip.amald-chip{color:var(--stamp);background:color-mix(in srgb,var(--stamp) 14%,transparent)}
 .cast-arma{margin-top:12px;border-top:1px dashed var(--paper-edge);padding-top:10px}
 .cast-arma .fx-help{margin:4px 0 0}
+.mal-item{display:grid;gap:4px;margin:6px 0}
+
+/* receber dano: golpes, reações e venenos */
+#drBadge{position:fixed;left:50%;transform:translateX(-50%);top:12px;z-index:60;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;background:var(--paper,#efe7d6);color:var(--ink);border:2px solid var(--stamp);padding:8px 12px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-family:var(--f-ui);max-width:calc(100vw - 32px)}
+.rd-de{font-family:var(--f-mono);font-size:15px;margin:0 0 8px}
+.rd-golpes{display:grid;gap:4px;margin-bottom:10px}
+.rd-g{display:grid;grid-template-columns:80px 50px minmax(0,1fr) minmax(0,1.4fr);gap:8px;align-items:baseline;font-family:var(--f-mono);font-size:14.5px;padding:4px 8px;border-left:4px solid var(--ink-faint);background:rgba(0,0,0,.04)}
+.rd-g b{font-family:var(--f-type);font-weight:400;font-size:20px}
+.rd-g.hit{border-left-color:var(--stamp)}.rd-g.miss{opacity:.7}
+.rd-g .crit{color:var(--stamp);font-family:var(--f-mono);font-size:14px;font-weight:700}
+.rd-reac{display:grid;gap:6px;margin-bottom:12px}
+.rd-seg .seg-btn{display:grid;gap:1px;text-align:center}
+.rd-seg .seg-btn small{font-size:11.5px;font-family:var(--f-mono);text-transform:none;letter-spacing:0;opacity:.85}
+.rd-seg .seg-btn:disabled{opacity:.45;cursor:not-allowed}
+.rd-ven{display:grid;gap:8px;margin-top:12px;border-top:1px dashed var(--paper-edge);padding-top:10px}
+.rd-ven-it{display:grid;gap:6px;border:1px solid var(--paper-edge);padding:8px 10px}
+.rd-habs{display:flex;flex-wrap:wrap;gap:4px 12px}
+.rd-vres{font-family:var(--f-mono);font-weight:700}.rd-vres.ok{color:var(--ok)}.rd-vres.falha{color:var(--stamp)}
+@media (max-width:560px){.rd-g{grid-template-columns:62px 40px minmax(0,1fr)}.rd-g>span:last-child{grid-column:1/-1}}
 </style>
 <div id="app"><div class="boot"><div><div class="logo">NE<span>X</span></div><p>Abrindo o arquivo de agentes…</p><div class="bar"><i></i></div>
 <noscript><p style="color:#e5e2d9">O NEX precisa de JavaScript para funcionar. Abra pela página publicada ou em um navegador com JavaScript ativado; visualizadores de arquivo costumam bloquear scripts.</p></noscript></div></div></div>
@@ -2684,6 +2703,304 @@ const MALDICOES_ARMA=[
 ];
 
 /* =====================================================================
+   SOBREVIVENDO AO HORROR (SaH) — origens, poderes, trilhas, classe
+   Sobrevivente, equipamentos, poderes paranormais, rituais, itens
+   amaldiçoados e ameaças. Textos resumidos para consulta na mesa.
+   “+O” do livro = +1d20.
+   ===================================================================== */
+const SAH='SaH';
+ORIGENS.push(
+  OR(SAH,'Amigo dos Animais',['Adestramento','Percepção'],'Companheiro Animal','Entende intenções de animais e muda a atitude deles com Adestramento. Tem um animal de estimação que conta como aliado: +2 numa perícia à escolha; em NEX 35% também dá o bônus de um tipo de aliado e, em 70%, a habilidade desse tipo. Se ele morrer: –10 SAN permanente e perturbado até o fim da cena.'),
+  OR(SAH,'Astronauta',['Ciências','Fortitude'],'Acostumado ao Extremo','Ao sofrer dano de fogo, frio ou mental, gaste 1 PE para reduzi-lo em 5. Cada uso extra na mesma cena custa +1 PE.',{modo:'acao',custo:1}),
+  OR(SAH,'Chef do Outro Lado',['Ocultismo','Profissão'],'Fome do Outro Lado','Partes de criaturas viram ingredientes (cat. I, 0,5 esp.). Interlúdio: Profissão (cozinheiro) DT 15+1d20 oculto. Sucesso: RD 10 contra o elemento da criatura até o fim da próxima cena; falha: vulnerabilidade. Cada refeição: –1 SAN permanente.'),
+  OR(SAH,'Colegial',['Atualidades','Tecnologia'],'Poder da Amizade','Escolha um melhor amigo entre os personagens: em alcance médio e trocando olhares, +2 em todos os testes de perícia. Se ele morrer, –1 PE por 5% de NEX até o fim da missão.',{modo:'ativavel',efeitos:[{alvo:'per:*',valor:'2'}]}),
+  OR(SAH,'Cosplayer',['Artes','Vontade'],'Não É Fantasia, É Cosplay!','Testes de disfarce com Artes no lugar de Enganação. Usando um cosplay relacionado ao teste, +2.'),
+  OR(SAH,'Diplomata',['Atualidades','Diplomacia'],'Conexões','+2 em Diplomacia. Contatando um NPC que possa ajudar, 10 minutos e 2 PE: troca um teste de perícia ligado ao conhecimento dele, até o fim da cena, por Diplomacia.',{efeitos:[{alvo:'per:Diplomacia',valor:'2'}]}),
+  OR(SAH,'Explorador',['Fortitude','Sobrevivência'],'Manual do Sobrevivente','Em testes para resistir a armadilhas, clima, doenças, fome, sede, fumaça, sono, sufocamento ou veneno (inclusive paranormais), 2 PE para +5. No interlúdio, sono precário conta como normal.',{modo:'acao',custo:2,boost:{tipo:'bonus',valor:5,pericias:['Fortitude']}}),
+  OR(SAH,'Experimento',['Atletismo','Fortitude'],'Mutação','Resistência a dano 2 e +2 numa perícia de Força, Agilidade ou Vigor à escolha. –1d20 em Diplomacia.',{efeitos:[{alvo:'rd',valor:'2'},{alvo:'dados:per:Diplomacia',valor:'-1'}]}),
+  OR(SAH,'Fanático por Criaturas',['Investigação','Ocultismo'],'Conhecimento Oculto','Identifica criaturas com Ocultismo a partir de imagens, rastros ou indícios (descobre características, não a identidade). Ao identificar uma criatura, +2 em todos os testes contra ela até o fim da missão.'),
+  OR(SAH,'Fotógrafo',['Artes','Percepção'],'Através da Lente','Em Investigação ou Percepção olhando por uma câmera ou analisando fotos, 2 PE para +5 (anda à metade do deslocamento olhando pela lente).',{modo:'acao',custo:2,boost:{tipo:'bonus',valor:5,pericias:['Investigação','Percepção']}}),
+  OR(SAH,'Inventor Paranormal',['Profissão','Vontade'],'Invenção Paranormal','Invento (cat. 0, 1 espaço) com um ritual de 1º círculo: ação padrão (ou a do ritual) e Profissão (engenheiro) DT 15 (+5 por ativação na missão) para conjurá-lo na forma básica sem PE. Falha: enguiça. Manutenção no interlúdio conserta e volta a DT 15. Troca o ritual no início de cada missão.'),
+  OR(SAH,'Jovem Místico',['Ocultismo','Religião'],'A Culpa é das Estrelas','Escolha um número da sorte (1–6). No início de cada cena, 1 PE e role 1d6: se sair um número da sorte, +2 em testes de perícia até o fim da cena; se não, adicione mais um número da sorte para a próxima vez (volta a 1 ao acertar).',{modo:'acao',custo:1,rolagem:'1d6'}),
+  OR(SAH,'Legista do Turno da Noite',['Ciências','Medicina'],'Luto Habitual','Metade do dano mental por cenas ligadas à rotina de um legista (mortes, cadáveres, órgãos). Primeiros socorros ou necropsia com Medicina: 2 PE para +5.',{modo:'acao',custo:2,boost:{tipo:'bonus',valor:5,pericias:['Medicina']}}),
+  OR(SAH,'Mateiro',['Percepção','Sobrevivência'],'Mapa Celeste','Vendo o céu, sempre sabe os pontos cardeais e volta a lugares já visitados. Em Sobrevivência, 2 PE para rolar de novo e ficar com o melhor. No interlúdio, sono precário conta como normal.',{modo:'acao',custo:2}),
+  OR(SAH,'Mergulhador',['Atletismo','Fortitude'],'Fôlego de Nadador','+5 PV; prende a respiração pelo dobro do Vigor em rodadas; nadando com sucesso, avança o deslocamento inteiro.',{efeitos:[{alvo:'pv',valor:'5'}]}),
+  OR(SAH,'Motorista',['Pilotagem','Reflexos'],'Mãos no Volante','Sem penalidade de ataque em veículo em movimento. Pilotando, em Pilotagem ou resistência, 2 PE para +5.',{modo:'acao',custo:2,boost:{tipo:'bonus',valor:5,pericias:['Pilotagem','Reflexos','Fortitude','Vontade']}}),
+  OR(SAH,'Nerd Entusiasta',['Ciências','Tecnologia'],'O Inteligentão','O bônus da ação de interlúdio ler vira +2d6 (em vez de +1d6).'),
+  OR(SAH,'Profetizado',['Vontade'],'Luta ou Fuga','Treinado em Vontade e numa perícia ligada à sua premonição de morte. +2 em Vontade. Quando surge uma referência à premonição, recebe +2 PE temporários até o fim da cena.',{extra:1,efeitos:[{alvo:'per:Vontade',valor:'2'}]}),
+  OR(SAH,'Psicólogo',['Intuição','Profissão'],'Terapia','Usa Profissão (psicólogo) como Diplomacia. Uma vez por rodada, quando você ou aliado em alcance curto falha numa resistência contra dano mental, 2 PE para testar Profissão (psicólogo) e usar esse resultado.',{modo:'acao',custo:2}),
+  OR(SAH,'Repórter Investigativo',['Atualidades','Investigação'],'Encontrar a Verdade','Usa Investigação no lugar de Diplomacia para persuadir e mudar atitude. Em Investigação, 2 PE para +5.',{modo:'acao',custo:2,boost:{tipo:'bonus',valor:5,pericias:['Investigação']}}),
+);
+
+/* ---------- Combatente ---------- */
+PODERES_CLASSE.Combatente.push(
+  PC(SAH,'Apego Angustiado','Combatente','Não fica inconsciente por estar morrendo; a cada rodada que terminar morrendo e consciente, perde 2 SAN.'),
+  PC(SAH,'Caminho para Forca','Combatente','Perseguição: ao usar sacrifício, 1 PE para +1d20 extra (total +2d20) aos outros. Furtividade: ao chamar atenção, 1 PE para reduzir a visibilidade dos aliados próximos em –2.',{modo:'acao',custo:1}),
+  PC(SAH,'Ciente das Cicatrizes','Combatente','Em testes para pistas ligadas a armas ou ferimentos (necropsia, identificar arma amaldiçoada), usa Luta ou Pontaria. Pré-requisito: treinado em Luta ou Pontaria.'),
+  PC(SAH,'Correria Desesperada','Combatente','+3m de deslocamento e +1d20 em testes para fugir numa perseguição.',{efeitos:[{alvo:'desloc',valor:'3'}]}),
+  PC(SAH,'Engolir o Choro','Combatente','Sem penalidades por condições em testes para fugir e em Furtividade.'),
+  PC(SAH,'Instinto de Fuga','Combatente','Quando começa uma perseguição (ou semelhante), +2 em todos os testes de perícia da cena. Pré-requisito: treinado em Intuição.'),
+  PC(SAH,'Mochileiro','Combatente','+5 espaços de carga e uma vestimenta adicional. Pré-requisito: Vig 2.',{req:'VIG 2',efeitos:[{alvo:'carga',valor:'5'}]}),
+  PC(SAH,'Paranoia Defensiva','Combatente','Uma vez por cena, uma rodada e 3 PE: você e cada aliado presente escolhem +5 na Defesa contra o próximo ataque ou +5 num teste de perícia até o fim da cena.',{modo:'acao',custo:3}),
+  PC(SAH,'Sacrificar os Joelhos','Combatente','Uma vez por perseguição, no esforço extra, 2 PE para passar automaticamente. Pré-requisito: treinado em Atletismo.',{modo:'acao',custo:2}),
+  PC(SAH,'Sem Tempo, Irmão','Combatente','Uma vez por cena de investigação, ao facilitar investigação, passa automaticamente no teste de ajuda, mas o mestre faz uma rolagem extra na tabela de eventos.'),
+  PC(SAH,'Valentão','Combatente','Usa Força no lugar de Presença em Intimidação; uma vez por cena, 1 PE para assustar como ação livre.',{modo:'acao',custo:1}),
+);
+addTrilha(SAH,'Combatente','Agente Secreto',[
+  [10,'Carteirada','Treinado em Diplomacia ou Enganação (ou +2 se já for). No início de cada missão recebe documentos com privilégios jurídicos (acesso a locais restritos, porte de arma, assumir investigações). Contam como itens operacionais sem espaço.'],
+  [40,'O Sorriso','+2 em Diplomacia e Enganação; ao falhar numa delas, 2 PE para rolar de novo (uma vez por teste, fica com o novo). Uma vez por cena, Diplomacia para acalmar a si mesmo.',{efeitos:[{alvo:'per:Diplomacia',valor:'2'},{alvo:'per:Enganação',valor:'2'}]}],
+  [65,'Método Investigativo','Urgência das cenas de investigação +1 rodada. Quando o mestre rola eventos de investigação, 2 PE para virar “sem evento” (+2 PE a cada uso extra na cena).',{modo:'acao',custo:2}],
+  [99,'Multifacetado','Uma vez por cena, 5 SAN (só voltam ao fim da missão): recebe todas as habilidades até NEX 65% de uma trilha de combatente ou especialista até o fim da cena (não repete trilha na missão).'],
+]);
+addTrilha(SAH,'Combatente','Caçador',[
+  [10,'Rastrear o Paranormal','Treinado em Sobrevivência (ou +2). Usa Sobrevivência no lugar de Ocultismo para identificar criaturas e de Investigação e Percepção para rastros, pistas e criaturas paranormais.'],
+  [40,'Estudar Fraquezas','Ação de interlúdio com uma pista ligada a um ser (parte do corpo, vestes): recebe uma informação útil sobre ele e +1 em testes de perícia contra ele por pista até o fim da missão.'],
+  [65,'Atacar das Sombras','Sem –1d20 em Furtividade por mover o deslocamento normal; com arma silenciosa, atacar dá só –1d20 em Furtividade. Visibilidade inicial em cenas de furtividade 1 abaixo.'],
+  [99,'Estudar a Presa','Ao usar Estudar Fraquezas numa criatura ou cultista, o tipo vira sua presa: +1d20 em testes de perícia, +1 na margem e no multiplicador e RD 5 contra eles (uma presa por vez).'],
+]);
+addTrilha(SAH,'Combatente','Monstruoso (SaH)',[
+  [10,'Ser Amaldiçoado','Treinado em Ocultismo (ou +2). Escolha Sangue, Morte, Conhecimento ou Energia; uma etapa ritualística por dia dá, até o fim do dia: Sangue — RD balístico e Sangue 5, faro, +Vig no dano de contra-ataque, –1d20 em Ciências e Intuição; Morte — RD perfuração e Morte 5, imune a fadiga, +For nos PV, –1d20 em Diplomacia e Enganação; Conhecimento — RD balístico e Conhecimento 5, visão no escuro, +Int na Defesa, –1d20 em Atletismo e Acrobacia; Energia — RD corte, eletricidade, fogo e Energia 5, +Agi na RD do bloqueio, –1d20 em Investigação e Percepção. Sem a etapa: fome e sede. Usa a progressão de NEX da regra de exposição.'],
+  [40,'Ser Macabro','RD da etapa vira 10, penalidade –2d20. Sangue: PE por Força; movimento e PE (até For) para 1d8 PV por PE. Morte: +1d20 em Intimidação, PE por Vigor, morre só no 4º turno morrendo, não precisa comer. Conhecimento: +1 Int, Int em Enganação e nos PE. Energia: PE por Agilidade; ao acertar corpo a corpo, PE (até Agi) para +1d6 de Energia por PE.'],
+  [65,'Ser Assustador','RD da etapa vira 15 e Presença –1 permanente. Sangue: 50% de ignorar dano extra de crítico/furtivo, mordida 1d8 (1 PE: ataque extra com ela). Morte: no início de cada turno morrendo, Vigor DT 15 para voltar com 1 PV; crítico ou derrubar inimigo devolve 2 PE. Conhecimento: abre mão de uma perícia treinada por dados de bônus (+1d20) iguais ao Int até o fim da cena. Energia: RD vale contra químico; movimento tocando eletricidade recupera 1d4/2d4/4d4 PE.'],
+  [99,'Ser Aterrorizante','Efeitos permanentes, conta como criatura paranormal, RD 20. Sangue: Int –1, For +1, mordida cura 5 PV, aprende Forma Monstruosa (Vontade DT 10+dano ao sofrer dano ou conjura). Morte: Pre –1, Vig +1, imune a Morte e imortal (salvo fogo/Energia), aprende Fim Inevitável. Conhecimento: For –1, Int +1, percepção às cegas, um ritual de 4º círculo (perde a memória da cena ao conjurar). Energia: For –1, Agi +1, paira (12m), passa por frestas, imune a paralisia física, aprende Deflagração de Energia; não usa itens vestidos. Em NEX 75% fica perturbado e é banido pela Ordem; em 99% SAN vira 1.'],
+]);
+
+/* ---------- Especialista ---------- */
+PODERES_CLASSE.Especialista.push(
+  PC(SAH,'Acolher o Terror','Especialista','Pode se entregar para o medo uma vez adicional por sessão.'),
+  PC(SAH,'Contatos Oportunos','Especialista','Ação de interlúdio: recebe um aliado de um tipo à escolha até o fim da missão (um por vez). Pré-requisito: treinado em Crime.'),
+  PC(SAH,'Disfarce Sutil','Especialista','Disfarce em si com Enganação: 1 PE para fazer como ação completa e sem kit (com kit, +5). Pré-requisitos: Pre 2, treinado em Enganação.',{modo:'acao',custo:1,req:'PRE 2'}),
+  PC(SAH,'Esconderijo Desesperado','Especialista','Sem –1d20 em Furtividade por mover o deslocamento normal; ao se esconder em cenas de furtividade, a visibilidade cai –2.'),
+  PC(SAH,'Especialista Diletante','Especialista','Aprende um poder de outra classe (exceto trilha ou paranormal) cujos pré-requisitos cumpra. Pré-requisito: NEX 30%.',{nexReq:30}),
+  PC(SAH,'Flashback','Especialista','Recebe o poder de uma origem que não seja a sua.'),
+  PC(SAH,'Leitura Fria','Especialista','Uma vez por interlúdio, observando um NPC, faça três perguntas pessoais; cada uma não respondida dá 2 PE temporários até o fim da missão (uma vez por pessoa). Pré-requisito: treinado em Intuição.'),
+  PC(SAH,'Mãos Firmes','Especialista','Em Furtividade para esconder-se ou ação discreta manipulando objeto, 2 PE para +1d20. Pré-requisito: treinado em Furtividade.',{modo:'acao',custo:2,boost:{tipo:'dado',dado:'1d20',attrs:['AGI']}}),
+  PC(SAH,'Plano de Fuga','Especialista','Usa Intelecto no lugar de Força para criar obstáculos numa perseguição; uma vez por cena, 2 PE para passar automaticamente.',{modo:'acao',custo:2}),
+  PC(SAH,'Remoer Memórias','Especialista','Uma vez por cena, num teste de perícia de Int ou Pre, 2 PE para trocá-lo por um teste de Intelecto DT 15. Pré-requisito: Int 1.',{modo:'acao',custo:2}),
+  PC(SAH,'Resistir à Pressão','Especialista','Uma vez por cena de investigação, 5 PE: urgência +1 rodada e, nessa rodada, todos recebem +2 em testes. Pré-requisito: treinado em Investigação.',{modo:'acao',custo:5}),
+);
+addTrilha(SAH,'Especialista','Bibliotecário',[
+  [10,'Conhecimento Prático','Num teste de perícia (exceto Luta e Pontaria), 2 PE para usar Intelecto como atributo-base (com Conhecimento Aplicado, custa –1 PE).',{modo:'acao',custo:2}],
+  [40,'Leitor Contumaz','Os dados da ação ler viram d8 e valem para qualquer perícia; ao usar, 2 PE para +1 dado.'],
+  [65,'Rato de Biblioteca','Num lugar cheio de livros, alguns minutos (ou uma rodada de investigação) dão os benefícios de ler ou revisar caso (uma vez por cena).'],
+  [99,'A Força do Saber','+1 Intelecto, soma Intelecto nos PE e troca o atributo-base de uma perícia para Intelecto.',{efeitos:[{alvo:'attr:INT',valor:'1'},{alvo:'pe',valor:'INT'}]}],
+]);
+addTrilha(SAH,'Especialista','Perseverante',[
+  [10,'Soluções Improvisadas','2 PE para rolar de novo um dos dados de um teste recém-feito (uma vez por teste) e ficar com o melhor.',{modo:'acao',custo:2}],
+  [40,'Fuga Obstinada','+1d20 em testes para fugir; como presa numa perseguição, aguenta até 4 falhas.'],
+  [65,'Determinação Inquestionável','Uma vez por cena, ação padrão e 5 PE: remove uma condição de medo, mental ou de paralisia.',{modo:'acao',custo:5}],
+  [99,'Só Mais um Passo...','Uma vez por rodada, ao cair a 0 PV, 5 PE para ficar com 1 PV (não contra dano massivo).',{modo:'acao',custo:5}],
+]);
+addTrilha(SAH,'Especialista','Muambeiro',[
+  [10,'Mascate','Treinado em Profissão (armeiro, engenheiro ou químico) e +5 de carga. Fabricar item improvisado: DT –10 (em vez de –5).',{efeitos:[{alvo:'carga',valor:'5'}]}],
+  [40,'Fabricação Própria','Fabrica itens mundanos na metade do tempo: duas munições, explosivos ou consumíveis por ação de manutenção; armas, proteções e equipamentos gerais em uma.'],
+  [65,'Laboratório de Campo','Treinado em outra Profissão (armeiro, engenheiro ou químico) ou +5 nela. Pode fabricar e consertar itens paranormais em campo (três ações de interlúdio).'],
+  [99,'Achado Conveniente','Ação completa e 5 PE: “produz” um item de até categoria III (não paranormal) que funciona até o fim da cena.',{modo:'acao',custo:5}],
+]);
+
+/* ---------- Ocultista ---------- */
+PODERES_CLASSE.Ocultista.push(
+  PC(SAH,'Deixe os Sussurros Guiarem','Ocultista','Uma vez por cena, uma rodada e 2 PE: +2 em testes de perícia de investigação até o fim da cena; cada teste falho custa 1 SAN.',{modo:'acao',custo:2}),
+  PC(SAH,'Domínio Esotérico','Ocultista','Ao conjurar, combina os efeitos de até dois catalisadores ritualísticos diferentes. Pré-requisito: Int 3.',{req:'INT 3'}),
+  PC(SAH,'Estalos Macabros','Ocultista','Ao distrair ou fintar, 1 PE para usar Ocultismo no lugar da perícia; contra pessoa ou animal, +5.',{modo:'acao',custo:1}),
+  PC(SAH,'Minha Dor me Impulsiona','Ocultista','Com pelo menos 5 de dano nos PV, 1 PE para +1d6 em Acrobacia, Atletismo ou Furtividade. Pré-requisito: Vig 2.',{modo:'acao',custo:1,req:'VIG 2',boost:{tipo:'dado',dado:'1d6',attrs:['AGI','FOR']}}),
+  PC(SAH,'Nos Olhos do Monstro','Ocultista','Em cena com criatura paranormal, uma rodada e 3 PE encarando-a: +5 em testes contra ela (exceto ataque) até o fim da cena.',{modo:'acao',custo:3}),
+  PC(SAH,'Olhar Sinistro','Ocultista','Usa Presença no lugar de Intelecto em Ocultismo e pode usá-la para coagir. Pré-requisito: Pre 1.'),
+  PC(SAH,'Sentido Premonitório','Ocultista','3 PE (+1 PE por rodada para manter): sabe com uma rodada de antecedência o fim da urgência, eventos de investigação e ações de inimigos em furtividade e perseguição. Não funciona em combate.',{modo:'acao',custo:3}),
+  PC(SAH,'Sincronia Paranormal','Ocultista','Ação padrão e 2 PE (+1 PE por rodada): sincronia com aliados em alcance médio que já sobreviveram ao paranormal com você; a cada rodada distribua +1d20 (total igual à sua Presença) para testes de Int ou Pre deles. Pré-requisito: Pre 2.',{modo:'acao',custo:2,req:'PRE 2'}),
+  PC(SAH,'Traçado Conjuratório','Ocultista','1 PE e ação completa: traça um símbolo de 1,5m; dentro dele, +2 em Ocultismo e resistências e +2 na DT dos seus rituais até o fim da cena.',{modo:'ativavel',custo:1,efeitos:[{alvo:'per:Ocultismo',valor:'2'},{alvo:'resist',valor:'2'},{alvo:'dt_ritual',valor:'2'}]}),
+);
+addTrilha(SAH,'Ocultista','Exorcista',[
+  [10,'Revelação do Mal','Treinado em Religião (ou +2). Usa Religião no lugar de Investigação e Percepção para seres, rastros e pistas paranormais, e no lugar de Ocultismo.'],
+  [40,'Poder da Fé','Veterano em Religião (ou +1d20 se já for). Ao falhar numa resistência, 2 PE para repetir usando Religião (fica com o novo).',{modo:'acao',custo:2}],
+  [65,'Parareligiosidade','Ao conjurar, +2 PE para somar o efeito de um catalisador ritualístico à escolha.',{modo:'acao',custo:2}],
+  [99,'Chagas da Resistência','Quando a SAN cairia a 0, gaste 10 PV para ficar com 1 SAN.'],
+]);
+addTrilha(SAH,'Ocultista','Possuído',[
+  [10,'Poder Não Desejado','Cada novo poder de ocultista vira Transcender. Reserva de pontos de possessão (PP) = 3 + 2 por Transcender; gaste até sua Presença por turno: cada PP recupera 10 PV ou 2 PE. Recupera 1 PP a cada dormir.'],
+  [40,'As Sombras Dentro de Mim','Recupera 2 PP por dormir. 2 PE: +1d20 em Acrobacia, Atletismo e Furtividade por uma rodada (em furtividade, aumentos de visibilidade –1).',{modo:'acao',custo:2}],
+  [65,'Ele Me Ensina','Transcende ou recebe o primeiro poder de outra trilha de ocultista.'],
+  [99,'Tornamo-nos Um','Pelo elemento de afinidade, 6 PE uma vez por rodada (mesmo inconsciente): Sangue — recupera 50 PV e perícias de For, Vig e Intimidação viram +35 (as de Pre –10) até seu próximo turno; Morte — turno extra no fim da rodada; Conhecimento — um poder qualquer até o fim da cena (Vontade DT 15+5 por uso, falha 1d6 SAN por uso); Energia — teleporte em alcance médio.',{modo:'acao',custo:6}],
+]);
+addTrilha(SAH,'Ocultista','Parapsicólogo',[
+  [10,'Terapia','Exige treino em Profissão (psicólogo). Usa-a como Diplomacia; uma vez por rodada, quando você ou aliado em alcance curto falha numa resistência contra dano mental, 2 PE para usar um teste de Profissão (psicólogo) no lugar (se já tiver, custa –1 PE e +2 na perícia).',{modo:'acao',custo:2}],
+  [40,'Palavras-chave','Ao acalmar com sucesso, gaste PE até seu limite: cada PE devolve 1 SAN à pessoa.'],
+  [65,'Reprogramação Mental','Ação de interlúdio e 5 PE com voluntário em alcance curto: até o próximo interlúdio ele recebe um poder geral, da própria classe ou o primeiro de outra trilha.',{modo:'acao',custo:5}],
+  [99,'A Sanidade Está Lá Fora','Ação de movimento e 5 PE: remove todas as condições de medo ou mentais de uma pessoa adjacente (inclusive você).',{modo:'acao',custo:5}],
+]);
+
+/* ---------- Sobrevivente: textos das habilidades (classe em sobrevivente.js) ---------- */
+const SOBREV_DESC={
+  'Empenho':['Ao fazer um teste de perícia, gaste 1 PE para receber +2 nesse teste.',{modo:'acao',custo:1,boost:{tipo:'bonus',valor:2}}],
+  'Durão':['+4 PV; ao subir para o estágio 3, mais +2 PV.',{efeitos:[{alvo:'pv',valor:'4+2*(ESTAGIO>=3)'}]}],
+  'Pancada Forte':['Ao atacar, 1 PE para +1d20 no teste de ataque. Virando combatente, perde esta habilidade mas Ataque Especial custa –1 PE.',{modo:'acao',custo:1,boost:{tipo:'dado',dado:'1d20',attrs:['FOR','AGI']}}],
+  'Esperto':['Treinado em uma perícia adicional à escolha.'],
+  'Entendido':['Escolha duas perícias treinadas (exceto Luta e Pontaria): 1 PE para +1d4 no resultado. Virando especialista, perde esta habilidade mas Perito custa –1 PE.',{modo:'acao',custo:1}],
+  'Esotérico':['Ação padrão e 1 PE: sente energias paranormais em alcance curto (pistas ou alerta de perigo, a critério do mestre).',{modo:'acao',custo:1}],
+  'Iniciado':['Aprende e pode conjurar um ritual de 1º círculo à escolha. Virando ocultista, ele se soma aos três rituais de Escolhido pelo Outro Lado.'],
+  'Cicatrizado':['Escolha um perigo paranormal de um elemento que já enfrentou: –1d20 em resistências contra ele. Uma vez por sessão, como reação, sacrifique 1 PV permanente para ignorar um dano mental ou gasto de PE, ou 1 PE permanente para reduzir um dano físico à metade.'],
+};
+
+/* ---------- Poderes gerais (SaH) ---------- */
+const TG=(p)=>`Treinado em ${p} (ou +2 se já for). `;
+PODERES_GERAIS.push(...tag(SAH,[
+  H('Acrobático','Geral',TG('Acrobacia')+'Terreno difícil não reduz seu deslocamento nem impede investidas. Pré-requisito: Agi 2.',{req:'AGI 2'}),
+  H('Ás do Volante','Geral',TG('Pilotagem')+'Uma vez por rodada, quando o veículo que pilota sofre dano, Pilotagem (DT = ataque ou DT do efeito) para evitá-lo. Pré-requisito: Agi 2.',{req:'AGI 2'}),
+  H('Atlético','Geral',TG('Atletismo')+'+3m de deslocamento. Pré-requisito: For 2.',{req:'FOR 2',efeitos:[{alvo:'desloc',valor:'3'}]}),
+  H('Atraente','Geral','+5 em Artes, Diplomacia, Enganação e Intimidação contra quem possa se sentir atraído por você. Pré-requisito: Pre 2.',{req:'PRE 2'}),
+  H('Dedos Ágeis','Geral',TG('Crime')+'Arromba com ação padrão, furta com ação livre (uma vez por rodada) e sabota com ação completa. Pré-requisito: Agi 2.',{req:'AGI 2'}),
+  H('Detector de Mentiras','Geral',TG('Intuição')+'Outros sofrem –10 em Enganação para mentir para você. Pré-requisito: Pre 2.',{req:'PRE 2'}),
+  H('Especialista em Emergências','Geral',TG('Medicina')+'Aplica cicatrizantes e medicamentos com ação de movimento e saca um deles como ação livre uma vez por rodada. Pré-requisito: Int 2.',{req:'INT 2'}),
+  H('Estigmado','Geral','Dano mental de efeitos de medo pode ser convertido em perda de PV.'),
+  H('Foco em Perícia','Geral','Escolha uma perícia (exceto Luta e Pontaria): rola +1d20 nela. Pode ser escolhido de novo. Pré-requisito: treinado na perícia.'),
+  H('Informado','Geral',TG('Atualidades')+'Com aprovação do mestre, usa Atualidades no lugar de qualquer perícia em testes sobre informações. Pré-requisito: Int 2.',{req:'INT 2'}),
+  H('Interrogador','Geral',TG('Intimidação')+'Coage com ação padrão, uma vez por cena por pessoa. Pré-requisito: For 2.',{req:'FOR 2'}),
+  H('Inventário Organizado','Geral','Soma Intelecto no limite de carga; itens de 0,5 espaço ocupam 0,25. Pré-requisito: Int 2.',{req:'INT 2',efeitos:[{alvo:'carga',valor:'INT'}]}),
+  H('Mentiroso Nato','Geral',TG('Enganação')+'A penalidade por mentiras muito implausíveis cai para –1d20. Pré-requisito: Pre 2.',{req:'PRE 2'}),
+  H('Observador','Geral',TG('Investigação')+'Soma Intelecto em Intuição. Pré-requisito: Int 2.',{req:'INT 2',efeitos:[{alvo:'per:Intuição',valor:'INT'}]}),
+  H('Pai de Pet','Geral',TG('Adestramento')+'Tem um animal de estimação aliado que dá +2 em duas perícias à escolha (exceto Luta e Pontaria). Pré-requisito: Pre 2.',{req:'PRE 2'}),
+  H('Palavras de Devoção','Geral',TG('Religião')+'Uma vez por cena, 3 PE e ação completa: oração para até o dobro da sua Presença em pessoas; todas recebem resistência a dano mental 5 até o fim da cena. Pré-requisito: Pre 2.',{req:'PRE 2',modo:'acao',custo:3}),
+  H('Parceiro','Geral','Um aliado fiel de um tipo à escolha que obedece às suas ordens. Se perdê-lo, gaste uma folga da Ordem para ter outro. Pré-requisitos: treinado em Diplomacia, NEX 30%.',{nexReq:30}),
+  H('Pensamento Tático','Geral',TG('Tática')+'Passando em Tática para analisar terreno, você e aliados em alcance médio ganham uma ação de movimento extra na 1ª rodada do próximo combate ali (até o fim do dia). Pré-requisito: Int 2.',{req:'INT 2'}),
+  H('Personalidade Esotérica','Geral','+3 PE e treinado em Ocultismo (ou +2). Pré-requisito: Int 2.',{req:'INT 2',efeitos:[{alvo:'pe',valor:'3'}]}),
+  H('Persuasivo','Geral',TG('Diplomacia')+'A penalidade por pedir coisas custosas ou perigosas na persuasão diminui em –5. Pré-requisito: Pre 2.',{req:'PRE 2'}),
+  H('Pesquisador Científico','Geral',TG('Ciências')+'Usa Ciências no lugar de Ocultismo e Sobrevivência para identificar criaturas e animais. Pré-requisito: Int 2.',{req:'INT 2'}),
+  H('Proativo','Geral',TG('Iniciativa')+'Tirando 19 ou 20 em algum dado da Iniciativa, ganha uma ação padrão extra no primeiro turno. Pré-requisito: Agi 2.',{req:'AGI 2'}),
+  H('Provisões de Emergência','Geral','Esconderijo de suprimentos: uma vez por missão, ação de interlúdio para pegar equipamento equivalente à sua patente (nova fase de preparação).'),
+  H('Racionalidade Inflexível','Geral','Usa Intelecto no lugar de Presença em Vontade e no cálculo de PE. Pré-requisito: Int 3.',{req:'INT 3'}),
+  H('Rato de Computador','Geral',TG('Tecnologia')+'Hackear, localizar arquivo ou operar dispositivo com ação completa; uma vez por cena de investigação, com computador, procura pistas com Tecnologia sem gastar rodada. Pré-requisito: Int 2.',{req:'INT 2'}),
+  H('Resposta Rápida','Geral',TG('Reflexos')+'Ao falhar em Percepção para não ficar desprevenido, 2 PE para rolar de novo com Reflexos. Pré-requisito: Agi 2.',{req:'AGI 2',modo:'acao',custo:2}),
+  H('Sentidos Aguçados','Geral',TG('Percepção')+'Não fica desprevenido contra quem não vê; errando por camuflagem, rola de novo a chance de falha. Pré-requisito: Pre 2.',{req:'PRE 2'}),
+  H('Sobrevivencialista','Geral',TG('Sobrevivência')+'+2 para resistir a clima; terreno difícil natural não reduz deslocamento nem impede investidas. Pré-requisito: Int 2.',{req:'INT 2'}),
+  H('Sorrateiro','Geral',TG('Furtividade')+'Sem penalidade por se mover normalmente furtivo ou por seguir alguém sem esconderijos. Pré-requisito: Agi 2.',{req:'AGI 2'}),
+  H('Talentoso','Geral',TG('Artes')+'Ao impressionar com Artes, o bônus aumenta em +1 a cada 5 acima da DT. Pré-requisito: Pre 2.',{req:'PRE 2'}),
+  H('Teimosia Obstinada','Geral',TG('Vontade')+'Em Vontade contra condição mental ou mudança de atitude, 2 PE para +5. Pré-requisito: Pre 2.',{req:'PRE 2',modo:'acao',custo:2,boost:{tipo:'bonus',valor:5,pericias:['Vontade']}}),
+  H('Tenacidade','Geral',TG('Fortitude')+'Morrendo mas consciente, Fortitude (DT 20 +10 por teste anterior na cena) como ação livre: se passar, deixa de estar morrendo. Pré-requisito: Vig 2.',{req:'VIG 2'}),
+  H('Vitalidade Reforçada','Geral','+1 PV por 5% de NEX e +2 em Fortitude. Pré-requisito: Vig 2.',{req:'VIG 2',efeitos:[{alvo:'pv',valor:'NIVEL'},{alvo:'per:Fortitude',valor:'2'}]}),
+  H('Vontade Inabalável','Geral','+1 PE por 10% de NEX e +2 em Vontade. Pré-requisito: Pre 2.',{req:'PRE 2',efeitos:[{alvo:'pe',valor:'floor(NEX/10)'},{alvo:'per:Vontade',valor:'2'}]}),
+]));
+/* poderes de combatente que viram gerais no SaH */
+['Artista Marcial','Combater com Duas Armas','Saque Rápido','Tiro Certeiro'].forEach(n=>{const p=(PODERES_CLASSE.Combatente||[]).find(x=>x.nome===n);if(p&&!PODERES_GERAIS.some(x=>x.nome===n))PODERES_GERAIS.push(Object.assign(JSON.parse(JSON.stringify(p)),{fonte:'Geral',livro:SAH}))});
+
+/* ---------- Equipamentos (SaH) ---------- */
+ITENS.push(
+  WA(SAH,'Pregador pneumático',0,'1d4',20,4,'disparo','Curto','Perfuração',1,'Simples','Uma mão',{desc:'Conta como arma de fogo para poderes. 300 pregos duram a missão.'}),
+  WA(SAH,'Estilingue',0,'1d4',20,2,'disparo','Curto','Impacto',1,'Simples','Duas mãos',{desc:'Soma Força no dano. Bolinhas reaproveitáveis (pacote dura a missão). Arremessa granadas em alcance longo.'}),
+  WA(SAH,'Revólver compacto',1,'2d4',19,3,'fogo','Curto','Perfuração',1,'Simples','Uma mão',{desc:'Treinado em Crime: carrega escondido sem ocupar espaço. Capacidade 5 balas.'}),
+  WA(SAH,'Baioneta',0,'1d4',19,2,'corpo','—','Perfuração',1,'Tática','Uma mão',{agil:true,desc:'Movimento para fixar num fuzil: vira arma ágil de duas mãos de 1d6; atirando com a arma, –1d20.'}),
+  WA(SAH,'Faca tática',1,'1d6',19,2,'corpo','Curto','Corte',1,'Tática','Uma mão',{agil:true,desc:'Arremessável. +2 no contra-ataque com ela. No bloqueio, 2 PE e sacrifica a faca para RD +20.'}),
+  WA(SAH,'Gancho de carne',0,'1d4',20,4,'corpo','—','Perfuração',1,'Tática','Uma mão',{desc:'Com corda ou corrente: alcance 4,5m e 2 espaços.'}),
+  WA(SAH,'Bastão policial',1,'1d6',20,2,'corpo','—','Impacto',1,'Tática','Uma mão',{agil:true,desc:'Esquivando com ele, +1 na Defesa.'}),
+  WA(SAH,'Picareta',0,'1d6',20,4,'corpo','—','Perfuração',1,'Tática','Uma mão'),
+  WA(SAH,'Shuriken',1,'1d4',20,2,'arremesso','Curto','Perfuração',0.5,'Tática','Uma mão',{desc:'Veterano em Pontaria: uma vez por rodada, 1 PE para um ataque extra de shuriken no mesmo alvo. Um pacote dura duas cenas.'}),
+  WA(SAH,'Pistola pesada',1,'2d8',18,2,'fogo','Curto','Balístico',1,'Tática','Uma mão',{desc:'–1d20 no ataque com uma mão (duas mãos anulam). Capacidade 10 balas.'}),
+  WA(SAH,'Espingarda de cano duplo',2,'4d6',20,3,'fogo','Curto','Balístico',2,'Tática','Duas mãos',{desc:'Movimento para recarregar após os dois tiros. Disparando os dois canos no mesmo alvo: –1d20 no ataque e dano 6d6.'}),
+  GA(SAH,'Amuleto sagrado','acessorio',0,1,'Utensílio: +2 em Religião e Vontade.',{efeitos:[{alvo:'per:Religião',valor:'2'},{alvo:'per:Vontade',valor:'2'}]}),
+  GA(SAH,'Celular','acessorio',0,1,'Com internet, +2 em testes para adquirir informações. Lanterna fraca (cone de 4,5m).'),
+  GA(SAH,'Chave de fenda universal','acessorio',0,1,'+2 em testes para criar ou reparar objetos (e como item de apoio).'),
+  GA(SAH,'Chaves','acessorio',0,1,'Jogar o molho para distrair: +2 em Furtividade na mesma rodada.'),
+  GA(SAH,'Documentos falsos','acessorio',1,1,'+2 em Diplomacia, Enganação e Intimidação para se passar pela identidade falsa.'),
+  GA(SAH,'Manual operacional','acessorio',1,1,'Ação de interlúdio lendo: usa a perícia do manual como treinado até o próximo interlúdio (aprimorado: +5). Um por vez.'),
+  GA(SAH,'Notebook','acessorio',0,2,'Com internet, +2 em testes para adquirir informações; relaxando no interlúdio, +1 SAN. Luz em cone de 4,5m.'),
+  GA(SAH,'Óculos de visão noturna','acessorio',1,1,'Visão no escuro; –1d20 em resistências contra ofuscado e efeitos de luz.'),
+  GA(SAH,'Óculos escuros','acessorio',0,1,'Não pode ser ofuscado.'),
+  GA(SAH,'Pá','acessorio',0,2,'+5 em Força para cavar e mover detritos; em combate, como um bastão.'),
+  GA(SAH,'Paraquedas','acessorio',1,2,'Anula dano de queda. Sem ser veterano em Acrobacia, Pilotagem, Reflexos, Tática ou Profissão adequada: Reflexos DT 20 ou só reduz à metade.'),
+  GA(SAH,'Traje de mergulho','protecao',1,2,'Vestimenta: +5 em resistência contra efeitos ambientais, RD químico 5, 1 hora de oxigênio. Vestir/despir: ação completa.'),
+  GA(SAH,'Traje espacial','protecao',2,5,'Vestimenta: +10 contra efeitos ambientais, RD químico 20, 8 horas de oxigênio. Vestir/despir: duas rodadas.'),
+  GA(SAH,'Dinamite','explosivo',1,1,'Ação padrão: acende e arremessa em alcance médio; raio de 6m, 4d6 impacto + 4d6 fogo e em chamas (Reflexos DT Agi metade e evita).',{uso:{rolagem:'4d6+4d6',tipo:'dano'}}),
+  GA(SAH,'Explosivo plástico','explosivo',1,1,'Duas rodadas para preparar; detonador (ação livre, alcance longo) ou fogo/eletricidade. 16d6 de impacto em 3m (Reflexos DT Int metade). Especialista: dobro em objetos e ignora RD.',{uso:{rolagem:'16d6',tipo:'dano'}}),
+  GA(SAH,'Galão vermelho','explosivo',0,2,'Explode com fogo ou balístico: esfera de 6m, 12d6 de fogo e em chamas (Reflexos DT 25 metade e evita); área fica em chamas (1d6/rodada).',{uso:{rolagem:'12d6',tipo:'dano'}}),
+  GA(SAH,'Granada de gás sonífero','explosivo',1,1,'Fumaça em raio de 6m por 2 rodadas: quem começar o turno nela fica inconsciente e caído (em atividade intensa: exausto 1 rodada, depois fatigado). Fortitude DT Agi: fatigado por 1d4 rodadas.'),
+  GA(SAH,'Granada de PEM','explosivo',1,1,'Desliga equipamentos elétricos em 18m até o fim da cena; criaturas de Energia sofrem 6d6 de impacto e ficam paralisadas 1 rodada (Fortitude DT Agi metade e evita, uma vez por cena).',{uso:{rolagem:'6d6',tipo:'dano'}}),
+  GA(SAH,'Alarme de movimento','operacional',0,1,'Ação completa para posicionar: avisa (discreto ou sonoro) movimento num cone de 30m.'),
+  GA(SAH,'Alimento energético','operacional',2,1,'Ação padrão para consumir: recupera 1d4 PE.',{uso:{rolagem:'1d4',tipo:'outro'}}),
+  GA(SAH,'Aplicador de medicamentos','operacional',1,1,'Aplica cicatrizante ou medicamento com ação de movimento; guarda 3 doses (carregar: ação padrão).'),
+  GA(SAH,'Braçadeira reforçada','operacional',1,1,'+2 na RD do bloqueio.'),
+  GA(SAH,'Cão adestrado','operacional',1,0,'Aliado (exige treino em Adestramento): +2 em Investigação e Percepção; 1 PE: +2 na Defesa por 1 rodada.'),
+  GA(SAH,'Coldre saque rápido','operacional',1,1,'Uma vez por rodada, saca ou guarda uma arma de fogo leve como ação livre.'),
+  GA(SAH,'Equipamento de escuta','operacional',1,1,'Receptor (90m) e 3 transmissores (raio 9m). Instalar: alguns minutos e Crime DT 20 (discreto: ação completa, Furtividade oposta, DT +5).'),
+  GA(SAH,'Estrepes (saco)','operacional',0,1,'Ação padrão: cobre 1,5m; quem pisar sofre 1d4 de perfuração e fica lento por um dia (Reflexos DT Agi evita). Em perseguição, –1d20 no seu teste e –1d20 ao perseguidor que pisar.'),
+  GA(SAH,'Faixa de pregos','operacional',1,2,'Como estrepes numa linha de 9m; fura pneus (deslocamento à metade).'),
+  GA(SAH,'Isqueiro','operacional',0,0.5,'Movimento: pequena chama, incendeia inflamáveis, luz em raio de 3m.'),
+  GA(SAH,'Antibiótico','operacional',1,0.5,'Ação padrão: +5 no próximo teste de Fortitude contra doença até o fim do dia.'),
+  GA(SAH,'Antídoto','operacional',1,0.5,'Ação padrão: +5 no próximo teste de Fortitude contra veneno até o fim do dia. Específico para um veneno: remove o veneno.'),
+  GA(SAH,'Antiemético','operacional',1,0.5,'Remove enjoado e dá +5 para evitá-lo até o fim da cena.'),
+  GA(SAH,'Antihistamínico','operacional',1,0.5,'+5 no próximo teste contra alergia até o fim do dia.'),
+  GA(SAH,'Anti-inflamatório','operacional',1,0.5,'Fornece 1d8+2 PV temporários.',{uso:{rolagem:'1d8+2',tipo:'pvtemp'}}),
+  GA(SAH,'Antitérmico','operacional',1,0.5,'Novo teste contra uma condição mental (uma vez por cena).'),
+  GA(SAH,'Broncodilatador','operacional',1,0.5,'+5 para evitar asfixiado ou fatigado até o fim do dia.'),
+  GA(SAH,'Coagulante','operacional',1,0.5,'+5 para se estabilizar de sangrando até o fim do dia; com Medicina para tirar de morrendo, +5 também.'),
+  GA(SAH,'Ligação direta infernal','paranormal',2,1,'Ação completa: liga um veículo; ele ganha RD 20 e imunidade a Sangue, você +5 em Pilotagem, mas falhas têm consequências dobradas.'),
+  GA(SAH,'Catalisador ritualístico: ampliador','paranormal',1,0.5,'Consumido ao conjurar: alcance +1 passo ou área dobrada. Um catalisador por ritual.'),
+  GA(SAH,'Catalisador ritualístico: perturbador','paranormal',1,0.5,'Consumido ao conjurar: DT para resistir ao ritual +2.'),
+  GA(SAH,'Catalisador ritualístico: potencializador','paranormal',1,0.5,'Consumido ao conjurar: +1 dado do mesmo tipo no dano do ritual.'),
+  GA(SAH,'Catalisador ritualístico: prolongador','paranormal',1,0.5,'Consumido ao conjurar: duração dobrada (não instantâneo nem sustentado).'),
+  GA(SAH,'Medidor de condição vertebral','paranormal',2,1,'Conectado à coluna (ação completa, atordoado 1 rodada): vestimenta com +2 em Fortitude; luzes mostram a saúde e efeitos paranormais; +5 em Medicina para ajudar o usuário.',{efeitos:[{alvo:'per:Fortitude',valor:'2'}]}),
+  GA(SAH,'Pé de Morto','paranormal',2,1,'Botas: +5 em Furtividade; em cenas de furtividade, ações chamativas só de movimento aumentam a visibilidade em +1.',{efeitos:[{alvo:'per:Furtividade',valor:'5'}]}),
+  GA(SAH,'Pen drive selado','paranormal',2,0.5,'Imune a rituais, seres e efeitos de Energia; invade outros dispositivos sem contaminação.'),
+  GA(SAH,'Valete da Salvação','paranormal',1,0.5,'Ação padrão: a carta voa em alcance médio apontando a melhor rota de fuga e some. Em perseguição: sucesso automático em cortar caminho.'),
+  GA(SAH,'Lente de revelação (modificação)','paranormal',1,0,'Modificação para câmera de aura: vê invisíveis e incorpóreos; ação padrão e 1 PE para fotografar uma criatura em alcance curto: perde camuflagem e invisibilidade e fica corpórea até o fim da cena (Vontade DT Pre evita).'),
+  GA(SAH,'Bateria potente (modificação)','acessorio',0,0,'Modificação para objetos elétricos: dobra bateria e alcance de luz; num taser, dobra usos, dano 1d8 e DT +5.'),
+);
+
+/* ---------- Poderes paranormais (SaH) ---------- */
+PODERES_PARANORMAIS.push(...tag(SAH,[
+  P('Espreitar da Besta','Sangue','+5 em Furtividade. Em perseguição, como caçador, usa Furtividade no lugar de Atletismo; em cenas de furtividade, ações discretas sem –1d20.','O bônus em Furtividade vira +10.',{efeitos:[{alvo:'per:Furtividade',valor:'5'}]}),
+  P('Instintos Sanguinários','Sangue','Recebe visão no escuro e faro.','Não pode ser flanqueado, não fica desprevenido e recebe +5 em resistências contra armadilhas.'),
+  P('Antecipar Vitalidade','Morte','Num teste, acumule uma carga de antecipação para +1d20 (máximo de cargas igual ao Vigor). Com cargas, a próxima ação dormir não cura PV: em vez disso perde uma carga.','Limite de cargas +2 e perde 2 cargas por dormir.',{modo:'acao',custo:0,boost:{tipo:'dado',dado:'1d20'}}),
+  P('Aura de Pavor','Morte','Movimento e 2 PE: uma pessoa ou animal em alcance médio fica apavorado (Vontade DT Pre reduz para abalado) até o fim da cena, se afastar ou você mudar de alvo. Uma vez por dia por alvo.','DT +5 e afeta quaisquer pessoas ou animais no alcance.',{modo:'acao',custo:2}),
+  P('Absorver Conhecimento','Conhecimento','Empunhando uma fonte escrita, 1 PE e ação completa: faz uma pergunta e, se a resposta estiver nela, a obtém. Com a ação ler, o dado de bônus sobe um passo.','Rituais de Conhecimento com alvo 1 pessoa (não você) custam –1 PE se puder tocá-la.',{modo:'acao',custo:1}),
+  P('Apatia Herege','Conhecimento','Num teste contra condição de medo, 2 PE para rolar de novo (fica com o segundo). Pré-requisito: Conhecimento 1.','Pode usar depois de saber o resultado e fica com o melhor.',{modo:'acao',custo:2,req:'Conhecimento 1'}),
+  P('Conexão Empática','Energia','Ação completa e 2 PE tocando um objeto elétrico ligado: conversa com ele até o fim da cena (atitude inicial indiferente, Vontade 1–3). Depois ele fica hostil. Pré-requisito: Energia 1.','+5 em perícias de Int ou Pre com o item.',{modo:'acao',custo:2,req:'Energia 1'}),
+  P('Valer-se do Caos','Energia','Num teste, pode controlar o caos: +1d20 (dado de outra cor). Se falhar ou esse d20 for 5 ou menos, perde 1d4 SAN.','Só perde SAN se falhar ou o d20 extra for 1 ou 2.',{modo:'acao',custo:0,boost:{tipo:'dado',dado:'1d20'}}),
+]));
+
+/* ---------- Rituais (SaH) ---------- */
+RITUAIS.push(...tag(SAH,[
+  R('Esfolar','Sangue',1,'Padrão','Curto','1 ser','Instantânea','Reflexos parcial','Agulhas e lâminas rubras: 3d4+3 de corte e o alvo fica sangrando. Passando, metade do dano e evita a condição.',{rolagem:'3d4+3',rolagemTipo:'dano',formas:{d:{pe:2,req:'2º círculo',desc:'Alcance médio, 5d4+5, explosão de 6m de raio.',rolagem:'5d4+5'},v:{pe:5,req:'3º círculo',desc:'Alcance longo, 10d4+10, explosão de 6m; passar não evita a condição.',rolagem:'10d4+10'}}}),
+  R('Sede de Adrenalina','Sangue',2,'Reação','Pessoal','Você','Instantânea','','Ao falhar em Acrobacia ou Atletismo, repete o teste usando Presença; ou, ao sofrer dano de impacto, reduz em 20 (depois fica atordoado 1 rodada). Uma vez por rodada.',{formas:{d:{pe:3,desc:'Reduz 40 de dano de impacto.'},v:{pe:7,req:'4º círculo e afinidade',desc:'Reduz 70 de dano de impacto.'}}}),
+  R('Odor da Caçada','Sangue',3,'Padrão','Pessoal','Você','Cena','','Recebe faro; em perseguição, +5 em Atletismo e esforço extra não custa PV se o outro lado emitir odores. Na cena seguinte, sofre fome e sede.',{formas:{d:{pe:4,desc:'Alcance toque, alvo 1 ser.'},v:{pe:9,req:'afinidade',desc:'Alcance curto, até 5 seres.'}}}),
+  R('Martírio de Sangue','Sangue',4,'Padrão','Pessoal','Você','Veja texto','','Vira uma monstruosidade: faro, visão no escuro, cura acelerada 10, +10 em ataque, dano corpo a corpo e Defesa, 30 PV temporários, desarmado +1 dado e letal. Não conjura nem se concentra; –3d20 em perícias sociais. Ao fim da cena, torna-se permanentemente uma criatura de Sangue.',{efeitos:[{alvo:'ataque_corpo',valor:'10'},{alvo:'dano_corpo',valor:'10'},{alvo:'defesa',valor:'10'}],formas:{d:{pe:5,req:'afinidade',desc:'Bônus +20 e 50 PV temporários.',efeitos:[{alvo:'ataque_corpo',valor:'20'},{alvo:'dano_corpo',valor:'20'},{alvo:'defesa',valor:'20'}]}}}),
+  R('Apagar as Luzes','Morte',1,'Padrão','Pessoal','Você','Instantânea','','Apaga toda fonte de luz em alcance curto (penumbra ou escuridão, que persiste até o fim da cena) e você recebe visão no escuro até o fim da cena.',{formas:{d:{pe:2,req:'2º círculo',desc:'Afeta fontes de luz em alcance longo.'},v:{pe:5,req:'3º círculo',desc:'Como discente, e até cinco outros seres no alcance recebem visão no escuro.'}}}),
+  R('Língua Morta','Morte',2,'Padrão','Toque','1 cadáver','Sustentada','','O cadáver responde uma pergunta por rodada sustentada (até 3); depois vira um esqueleto de Lodo (se encerrar antes, vira Lodo).',{formas:{d:{pe:3,desc:'Até 4 perguntas; depois vira um enraizado.'},v:{pe:7,req:'4º círculo e afinidade',desc:'Até 5 perguntas; depois vira uma marionete.'}}}),
+  R('Fedor Pútrido','Morte',3,'Padrão','Pessoal','Você','Sustentada','','Funções vitais param e você cheira a cadáver: animais se afastam, –3d20 em Diplomacia, +5 em Furtividade, +10 para fingir-se de morto; parado, visibilidade –1. Sofre 1d4 de Morte por rodada (ignora RD).',{efeitos:[{alvo:'per:Furtividade',valor:'5'}],formas:{d:{pe:4,desc:'Alcance toque, 1 ser voluntário.'},v:{pe:9,req:'afinidade',desc:'Alcance curto, até 5 seres voluntários.'}}}),
+  R('Singularidade Temporal','Morte',4,'Padrão','Curto','1 objeto não paranormal Médio','Instantânea','Fortitude (se em uso)','Avança o objeto até seu estado mais decomposto: fica danificado (–5 no uso) ou é destruído, a critério do mestre.',{formas:{d:{pe:5,desc:'Objeto Grande.'},v:{pe:10,desc:'Objeto Enorme.'}}}),
+  R('Desfazer Sinapses','Conhecimento',1,'Padrão','Curto','1 ser','Instantânea','Vontade parcial','Inexiste neurônios: 2d6+2 de Conhecimento e frustrado por 1 rodada. Passando, metade do dano e evita a condição.',{rolagem:'2d6+2',rolagemTipo:'dano',formas:{d:{pe:2,req:'2º círculo',desc:'Alcance longo, 3d6+3, até 5 seres.',rolagem:'3d6+3'},v:{pe:5,req:'3º círculo',desc:'Alcance extremo, 8d6+8, esmorecido (passando: frustrado).',rolagem:'8d6+8'}}}),
+  R('Aurora da Verdade','Conhecimento',2,'Padrão','Curto','Esfera de 3m de raio','Sustentada','Vontade parcial','Quem está na luz só fala a verdade (inclusive você); passando, pode mentir. Quem tenta se esconder ou ficar invisível nela é revelado.',{formas:{d:{pe:3,desc:'Alcance médio, esfera de 9m, você não é afetado.'},v:{pe:7,req:'4º círculo e afinidade',desc:'Como discente, alcance longo, duração cena e você ouve tudo o que é dito na área.'}}}),
+  R('Relembrar Fragmento','Conhecimento',3,'Padrão','Toque','1 objeto','Instantânea','','Restaura um texto danificado (basta um pedacinho) enquanto você o toca. Não funciona em objetos destruídos por meios paranormais.',{formas:{d:{pe:4,desc:'Fica restaurado até o fim da missão.'},v:{pe:9,req:'afinidade',desc:'Altera o texto conforme sua vontade (ex.: documento “legítimo”) até o fim da missão.'}}}),
+  R('Pronunciar Sigilo','Conhecimento',4,'Padrão','Curto','1 ser','Instantânea/veja texto','Vontade parcial','Escolha: Esquecer (atordoado 1d4+1 rodadas, uma vez por cena; passando, desprevenido 1d4), Cegar (cego; passando, ofuscado 1d4) ou Inexistir (deixa de existir 1d4+1 rodadas, ou 1 passando; uma vez por cena).',{formas:{d:{pe:5,desc:'Alcance extremo.'},v:{pe:10,req:'afinidade',desc:'Até cinco seres.'}}}),
+  R('Overclock','Energia',1,'Reação','Pessoal','Você','Instantânea','','Após um teste de Tecnologia com um eletrônico, consegue a informação de outro jeito: um jogo de “estátua” com música na mesa (um erro = falha). Depois o aparelho fica inutilizado.',{formas:{d:{pe:2,req:'2º círculo',desc:'Só falha com dois erros.'},v:{pe:5,req:'3º círculo',desc:'Só falha com três erros.'}}}),
+  R('Tremeluzir','Energia',2,'Padrão','Pessoal','Você','Sustentada','','Atravessa objetos sólidos (ação de movimento por objeto, 25% de falhar). Em perseguição, corta caminho sem penalidade. Sofre 1d4 de Energia por rodada (ignora RD), +1d4 se terminar dentro de algo sólido.',{formas:{d:{pe:3,desc:'Alcance toque, 1 ser voluntário.'},v:{pe:7,req:'4º círculo',desc:'Alcance curto, até 5 seres voluntários.'}}}),
+  R('Mutar','Energia',3,'Padrão','Pessoal','Você','Cena','','Você não emite nem ouve som: +10 em Furtividade e ganhos de visibilidade –1. O jogador só fala na mesa com permissão do mestre (falar encerra o ritual).',{efeitos:[{alvo:'per:Furtividade',valor:'10'}],formas:{d:{pe:4,desc:'Alcance toque, 1 ser.'},v:{pe:9,req:'afinidade com Energia',desc:'Alcance curto, até 5 seres.'}}}),
+  R('Milagre Ionizante','Energia',3,'Completa','Toque','1 ser','Instantânea','','Cura uma condição (abalado, apavorado, alquebrado, atordoado, cego, confuso, debilitado, enjoado, envenenado, esmorecido, exausto, fascinado, fatigado, fraco, frustrado, lento, ofuscado, paralisado, pasmo ou surdo), uma doença ou um veneno (não de Energia nem permanente). Depois, o ser faz Fortitude DT 30 ou é incubado pelo infectcídio.'),
+]));
+
+/* ---------- Itens amaldiçoados (SaH) ---------- */
+const AMAS=(el,nome,desc,o={})=>Object.assign(AMA(el,nome,desc,o),{livro:SAH});
+ITENS.push(
+  AMAS('Sangue','Conector de membros','Ação padrão: reconecta braço, perna ou cabeça decepados há até 3 rodadas; se o alvo estava morrendo ou morto, fica inconsciente com 1 PV. 25% de “vida própria”: perna (lento), braço (–1d20 com ele) ou cabeça (25% de confuso no início de cenas tensas).',{cat:3,esp:1}),
+  AMAS('Sangue','Dose d’A Praga','Ação padrão: você ou ser adjacente recebe Arma de Sangue, Sangue de Ferro e Sangue Vivo até o fim da cena. Depois, Fortitude DT 20 (+5 por dose desde o último interlúdio): falha = 2d4 de dano mental, mantém os poderes mais uma cena e fica sob Ódio Incontrolável.',{cat:3,esp:1}),
+  AMAS('Sangue','Mandíbula agonizante','Ação padrão: pressiona e arremessa em alcance médio; grita e encobre sons num raio de 30m até o fim da cena (em furtividade, distrair automaticamente). Criaturas de Sangue: Vontade DT 35 ou vão até ela. Recarrega descansando uma cena.',{cat:2,esp:1}),
+  AMAS('Sangue','Retalho tenebroso','Ação padrão no rosto: faro e visão no escuro, vulnerável a Morte, –2d20 em perícias sociais, +1 cumulativo por dia no dano. Ao fim de cada dia, 1d6 PV (Fortitude DT 15, +5 por teste seguido, evita). Remover: ação padrão e o mesmo teste.',{cat:2,esp:1}),
+  AMAS('Morte','Ampulheta do tempo sofrido','Empunhando, 5 PE: recebe na hora os benefícios de uma ação de interlúdio à escolha. Só volta a funcionar depois de gastar uma ação de interlúdio devolvendo o tempo.',{cat:2,esp:1}),
+  AMAS('Morte','Injeção de Lodo','Ação padrão: você ou ser adjacente voluntário fica vulnerável a balístico e Energia até o fim da cena, mas na próxima vez que cairia a 0 PV nessa cena fica com 1 PV.',{cat:2,esp:0.5}),
+  AMAS('Morte','Instantâneo mortal','Empunhando, ao procurar pistas, 1 PE: se a perícia tiver relação com a morte retratada, +1d20 no teste.',{cat:2,esp:0.5}),
+  AMAS('Morte','Projétil de Lodo (curto)','Munição: todo o dano da arma vira Morte; ao fim da cena, a arma se desfaz.',{cat:1,esp:1}),
+  AMAS('Morte','Projétil de Lodo (longo)','Munição: todo o dano da arma vira Morte; ao fim da cena, a arma se desfaz.',{cat:2,esp:1}),
+  AMAS('Morte','Rádio chiador','Ligado, chia com criaturas paranormais em alcance extremo (mais alto quanto mais perto, indica direção e distância); atrai criaturas. Pilhas duram 12 horas.',{cat:2,esp:1}),
+  AMAS('Conhecimento','Câmera obscura','Câmera de aura com lente de revelação (DT +10). Falhando, criaturas com invisibilidade, incorporeidade ou camuflagem sofrem 6d6 de frio.',{cat:3,esp:1}),
+  AMAS('Conhecimento','Enxame fantasmagórico','Manto vestido: você fica invisível, mas sofre 1 de dano mental (ignora resistências) no início de cada turno.',{cat:3,esp:1}),
+  AMAS('Conhecimento','Repositório do fracasso','Cada 1 natural nos d20 de criaturas paranormais em alcance médio dá uma carga (máx. 6). Uma vez por rodada, consuma uma para recuperar 1d4 PE (–1 cumulativo em Vontade até o próximo interlúdio).',{cat:2,esp:1}),
+  AMAS('Conhecimento','Tábula do saber custoso','Empunhando: conta como treinado numa perícia por um teste; perde SAN igual ao atributo-chave da perícia.',{cat:2,esp:1}),
+  AMAS('Energia','Arreio neural','Vestido: ao sofrer 5+ de dano de eletricidade ou Energia, recupera 1 PE (até o dobro do Vigor por dia).',{cat:2,esp:1}),
+  AMAS('Energia','Centrifugador existencial','Ação padrão e 3 PE: turno adicional no fim da rodada (duas versões de você; sorteie qual some). Ocultismo DT 15 (+5 por uso no dia): falha = perde metade dos atributos (recupera 1 de cada por interlúdio).',{cat:3,esp:1}),
+  AMAS('Energia','Espelho refletor','Movimento: observa um ponto fora da visão em alcance médio (+1d20 em Percepção, chance de ver através de cobertura total). Ao sofrer dano de Energia, sacrifica o espelho para evitar e refletir o dano.',{cat:2,esp:1}),
+  AMAS('Medo','A Primeira Adaga','Como componente ritualístico: efeitos de ampliador, perturbador, potencializador e prolongador e conjuração em 1 rodada; o conjurador perde metade dos PV totais (conta para dano massivo).',{cat:3,esp:1}),
+);
+ITENS.push(Object.assign(W('Fuzil alheio',4,'2d10',19,3,'fogo','Longo','Energia',2,'Tática','Duas mãos',{desc:'Amaldiçoado (Energia). Fuzil de precisão alienígena com mira telescópica e laser; dano de Energia, não precisa de munição.'}),{livro:SAH,elemento:'Energia'}));
+
+/* =====================================================================
    ENLOUQUECENDO — regra da mesa
    SAN 0 → enlouquecendo → 1d6: 1–4 insanidade temporária (1d100),
    5–6 insanidade permanente (1d100). Temporária 100 vira permanente.
@@ -3037,7 +3354,7 @@ function ritualEfeitos(r){const f=r.formaAtiva&&r.formaAtiva!=='b'?(r.formas||{}
 function effectsOf(s){
   const out=[];
   (s.habilidades||[]).forEach(h=>{if(h.modo==='passiva'||(h.modo==='ativavel'&&h.ativa))(h.efeitos||[]).forEach(e=>out.push({...e,fonte:h.nome}))});
-  (s.itens||[]).forEach(i=>{if(i.equipado)(i.efeitos||[]).forEach(e=>out.push({...e,fonte:i.nome}))});
+  (s.itens||[]).forEach(i=>{if(i.equipado){(i.efeitos||[]).forEach(e=>out.push({...e,fonte:i.nome}));if(typeof malItemFx==='function')malItemFx(i).forEach(m=>(m.efeitos||[]).forEach(e=>out.push({...e,fonte:`${i.nome} (${m.nome})`})))}});
   (s.rituais||[]).forEach(r=>{if(r.ativo&&!r.armaVinc)ritualEfeitos(r).forEach(e=>out.push({...e,fonte:r.nome}))});
   (s.aliados||[]).forEach(a=>{if(a.presente&&(+a.feridas||0)<2)(a.efeitos||[]).forEach(e=>out.push({...e,fonte:'Aliado '+a.nome}))});
   return out;
@@ -3053,7 +3370,7 @@ function derive(s){
   const cls=CLASSES[s.classe];const n=Math.max(1,NIV);
   const sanBase=cls?cls.san0+(n-1)*cls.sanN:0;
   const sum=(t,ctx)=>{let v=0;eff.forEach(e=>{if(e.alvo===t){const x=evalF(e.valor,ctx);if(x){v+=x;(src[t]=src[t]||[]).push(`${e.fonte} ${fmtB(x)}`)}}});return v};
-  const base=s.attrs||{};const ctx0={NEX:nex,NIVEL:NIV,SANN:cls?cls.sanN:0,SANBASE:sanBase};ATTRS.forEach(a=>ctx0[a]=+base[a]||0);
+  const base=s.attrs||{};const ctx0={NEX:nex,NIVEL:NIV,ESTAGIO:+s.estagio||0,SANN:cls?cls.sanN:0,SANBASE:sanBase};ATTRS.forEach(a=>ctx0[a]=+base[a]||0);
   const attrs={};ATTRS.forEach(a=>attrs[a]=Math.max(0,(+base[a]||0)+sum('attr:'+a,ctx0)));
   const ctx={...ctx0,...attrs};const S=t=>sum(t,ctx);
   const cond=condAgg(s.condicoes);const C=k=>cond.agg[k]||0;
@@ -3101,7 +3418,7 @@ function derive(s){
     margem:S('margem'),margemCorpo:S('margem_corpo'),mult:S('mult'),danoRitual:S('dano_ritual'),custoExtra:C('custo'),
     machucado:pv<=pvMax/2,morrendo:pv<=0,perturbado:san<sanMax/2,enlouquecendo:san<=0&&sanMax>0,ctx};
 }
-function itemCategoria(i){const mods=(i.tipo==='arma'?(i.arma&&i.arma.mods)||i.mods:i.mods)||[];const mal=(i.tipo==='arma'&&i.arma&&i.arma.maldicoes||[]).length;return Math.max(0,(+i.categoria||0)+mods.length+(mal?mal+1:0)-(+i.reducaoCat||0))}
+function itemCategoria(i){const mods=(i.tipo==='arma'?(i.arma&&i.arma.mods)||i.mods:i.mods)||[];const mal=(i.tipo==='arma'?(i.arma&&i.arma.maldicoes)||[]:i.maldicoes||[]).length;return Math.max(0,(+i.categoria||0)+mods.length+(mal?mal+1:0)-(+i.reducaoCat||0))}
 
 /* ---------- Ataques ---------- */
 function modFx(ids){const f={ataque:0,dano:0,margem:0,dado:0,mult:0,extra:[],auto:0,compensador:0};(ids||[]).forEach(id=>{const m=MODS_ARMA.find(x=>x.id===id);if(!m)return;Object.entries(m.fx).forEach(([k,v])=>{if(k==='extra')f.extra.push(v);else f[k]+=v})});return f}
@@ -3360,7 +3677,7 @@ async function filesToImages(files,max=1600){const out=[];for(const f of files){
    Os documentos guardam o conteúdo como JSON (campo j) para aceitar qualquer
    estrutura (o Firestore não aceita listas dentro de listas).
    ===================================================================== */
-const COL_NOMES=['ini','bm','bmTok','bmDes','bmPing','cartas','galPastas','galImgs','diario','interludio'];
+const COL_NOMES=['ini','bm','bmTok','bmDes','bmPing','cartas','galPastas','galImgs','diario','interludio','dmgReq'];
 const Nuvem={
   ativo:false,fb:null,erro:null,
   users:{},camps:{},home:{},sheets:{},rolls:{},priv:{},rewards:{},
@@ -3830,7 +4147,7 @@ function nextRollBar(s,d,ed){
     let lbl=h.nome,cost=h.custo;if(h.grupo)lbl='Aliado: '+lbl;
     if(b.tipo==='dado'||b.tipo==='dano')lbl+=` +${b.dado}`;
     if(b.tipo==='perito'){const[dd,c]=PERITO_DADO(+s.nex||0);lbl+=` +${dd}`;cost=c}
-    if(b.tipo==='furtivo'){lbl+=` +${FURTIVO_DADO(+s.nex||0)}d6`}
+    if(b.tipo==='furtivo'){lbl+=` +${FURTIVO_DADO(+s.nex||0)*(s.assassinar?2:0||1)}d6${s.assassinar?' (Assassinar)':''}`}
     if(b.tipo==='bonus')lbl+=` +${b.valor}`+(b.custoSan?` (–${b.custoSan} SAN)`:'');
     return `<button class="boost ${on?'on':''}" data-act="nrToggle" data-id="${h.id}" ${ed?'':'disabled'}>${esc(lbl)} <small>${cost} PE</small></button>`}).join('');
   return `<div class="nextroll"><div class="row"><span class="lbl">Próxima rolagem</span><span class="spacer"></span>
@@ -3907,12 +4224,12 @@ function tabInv(s,d,ed){
     <div class="carga-track ${d.over?'over':''}"><i style="width:${pct}%"></i></div>
     <div class="row"><span class="lbl">Itens por categoria (${d.pat.nome})</span><div class="catlim">${[0,1,2,3].map(i=>`<span class="${d.catUso[i]>d.pat.lim[i]?'over':''}">${ROMAN[i+1]}: ${d.catUso[i]}/${d.pat.lim[i]}</span>`).join('')}</div></div></div>
   <div class="row"><span class="lbl">Itens</span><span class="spacer"></span>${ed?`<button class="btn sm" data-act="addFromCat" data-k="itens">Arsenal</button><button class="btn sm solid" data-act="editItem">Novo item</button>`:''}</div>
-  ${it.length?it.map(i=>`<div class="card ${i.equipado&&(i.efeitos||[]).length?'active':''}"><div class="card-h"><h4>${esc(i.nome)}${num(i.qtd)>1?` <span class="mono" style="font-size:15.5px">×${i.qtd}</span>`:''}</h4><span class="chip">${esc(TIPO_ITEM[i.tipo]||i.tipo)}</span><span class="chip">Cat. ${ROMAN[itemCategoria(i)]||itemCategoria(i)}</span><span class="chip">${i.espaco} esp.</span>${amaldicoada(i)?'<span class="chip amald-chip" title="Amaldiçoar Arma ativo nesta arma">Amaldiçoada</span>':''}${i.mascara||i.tipo==='mascara'?'<span class="chip mask-chip">habilita a Máscara</span>':''}${i.livro?`<span class="chip livro">${esc(i.livro)}</span>`:''}
-    <div class="acts">${i.tipo!=='municao'?`<button class="toggle ${i.equipado?'on':''}" data-act="toggleFx" data-k="itens" data-id="${i.id}" ${ed?'':'disabled'}>${i.tipo==='arma'||i.tipo==='protecao'?(i.equipado?'Equipado':'Equipar'):(i.equipado?'Em uso':'Usar')}</button>`:''}
-    ${i.uso?.rolagem?`<button class="btn sm solid" data-act="useItem" data-id="${i.id}" ${ed?'':'disabled'}>Usar</button>`:''}
+  ${it.length?it.map(i=>`<div class="card ${i.equipado&&(i.efeitos||[]).length?'active':''}"><div class="card-h"><h4>${esc(i.nome)}${num(i.qtd)>1?` <span class="mono" style="font-size:15.5px">×${i.qtd}</span>`:''}</h4><span class="chip">${esc(TIPO_ITEM[i.tipo]||i.tipo)}</span><span class="chip">Cat. ${ROMAN[itemCategoria(i)]||itemCategoria(i)}</span><span class="chip">${i.espaco} esp.</span>${amaldicoada(i)?'<span class="chip amald-chip" title="Amaldiçoar Arma ativo nesta arma">Amaldiçoada</span>':''}${malItemFx(i).length?`<span class="chip amald-chip">${malItemFx(i).length>1?malItemFx(i).length+' maldições':'Maldição: '+esc(malItemFx(i)[0].nome)}</span>`:''}${i.mascara||i.tipo==='mascara'?'<span class="chip mask-chip">habilita a Máscara</span>':''}${i.livro?`<span class="chip livro">${esc(i.livro)}</span>`:''}
+    <div class="acts">${i.tipo!=='municao'&&i.tipo!=='veneno'?`<button class="toggle ${i.equipado?'on':''}" data-act="toggleFx" data-k="itens" data-id="${i.id}" ${ed?'':'disabled'}>${i.tipo==='arma'||i.tipo==='protecao'?(i.equipado?'Equipado':'Equipar'):(i.equipado?'Em uso':'Usar')}</button>`:''}
+    ${i.uso?.rolagem?`<button class="btn sm solid" data-act="useItem" data-id="${i.id}" ${ed?'':'disabled'}>Usar</button>`:''}${venBotoes(i,ed)}
     <button class="ico-btn" data-act="mesaItem" data-id="${i.id}" ${ed?'':'disabled'} title="Mostrar à mesa" aria-label="Mostrar à mesa">👁</button>${ed&&state.editMode?`<button class="ico-btn" data-act="editItem" data-id="${i.id}" title="Editar" aria-label="Editar">✎</button><button class="ico-btn" data-act="delEntry" data-k="itens" data-id="${i.id}" title="Remover" aria-label="Remover">✕</button>`:''}</div></div>
     ${i.tipo==='arma'&&i.arma?`<div class="kv"><span><b>Dano</b>${esc(i.arma.dano)} ${esc((i.arma.danoTipo||'').toLowerCase())}</span><span><b>Crítico</b>${i.arma.crit}/x${i.arma.mult}</span><span><b>Perícia</b>${esc(i.arma.pericia)}</span><span><b>Proficiência</b>${esc(i.arma.prof||'—')}</span>${i.ferramenta?'<span><b>Ferramenta</b>+1 ataque, dano e margem</span>':''}</div>`:''}
-    ${i.tipo==='arma'?ritModsHtml(i,ed):''}${i.descricao?`<p>${esc(i.descricao)}</p>`:''}${fxChips(i.efeitos)}</div>`).join(''):'<div class="empty">Inventário vazio.</div>'}`;
+    ${i.tipo==='arma'?ritModsHtml(i,ed)+venArmaHtml(s,i,ed):''}${malItemCard(i)}${i.descricao?`<p>${esc(i.descricao)}</p>`:''}${fxChips(i.efeitos)}</div>`).join(''):'<div class="empty">Inventário vazio.</div>'}`;
 }
 function tabDesc(s,d,ed){
   const dis=ed?'':'disabled';const D=s.descricao||{};
@@ -4075,7 +4392,7 @@ function collectBoosts(s,kind,{attr,per,treino}={}){
     if(b.tipo==='matar'){if(kind==='ataque'&&nr.em){const n=nr.em,tot=4*n;if(nr.emAlvo==='dano')out.dmgBonus+=tot;else out.bonus+=tot;out.cost+=n+1;out.used.push(`${h.nome} +${tot}`)}return}
     if(b.tipo==='ataque_especial'){if(kind==='ataque'&&nr.ae){const n=nr.ae,tot=5*n;if(nr.aeAlvo==='ataque')out.bonus+=tot;else if(nr.aeAlvo==='dano')out.dmgBonus+=tot;else{const a=Math.ceil(n/2)*5;out.bonus+=a;out.dmgBonus+=tot-a}out.cost+=n+1;out.used.push(`Ataque Especial +${tot}`)}return}
     if(!nr.on[h.id])return;
-    if(b.tipo==='furtivo'){if(kind==='ataque'){out.dmgExtra.push(FURTIVO_DADO(nex)+'d6');out.cost+=+h.custo||1;out.used.push('Ataque Furtivo')}return}
+    if(b.tipo==='furtivo'){if(kind==='ataque'){const ass=!!s.assassinar;out.dmgExtra.push(FURTIVO_DADO(nex)*(ass?2:1)+'d6');out.cost+=+h.custo||1;out.used.push(ass?'Ataque Furtivo dobrado (Assassinar)':'Ataque Furtivo');if(ass)out.assassinar=true}return}
     if(b.tipo==='dano'){if(kind==='ataque'){out.dmgExtra.push(b.dado);out.cost+=+h.custo||0;out.used.push(`${h.nome} +${b.dado}`)}return}
     if(b.tipo==='dado'){if(kind==='ataque'&&!b.attrs)return;if(kind!=='teste'&&kind!=='ataque')return;if(b.attrs&&!b.attrs.includes(attr))return;out.extra.push(b.dado);out.cost+=+h.custo||0;out.used.push(`${h.nome} +${b.dado}`);if(b.consumivel)out.consumir.push(h.id);return}
     if(kind!=='teste')return;
@@ -4112,10 +4429,10 @@ async function rollAttack(id,rajada){
   const b=collectBoosts(s,'ataque',{attr:i.atAttr});if(!spendPE(s,d,b.cost,b.used.length))return;
   const raj=rajada&&!i.compensador?-1:0;
   const t=mkLine(`Ataque · ${a.nome}${rajada?' (rajada)':''}${b.used.length?' · '+b.used.join(', '):''}`,testExpr(i.base,i.dmod+b.dice+raj,i.atkB+b.bonus)+b.extra.map(x=>'+'+x).join(''),i.crit);
-  if(b.consumir.length)s.habilidades=(s.habilidades||[]).filter(h=>!b.consumir.includes(h.id));
+  if(b.consumir.length)s.habilidades=(s.habilidades||[]).filter(h=>!b.consumir.includes(h.id));if(b.assassinar){s.assassinar=null;toast('Assassinar usado: dados do Ataque Furtivo dobrados.')}
   const baseD=addDice(i.baseDano,rajada?1:0);const extras=[...i.extras,...b.dmgExtra];const flat=i.flat+b.dmgBonus;
   const dm=mkLine(`Dano${t.crit?' crítico':''} · ${a.nome}${i.tipos.length?' ('+i.tipos.join(', ')+')':''}`,(t.crit?critExpr(baseD,i.mult):baseD)+extras.map(x=>'+'+x).join('')+(t.crit?i.soCrit.map(x=>'+'+x).join(''):'')+(flat?fmtB(flat):''));dm.crit=t.crit;
-  state.nr=freshNR();await saveSheet(s);logRoll([t,dm]);
+  state.nr=freshNR();await saveSheet(s);logRoll([t,dm,...venNota(s,id,i)]);
 }
 
 /* ---------- Modais ---------- */
@@ -4267,6 +4584,7 @@ function entryModal(kind,id){
   if(kind==='itens')html=`${I('e-nome','Nome',o.nome,'text','full')}<label class="field"><span>Tipo</span>${sel('e-tipo',Object.entries(TIPO_ITEM),o.tipo)}</label>
     <label class="field"><span>Categoria base</span>${sel('e-cat',[[0,'0'],[1,'I'],[2,'II'],[3,'III'],[4,'IV']],o.categoria)}</label>${I('e-esp','Espaços',o.espaco,'number')}${I('e-qtd','Quantidade',o.qtd,'number')}${I('e-red','Redução de categoria (habilidades)',o.reducaoCat||0,'number')}<label class="chk full"><input type="checkbox" id="e-masc" ${o.mascara?'checked':''}> É uma máscara (habilita a forma suprema na ficha, AS #02)</label>
     <fieldset class="box full" id="e-wbox" ${o.tipo==='arma'?'':'hidden'}><legend>Arma</legend><div class="mgrid">${weaponFields(o.arma||blankWeapon)}<label class="chk full"><input type="checkbox" id="e-tool" ${o.ferramenta?'checked':''}> Ferramenta de trabalho (Operário: +1 em ataque, dano e margem)</label></div></fieldset>
+    ${malItemEditor(o)}
     ${I('e-uso','Rolagem ao usar (opcional)',o.uso?.rolagem||'')}<label class="field"><span>Tipo da rolagem</span>${sel('e-utipo',[['cura','Cura'],['pvtemp','PV temporários'],['dano','Dano'],['outro','Outro']],o.uso?.tipo||'cura')}</label>
     <label class="field full"><span>Descrição</span><textarea class="inp" id="e-desc">${esc(o.descricao)}</textarea></label>${fxEditor(o.efeitos,'Efeitos enquanto equipado ou em uso')}`;
   if(kind==='ataques')html=`${I('e-nome','Nome',o.nome,'text','full')}${weaponFields(o)}<label class="field full"><span>Observações</span><textarea class="inp" id="e-desc">${esc(o.obs)}</textarea></label>`;
@@ -4279,6 +4597,7 @@ function entryModal(kind,id){
     const nm=$$('#modLista .mod-row.on').length,nl=$$('#malLista .mod-row.on').length;if($('#modsN'))$('#modsN').textContent=nm?`${nm} · +${nm} categoria(s)`:'+1 categoria cada';if($('#malsN'))$('#malsN').textContent=nl?`${nl} · +${nl+1} categoria(s)`:'a primeira +II, as seguintes +I'});
   if($('#e-tatq'))$('#e-tatq').addEventListener('change',e=>{const p=$('#e-per');if(p&&['Luta','Pontaria'].includes(p.value))p.value=e.target.value==='corpo'?'Luta':'Pontaria'});
   if($('#e-tipo'))$('#e-tipo').onchange=e=>{$('#e-wbox').hidden=e.target.value!=='arma'};
+  bindMalItem();
   if($('#e-circ'))$('#e-circ').onchange=e=>{$('#e-custo').value=CUSTO_CIRCULO[e.target.value]};
   $('#entryForm').onsubmit=async e=>{e.preventDefault();
     const n=$('#e-nome').value.trim();if(!n){$('#e-nome').focus();toast('Dê um nome antes de salvar.','err');return}
@@ -4287,7 +4606,7 @@ function entryModal(kind,id){
     if(kind==='habilidades'){Object.assign(o,{fonte:$('#e-fonte').value,modo:$('#e-modo').value,custo:num($('#e-custo').value),rolagem:$('#e-rol').value.trim(),rolagemTipo:$('#e-rtipo').value,descricao:$('#e-desc').value,efeitos:readFx()});if($('.e-perito'))o.pericias=$$('.e-perito').filter(c=>c.checked).map(c=>c.value)}
     if(kind==='rituais'){Object.assign(o,{elemento:$('#e-el').value,circulo:+$('#e-circ').value,custo:num($('#e-custo').value),ajusteCusto:num($('#e-aj').value),execucao:$('#e-exec').value,alcance:$('#e-alc').value,alvo:$('#e-alvo').value,duracao:$('#e-dur').value,resistencia:$('#e-res').value,rolagem:$('#e-rol').value.trim(),rolagemTipo:$('#e-rtipo').value,descricao:$('#e-desc').value,efeitos:readFx()});
       o.formas=o.formas||{};[['d','e-d'],['v','e-v']].forEach(([k,p])=>{const pe=num($('#'+p+'pe').value),desc=$('#'+p+'desc').value.trim(),rol=$('#'+p+'rol').value.trim();if(pe||desc||rol)o.formas[k]=Object.assign(o.formas[k]||{},{pe,desc,rolagem:rol});else delete o.formas[k]})}
-    if(kind==='itens'){Object.assign(o,{tipo:$('#e-tipo').value,categoria:+$('#e-cat').value,espaco:num($('#e-esp').value),qtd:Math.max(1,num($('#e-qtd').value)),reducaoCat:num($('#e-red').value),mascara:$('#e-masc').checked,descricao:$('#e-desc').value,efeitos:readFx()});if(o.tipo==='arma'){o.arma=readWeapon();o.ferramenta=$('#e-tool').checked}const u=$('#e-uso').value.trim();o.uso=u?{rolagem:u,tipo:$('#e-utipo').value}:null}
+    if(kind==='itens'){Object.assign(o,{tipo:$('#e-tipo').value,categoria:+$('#e-cat').value,espaco:num($('#e-esp').value),qtd:Math.max(1,num($('#e-qtd').value)),reducaoCat:num($('#e-red').value),mascara:$('#e-masc').checked,descricao:$('#e-desc').value,efeitos:readFx()});if(o.tipo==='arma'){o.arma=readWeapon();o.ferramenta=$('#e-tool').checked}else o.maldicoes=lerMalItem();const u=$('#e-uso').value.trim();o.uso=u?{rolagem:u,tipo:$('#e-utipo').value}:null}
     if(kind==='ataques')Object.assign(o,readWeapon(),{obs:$('#e-desc').value});
     if(cur)Object.assign(cur,o);else{o.id=uid('e_');(s[kind]=s[kind]||[]).push(o)}
     closeModal();await saveSheet();toast(`${esc(o.nome)} salvo.`);
@@ -4490,6 +4809,7 @@ const A={
     const on=k==='habilidades'?e.ativa:k==='itens'?e.equipado:e.ativo;
     if((k==='rituais'?ritualEfeitos(e):e.efeitos||[]).length)toast(`${esc(e.nome)}: efeitos ${on?'aplicados':'removidos'}.`);await saveSheet()},
   useHab:async el=>{const s=state.sheet,h=curEntry('habilidades',el.dataset.id),d=derive(s);
+    if(h&&typeof habEspecial==='function'&&habEspecial(s,h,d))return;
     if(!spendPE(s,d,+h.custo||0))return;if(h.modo==='ativavel')h.ativa=true;await saveSheet();
     const lines=[{note:`Usou ${h.nome}${h.custo?` (–${(+h.custo)+d.custoExtra} PE)`:''}`}];let applies=[];
     if(h.rolagem){try{let ex=subAttrs(h.rolagem,d);if(h.rolagemTipo==='dano'&&d.dadosM)ex=addDice(ex,d.dadosM);const L=mkLine(h.nome,ex);lines.push(L);if(h.rolagemTipo==='cura')applies.push({k:'pv',v:L.total,label:`Curar ${L.total} PV em mim`});if(h.rolagemTipo==='pvtemp')applies.push({k:'pvTemp',v:L.total,label:`Receber ${L.total} PV temporários`})}catch(x){}}
@@ -4761,7 +5081,7 @@ function catalogModal(kind,filter,tab){
   if(kind==='habilidades')st.aba=tab||st.aba||'classe';
   if(kind==='itens'){st.tipo=filter||'';}
   if(!st.asSel||!AS_LIVROS().includes(st.asSel))st.asSel=AS_LIVROS().find(asTemPoder)||'';
-  const habTabs=[['classe',cls?`Poderes de ${cls}`:'Poderes de classe'],['trilha','Trilhas'],['paranormal','Paranormais'],['as','Arquivos Secretos'],['origem','Origens'],['outros','Outros']];
+  const habTabs=[['classe',cls?`Poderes de ${cls}`:'Poderes de classe'],['trilha','Trilhas'],['paranormal','Paranormais'],['as','Suplementos'],['origem','Origens'],['outros','Outros']];
   const owned=n=>(s[kind]||[]).some(x=>nomeBase(x)===n||x.nome===n);
   const fonteOk=x=>!st.fonte||fonteDe(x)===st.fonte;
   const sub=x=>kind==='habilidades'?`${x.nexReq?'NEX '+x.nexReq+'% · ':''}${x.req?'requer '+x.req+' · ':''}${x.custo?x.custo+' PE · ':''}${x.descricao||''}`:kind==='rituais'?`${x.circulo}º círculo · ${x.custo} PE · ${x.execucao} · ${x.alcance} · ${x.duracao} — ${x.descricao}`:`${TIPO_ITEM[x.tipo]||''} · Cat. ${ROMAN[x.categoria]||0} · ${x.espaco} esp.${x.arma?` · ${x.arma.dano} ${x.arma.crit}/x${x.arma.mult} · ${x.arma.prof}`:''} — ${x.descricao||''}`;
@@ -4786,7 +5106,7 @@ function catalogModal(kind,filter,tab){
     const grpHtml=g=>`<details class="cat-grp ${g.sua?'sua':''}" open data-k="cat:${kind}:${g.titulo}"><summary>${esc(g.titulo)} <small>${g.itens.length}</small>${g.fonte&&g.fonte!==LIVRO_BASE?` <span class="chip livro">${esc(g.fonte)}</span>`:''}${g.sua?' <span class="chip sua">sua</span>':''}</summary>${g.nota?`<p class="fx-help">${esc(g.nota)}</p>`:''}<div class="cat-list">${g.itens.map(row).join('')||'<div class="empty">—</div>'}</div></details>`;
     const abertoTipo=g=>!!st.q||!!st.tipo||gs.length===1||CAT_ABERTOS.has(g.tipo);
     const tipoHtml=g=>{const subs=itemSubgrupos(g.tipo,g.itens);return `<details class="cat-tipo" data-tipo="${g.tipo}" ${abertoTipo(g)?'open':''}><summary><span class="ct-n">${esc(g.titulo)}</span><small>${g.itens.length}</small><span class="ct-subs">${subs.length>1?subs.map(x=>esc(x.curto||x.titulo)).join(' · '):''}</span></summary>${subs.map(x=>x.titulo?`<div class="cat-sub"><h5 class="hgrp">${esc(x.titulo)} <small>${x.itens.length}</small></h5>${x.nota?`<p class="fx-help">${esc(x.nota)}</p>`:''}<div class="cat-list">${x.itens.map(row).join('')}</div></div>`:`<div class="cat-list">${x.itens.map(row).join('')}</div>`).join('')}</details>`};
-    $('#catBody').innerHTML=top+(gs.length?gs.map(g=>kind==='itens'?tipoHtml(g):grpHtml(g)).join(''):`<div class="empty">${st.fonte&&kind==='habilidades'&&st.aba!=='as'&&st.fonte!==LIVRO_BASE?'Os poderes dos Arquivos Secretos ficam na aba “Arquivos Secretos”.':'Nada encontrado com esses filtros.'}</div>`);
+    $('#catBody').innerHTML=top+(gs.length?gs.map(g=>kind==='itens'?tipoHtml(g):grpHtml(g)).join(''):`<div class="empty">${st.fonte&&kind==='habilidades'&&st.aba!=='as'&&st.fonte!==LIVRO_BASE?'Os poderes dos suplementos (Arquivos Secretos e Sobrevivendo ao Horror) ficam na aba “Suplementos”.':'Nada encontrado com esses filtros.'}</div>`);
     catalogModal.items=items;
   });
   openModal(`<h3>${kind==='habilidades'?'Catálogo de habilidades e poderes':kind==='rituais'?'Catálogo de rituais':'Arsenal da Ordem'}</h3>
@@ -5290,6 +5610,113 @@ Object.assign(A,{
 });
 
 /* =====================================================================
+   MALDIÇÕES EM PROTEÇÕES, ACESSÓRIOS E OUTROS ITENS
+   Lista montada a partir das maldições do catálogo (livro + suplementos).
+   Ficam em item.maldicoes (ids); os efeitos entram na ficha quando o item
+   está equipado/em uso; a categoria sobe (+II a primeira, +I as seguintes).
+   ===================================================================== */
+const slugify=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+let _MALI=null;
+function maldicoesItem(){
+  if(_MALI)return _MALI;
+  _MALI=ITENS.filter(i=>i.tipo==='maldicao'&&i.maldicaoPara&&i.maldicaoPara!=='arma').map(i=>{const nome=i.nome.replace(/^Maldição:\s*/,'');
+    return{id:slugify(nome),nome,el:i.elemento,para:i.maldicaoPara,livro:i.livro||'',desc:String(i.descricao||'').replace(/^\([^)]*\)\s*/,'').replace(/\s*Preço:.*$/,'').replace(/\s*Primeira maldição:.*$/,''),efeitos:i.efeitos||[],uso:i.uso||null}});
+  return _MALI;
+}
+const malItemPara=t=>t==='protecao'?'proteção':'acessório';
+const malItemFx=i=>(i&&i.tipo!=='arma'?(i.maldicoes||[]):[]).map(id=>maldicoesItem().find(m=>m.id===id)).filter(Boolean);
+function malItemLista(tipo,sel){
+  const para=malItemPara(tipo);const L=maldicoesItem().filter(m=>m.para===para);
+  return L.map(m=>{const on=sel.includes(m.id);return `<div class="mod-row ${on?'on':''}" data-imal="${m.id}"><button type="button" class="mod-tg" aria-pressed="${on}" aria-label="${on?'Remover':'Adicionar'} ${esc(m.nome)}">${on?'−':'+'}</button><div><div class="mod-h"><b>${esc(m.nome)}</b><span class="mod-tag re-${m.el}">${esc(m.el)}</span>${m.livro?`<span class="mod-tag">${esc(m.livro)}</span>`:''}</div><small>${esc(m.desc)}</small></div></div>`}).join('')||'<div class="empty">Nenhuma maldição para este tipo.</div>';
+}
+function malItemEditor(o){
+  const sel=o.maldicoes||[];
+  return `<details class="sec mods-sec full" id="e-mbox" data-k="ed-imals" ${o.tipo==='arma'?'hidden':''} ${sel.length?'open':''}><summary><span class="type sec-t">Maldições</span><small class="mono muted" id="imalsN">${sel.length?sel.length+' · +'+(sel.length+1)+' categoria(s)':'proteções e acessórios · a primeira +II, as seguintes +I'}</small></summary>
+    <div class="mod-lista" id="imalLista">${malItemLista(o.tipo,sel)}</div><p class="fx-help">Proteções usam as maldições de proteção; os demais itens, as de acessório. Os bônus numéricos (atributos, Defesa, PV, PE, perícias) entram sozinhos na ficha enquanto o item estiver equipado.</p></details>`;
+}
+function bindMalItem(){
+  const box=$('#e-mbox');if(!box)return;
+  box.addEventListener('click',()=>setTimeout(()=>{const n=$$('#imalLista .mod-row.on').length;$('#imalsN').textContent=n?`${n} · +${n+1} categoria(s)`:'proteções e acessórios · a primeira +II, as seguintes +I'}));
+  const t=$('#e-tipo');if(t)t.addEventListener('change',e=>{box.hidden=e.target.value==='arma';const sel=$$('#imalLista .mod-row.on').map(r=>r.dataset.imal);$('#imalLista').innerHTML=malItemLista(e.target.value,sel)});
+}
+const lerMalItem=()=>$$('#imalLista .mod-row.on').map(r=>r.dataset.imal);
+function malItemCard(i){
+  const ms=malItemFx(i);if(!ms.length)return'';
+  return `<div class="mal-item">${ms.map(m=>`<div class="rm-it hel hel-${m.el}"><b>${esc(m.nome)}</b><span class="hmeta">${esc(m.desc)}</span></div>`).join('')}</div>`;
+}
+
+/* =====================================================================
+   VENENOS (livro p. 293)
+   · Itens do tipo "veneno" com dados estruturados em item.veneno.
+   · Contato e ferimento: "Usar em arma" passa uma dose para uma arma
+     corpo a corpo (ação de movimento). Vale até acertar ou o fim da
+     cena; ferimento exige causar dano.
+   · Ingestão e inalação: "Aplicar em alvo" manda o teste direto.
+   · O alvo resolve o teste na tela de receber dano (reacoes.js).
+   ===================================================================== */
+TIPO_ITEM.veneno='Veneno';
+const VEN_MET={contato:'Contato',ferimento:'Ferimento',ingestao:'Ingestão',inalacao:'Inalação'};
+const VEN=(nome,metodo,dt,efeito,o={})=>Object.assign(G(nome,'veneno',0,1,`${VEN_MET[metodo]}, Fortitude DT ${dt}. ${efeito}${o.suc?' Se passar: '+o.suc+'.':''}`,{equipado:false,qtd:1,
+  veneno:{metodo,dt,res:'Fortitude',efeito,dano:o.dano||'',danoTipo:o.danoTipo||'químico',cond:o.cond||[],efeitoSucesso:o.suc||'',metade:!!o.metade,condSucesso:o.condSuc||[],danoSucesso:o.danoSuc||'',zeraPV:!!o.zera,rodadas:o.rodadas||''}}),{livro:o.livro||''});
+ITENS.push(
+  VEN('Arsênico','ingestao',15,'Perde 1d12 PV por rodada durante 1d4 rodadas.',{dano:'1d12',rodadas:'1d4'}),
+  VEN('Beladona','ferimento',20,'Fica fraco.',{cond:['fraco']}),
+  VEN('Clorofórmio','inalacao',25,'Fica inconsciente.',{cond:['inconsciente'],suc:'enjoado por 1 rodada',condSuc:['enjoado']}),
+  VEN('Curare','ferimento',20,'Fica imóvel por 1d6 rodadas.',{cond:['imovel'],suc:'lento por 1d6 rodadas',condSuc:['lento'],rodadas:'1d6'}),
+  VEN('Estricnina','ferimento',25,'Perde 2d12 PV por rodada durante 2d4 rodadas.',{dano:'2d12',rodadas:'2d4',metade:true,suc:'metade do dano'}),
+  VEN('Inseticida','inalacao',15,'Fica enjoado.',{cond:['enjoado']}),
+  VEN('Lixo químico','contato',20,'Fica debilitado.',{cond:['debilitado'],suc:'fraco',condSuc:['fraco']}),
+  VEN('Peçonha fraca','ferimento',15,'Perde 1d12 PV.',{dano:'1d12',metade:true,suc:'metade do dano'}),
+  VEN('Peçonha mortal','ferimento',25,'Cai com 0 PV.',{zera:true,danoSuc:'10d6',suc:'perde 10d6 PV'}),
+  VEN('Peçonha potente','ferimento',20,'Perde 1d12 PV por rodada durante 1d4 rodadas.',{dano:'1d12',rodadas:'1d4',metade:true,suc:'metade do dano'}),
+  VEN('Sonífero','ingestao',20,'Fica inconsciente.',{cond:['inconsciente'],suc:'enjoado por 1 rodada',condSuc:['enjoado']}),
+);
+const venDados=i=>i&&i.veneno?{nome:i.nome,...i.veneno}:null;
+const venNaArma=i=>i.metodo==='contato'||i.metodo==='ferimento';
+const armasCorpo=s=>(s.itens||[]).filter(i=>i.tipo==='arma'&&i.arma&&(i.arma.tipoAtq||'corpo')==='corpo');
+
+/* chamado pelo ataque do combate: devolve o veneno se a arma envenenada acertou */
+function venenosDoAtaque(s,armaKey,m,golpes){
+  const va=s&&s.venenoArma;if(!va||!armaKey||va.itemId!==armaKey||!m.melee)return[];
+  const g=golpes.find(x=>x.acertou&&(va.ven.metodo!=='ferimento'||x.dano>0));
+  if(!g)return[];
+  s.venenoArma=null;Store.saveSheet(s);
+  return[{...va.ven,res:va.ven.res||'Fortitude'}];
+}
+function venArmaHtml(s,i,ed){
+  const va=s.venenoArma;if(!va||va.itemId!==i.id)return'';
+  return `<div class="rit-mods"><div class="rm-it hel hel-Sangue"><b>Envenenada: ${esc(va.ven.nome)}</b><span class="hmeta">${esc(VEN_MET[va.ven.metodo])}, Fortitude DT ${va.ven.dt} · vale no próximo acerto corpo a corpo ou até o fim da cena</span>${ed?`<button class="ico-btn" data-act="venLimpar" title="Remover o veneno da arma" aria-label="Remover o veneno">✕</button>`:''}</div></div>`;
+}
+function venBotoes(i,ed){
+  if(i.tipo!=='veneno'||!i.veneno)return'';
+  return `${venNaArma(i.veneno)?`<button class="btn sm solid" data-act="venArma" data-id="${i.id}" ${ed?'':'disabled'}>Usar em arma</button>`:''}<button class="btn sm ${venNaArma(i.veneno)?'':'solid'}" data-act="venAlvo" data-id="${i.id}" ${ed?'':'disabled'}>Aplicar em alvo</button>`;
+}
+function venGastar(s,i){i.qtd=Math.max(0,(+i.qtd||1)-1);if(!i.qtd)s.itens=(s.itens||[]).filter(x=>x.id!==i.id)}
+
+Object.assign(A,{
+  venArma:el=>{const s=state.sheet;const i=(s.itens||[]).find(x=>x.id===el.dataset.id);if(!i)return;
+    const ws=armasCorpo(s);if(!ws.length){toast('Nenhuma arma corpo a corpo no inventário.','err');return}
+    openModal(`<h3>${esc(i.nome)} na arma</h3><p class="fx-help">Ação de movimento. O veneno vale no próximo ataque corpo a corpo que acertar com a arma${i.veneno.metodo==='ferimento'?' e causar dano':''}, ou até o fim da cena.${s.venenoArma?` Substitui ${esc(s.venenoArma.ven.nome)}.`:''}</p>
+      <label class="field"><span>Arma</span><select class="inp" id="venW">${ws.map(w=>`<option value="${w.id}" ${w.equipado?'selected':''}>${esc(w.nome)}${w.equipado?'':' (não equipada)'}</option>`).join('')}</select></label>
+      <div class="mfoot"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn solid" id="venOk">Aplicar · gasta 1 dose</button></div>`);
+    $('#venOk').onclick=async()=>{const w=ws.find(x=>x.id===$('#venW').value);s.venenoArma={itemId:w.id,ven:venDados(i),ts:Date.now()};venGastar(s,i);
+      await saveSheet(s);closeModal();logRoll([{note:`${s.nome} passa ${i.nome} em ${w.nome} (ação de movimento).`}],{char:s.nome});toast(`${esc(w.nome)} envenenada.`)}},
+  venLimpar:async()=>{const s=state.sheet;s.venenoArma=null;await saveSheet(s);toast('Veneno removido da arma.')},
+  venAlvo:el=>{const s=state.sheet;const i=(s.itens||[]).find(x=>x.id===el.dataset.id);if(!i)return;
+    const L=(typeof combateEntradas==='function'?combateEntradas():[]).filter(x=>x.sheetId!==s.id);
+    if(!L.length){toast('Ninguém na iniciativa para receber o veneno.','err');return}
+    openModal(`<h3>Aplicar ${esc(i.nome)}</h3><p class="fx-help">${esc(i.descricao)} O alvo faz o teste na tela dele, com os bônus que tiver.</p>
+      <label class="field"><span>Alvo</span><select class="inp" id="venA">${L.map(x=>`<option value="${x.id}">${esc(x.nome)}</option>`).join('')}</select></label>
+      <div class="mfoot"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn solid" id="venOk">Aplicar · gasta 1 dose</button></div>`);
+    $('#venOk').onclick=async()=>{const e=L.find(x=>x.id===$('#venA').value);const req={golpes:[],valor:0,tipo:'químico',melee:false,atacante:s.nome,arma:i.nome,venenos:[venDados(i)],soVeneno:true};
+      venGastar(s,i);await saveSheet(s);closeModal();logRoll([{note:`${s.nome} usa ${i.nome} em ${e.nome}.`}],{char:s.nome});
+      if(controladorDe(e)!==state.user.id){enviarDano(e,req);toast(`Teste enviado para ${esc(e.nome)}.`)}else abrirReceberDano(e.id,req)}},
+});
+/* rolagem pela ficha (sem alvo): só avisa; a automação completa fica no ataque do combate */
+function venNota(s,id,i){const va=s.venenoArma;if(!va||va.itemId!==id||!i.melee)return[];
+  return[{note:`Arma envenenada (${va.ven.nome}): se acertou${va.ven.metodo==='ferimento'?' e causou dano':''}, o alvo faz Fortitude DT ${va.ven.dt} — ${va.ven.efeito} Atacando pelo combate, o teste vai sozinho para o alvo.`}]}
+
+/* =====================================================================
    CRIADOR RÁPIDO DE AMEAÇAS E DE ALIADOS
    · Números por VD tirados da média das fichas do livro (cap. 7)
    · Ameaça: tipo × elemento × arquétipo × escala → ficha pronta
@@ -5703,7 +6130,7 @@ const SOBREV_PROG={1:'Empenho',2:'Trilha de sobrevivente (1ª habilidade)',3:'Au
 CLASSES.Sobrevivente={pv0:8,pvN:2,pe0:2,peN:1,san0:8,sanN:2,livres:1,fixas:[],escolhas:[],grau:0,suplemento:true,porEstagio:true,
   prof:'Armas simples',prog:{},resumo:'Pessoa comum que sobreviveu ao paranormal. Evolui por estágios e depois entra para a Ordem.',
   habs:[H('Empenho','Sobrevivente','Ao fazer um teste de perícia, gaste 1 PE para receber +2 nesse teste.',{modo:'acao',custo:1,boost:{tipo:'bonus',valor:2}})]};
-const sobrevHab=(nome,fonte,e)=>Object.assign(H(nome,fonte,SOBREV_TXT(e)),{id:uid('e_'),sobrevivente:true});
+const sobrevHab=(nome,fonte,e)=>{const D=(typeof SOBREV_DESC!=='undefined'&&SOBREV_DESC[nome])||null;return Object.assign(H(nome,fonte,D?D[0]:SOBREV_TXT(e),D&&D[1]?clone(D[1]):{}),{id:uid('e_'),sobrevivente:true,livro:'SaH'})};
 const temHab=(s,n)=>(s.habilidades||[]).some(h=>h.nome===n);
 const classesAgente=()=>Object.keys(CLASSES).filter(k=>!CLASSES[k].porEstagio&&k!=='Mundano');
 
@@ -6306,7 +6733,7 @@ function abrirAtaque(sid,atkKey){
     let dmod=0,bon=0;Object.keys(st.tipos).filter(k=>st.tipos[k]).forEach(k=>{const t=ATAQUE_TIPOS[k];dmod+=t.dados||0;bon+=t.bonus||0});
     dmod+=+st.dados||0;bon+=+st.mod||0;
     if(!base){base=dano;resto=''}
-    return{nome,base,resto,soCrit,expr:testExpr(spec.base,spec.mod+dmod,atkB+bon),label:diceSpec(spec.base,spec.mod+dmod).label+fmtB(atkB+bon),dano,crit,mult,qtd,danoTipo,melee,avisos};
+    return{spec,dmodT:dmod,atkT:atkB+bon,atAttr:st.modo==='arma'&&isPC?atkInfo(armas.find(x=>x.key===st.arma).a,d).atAttr:'FOR',nome,base,resto,soCrit,expr:testExpr(spec.base,spec.mod+dmod,atkB+bon),label:diceSpec(spec.base,spec.mod+dmod).label+fmtB(atkB+bon),dano,crit,mult,qtd,danoTipo,melee,avisos};
   }
   function defDe(e){if(!e)return null;const i=cbInfo(e);let v=e.s||e.raw.defesa?i.def:+st.defManual[e.id]||0;const conds=e.s?(e.s.condicoes||[]):(e.raw.cond||[]);const notas=[];
     if(conds.includes('desprevenido')||conds.includes('surpreendido')){v-=5;notas.push('desprevenido –5')}
@@ -6364,25 +6791,38 @@ function abrirAtaque(sid,atkKey){
       cbResultado(`${mx.nome}`,lines,[],ap);return;
     }
     const m=montar();if(!m){toast('Escolha um ataque.','err');return}
+    /* bônus da próxima rolagem (Ataque Furtivo, Assassinar, venenos…) também valem aqui */
+    let bst=null;if(isPC&&st.modo==='arma'){bst=collectBoosts(s,'ataque',{attr:m.atAttr});if(!spendPE(s,d,bst.cost,bst.used.length))return;
+      if(bst.used.length||bst.dice||bst.bonus||bst.extra.length){m.expr=testExpr(m.spec.base,m.spec.mod+m.dmodT+bst.dice,m.atkT+bst.bonus)+bst.extra.map(x=>'+'+x).join('');m.nome+=bst.used.length?` (${bst.used.join(', ')})`:''}
+      const ex=bst.dmgExtra.map(x=>'+'+x).join('')+(bst.dmgBonus?fmtB(bst.dmgBonus):'');if(ex){m.resto=(m.resto||'')+ex;m.dano=m.base+m.resto}
+      if(bst.consumir.length)s.habilidades=(s.habilidades||[]).filter(h=>!bst.consumir.includes(h.id));if(bst.assassinar)s.assassinar=null;state.nr=freshNR();await Store.saveSheet(s)}
     try{rollExpr(m.dano)}catch(x){toast('Confira a expressão de dano.','err');return}
     const df=defDe(alvoE);const lines=[];const golpes=[];
     const nAt=Math.max(1,Math.min(st.vezes||m.qtd,m.qtd));
     for(let k=0;k<nAt;k++){
       const t=mkLine(`Ataque${nAt>1?' '+(k+1):''} · ${m.nome}${alvoE?' → '+alvoE.nome:''}`,m.expr,m.crit,df&&df.v?df.v:null);lines.push(t);if(s.type==='npc')confirmaCritAmeaca(t,lines);
       const acertou=!df||!df.v||t.total>=df.v;
-      if(acertou){const dm=mkLine(`Dano${t.crit?' crítico':''} · ${m.nome}`,t.crit?critExpr(m.base,m.mult)+m.resto+(m.soCrit||''):m.dano);dm.crit=t.crit;lines.push(dm);golpes.push({total:dm.total,crit:t.crit})}
-      else lines.push({note:`Errou (${t.total} contra Defesa ${df.v}).`});
+      if(acertou){const dm=mkLine(`Dano${t.crit?' crítico':''} · ${m.nome}`,t.crit?critExpr(m.base,m.mult)+m.resto+(m.soCrit||''):m.dano);dm.crit=t.crit;lines.push(dm);golpes.push({total:dm.total,crit:t.crit,atk:t.total,def:df?df.v:null,acertou:true,dano:dm.total})}
+      else{lines.push({note:`Errou (${t.total} contra Defesa ${df.v}).`});golpes.push({total:0,crit:false,atk:t.total,def:df.v,acertou:false,dano:0})}
     }
     if(st.tipos.investida)lines.push({note:`${s.nome} fez uma investida: –5 na Defesa até o próximo turno.`});
     logRoll(lines,{char:s.nome,secret:s.type==='npc'&&privado()});closeModal();
     const soma=golpes.reduce((a,g)=>a+g.total,0);
-    cbResultado(`${m.nome}`,lines,alvoE&&soma?[{e:alvoE,valor:soma,tipo:m.danoTipo,melee:m.melee}]:[],[]);
+    const venenos=typeof venenosDoAtaque==='function'?venenosDoAtaque(s,st.modo==='arma'?st.arma:null,m,golpes):[];
+    const req={golpes,valor:soma,tipo:String(m.danoTipo||'').toLowerCase(),melee:m.melee,atacante:s.nome,arma:m.nome,atacanteId:(combateEntradas().find(x=>x.sheetId===s.id)||{}).id||null,venenos};
+    if(alvoE&&(soma||venenos.length||(m.melee&&golpes.some(g=>!g.acertou)))){
+      const to=controladorDe(alvoE);
+      if(to!==state.user.id){const env=enviarDano(alvoE,req);if(state.isGM)cbUltimo[alvoE.id]={...req,reqId:env.id};cbResultado(`${m.nome}`,lines,state.isGM?[{e:alvoE,valor:soma,tipo:m.danoTipo,melee:m.melee,fora:1}]:[],[],`Enviado para ${to===state.camp.ownerId?'o mestre':nomeUsuario(to)}: a tela de dano e as reações abrem para quem controla ${alvoE.nome}.`);return}
+      cbUltimo[alvoE.id]=req;
+    }
+    cbResultado(`${m.nome}`,lines,alvoE&&(soma||req.venenos.length)?[{e:alvoE,valor:soma,tipo:m.danoTipo,melee:m.melee}]:[],[]);
   }
 }
 /* resultado do ataque com atalhos para aplicar no alvo */
-function cbResultado(titulo,lines,danos,conds){
+const cbUltimo={};
+function cbResultado(titulo,lines,danos,conds,aviso){
   openModal(`<h3>${esc(titulo)}</h3>${lines.map(l=>l.note?`<p class="mono" style="font-size:15px;margin:4px 0">${esc(l.note)}</p>`:`<div class="result-box"><div class="row"><span class="big">${l.total}</span><div><div class="mono" style="font-size:15px">${esc(l.label)} · ${esc(l.expr)}${l.vs?` · Defesa ${l.vs}: <b style="color:${l.total>=l.vs?'var(--ok)':'var(--stamp)'}">${l.total>=l.vs?'acertou':'errou'}</b>`:''}${l.crit?' · <b style="color:var(--stamp)">CRÍTICO</b>':''}</div>${diceHtml(l.parts,l.critAt)}</div></div></div>`).join('')}
-    <div class="mfoot">${danos.map(x=>`<button class="btn red solid" data-act="cbDanoPre" data-id="${x.e.id}" data-v="${x.valor}" data-t="${esc(x.tipo||'')}" data-m="${x.melee?1:0}">Aplicar ${x.valor} de dano em ${esc(x.e.nome)}</button>`).join('')}
+    ${aviso?`<p class="aud-ver">${esc(aviso)}</p>`:''}<div class="mfoot">${danos.map(x=>`<button class="btn red ${x.fora?'':'solid'}" data-act="cbDanoPre" data-id="${x.e.id}" data-v="${x.valor}" data-t="${esc(x.tipo||'')}" data-m="${x.melee?1:0}">${x.fora?'Resolver eu mesmo':`Aplicar ${x.valor} de dano em ${esc(x.e.nome)}`}</button>`).join('')}
       ${conds.map(x=>`<button class="btn solid" data-act="cbCondAplicar" data-id="${x.e.id}" data-k="${x.c}">Deixar ${esc(x.e.nome)} ${esc((CONDICOES[x.c]||{}).nome||x.c).toLowerCase()}</button>`).join('')}
       <button class="btn" data-act="closeModal">Fechar</button></div>`);
 }
@@ -6401,71 +6841,7 @@ function rdContra(e,tipo,melee,bloq){
   const re=/([A-Za-zÀ-ú ,e]+?)\s(\d+)/g;let m;while((m=re.exec(txt))){if(tipo&&m[1].toLowerCase().includes(tipo.toLowerCase()))best=Math.max(best,+m[2])}
   return best;
 }
-function abrirReceberDano(entryId,pre={}){
-  let e=combateEntradas().find(x=>x.id===entryId);
-  if(!e&&String(entryId).startsWith('s:')){const s=sheetById(entryId.slice(2));if(s)e={id:entryId,sheetId:s.id,s,nome:s.nome,tipo:s.type,raw:{}}}
-  if(!e)return;
-  const st={modo:'dano',valor:pre.valor||'',tipo:pre.tipo&&TIPOS_DANO.includes(pre.tipo.toLowerCase())?pre.tipo.toLowerCase():(pre.tipo||'corte'),melee:!!pre.melee,bloq:false,rdMan:null,massivoRes:null};
-  const isPC=e.s&&e.s.type==='pc';
-  function calc(){
-    const v=Math.max(0,num(st.valor));const rd=st.rdMan!=null&&st.rdMan!==''?num(st.rdMan):rdContra(e,st.tipo,st.melee,st.bloq);
-    const final=Math.max(0,v-rd);return{v,rd,final};
-  }
-  function draw(){
-    const i=cbInfo(e);const c=calc();const pcMental=isPC&&st.tipo==='mental';
-    const d=isPC?derive(e.s):null;
-    $('#rdBody').innerHTML=`<div class="seg"><button class="seg-btn ${st.modo==='dano'?'on':''}" data-m="dano">🩸 Dano</button><button class="seg-btn ${st.modo==='cura'?'on':''}" data-m="cura">✚ Cura</button>${isPC?`<button class="seg-btn ${st.modo==='san'?'on':''}" data-m="san">🧠 Sanidade</button>`:''}</div>
-      <p class="mono" style="font-size:15px;margin:10px 0 4px">${esc(e.nome)} · PV <b>${i.pv??'—'}/${i.pvMax||'—'}</b>${i.pvTemp?` (+${i.pvTemp} temp.)`:''}${isPC?` · SAN <b>${e.s.san}/${d.sanMax}</b>`:''}</p>
-      <div class="mgrid c3"><label class="field"><span>${st.modo==='dano'?'Dano':st.modo==='cura'?'PV curados':'SAN (– perde, + recupera)'}</span><input class="inp" id="rdV" type="number" value="${esc(st.valor)}" autofocus></label>
-        <label class="field"><span>Ou rolar</span><div class="row" style="gap:4px"><input class="inp" id="rdExpr" placeholder="2d8+3"><button class="btn sm" data-rolar>🎲</button></div></label>
-        ${st.modo==='dano'?`<label class="field"><span>Tipo</span><select class="inp" id="rdTipo">${TIPOS_DANO.map(t=>`<option ${t===st.tipo?'selected':''}>${t}</option>`).join('')}</select></label>`:''}</div>
-      ${st.modo==='dano'?`<div class="row" style="flex-wrap:wrap;gap:14px;margin-top:6px"><label class="chk"><input type="checkbox" id="rdMelee" ${st.melee?'checked':''}> Ataque corpo a corpo</label>${isPC&&d.bloqueio!=null?`<label class="chk"><input type="checkbox" id="rdBloq" ${st.bloq?'checked':''}> Bloqueio (reação, RD +${d.bloqueio})</label>`:''}
-        <label class="field" style="max-width:150px"><span>RD aplicada</span><input class="inp" id="rdRD" type="number" value="${c.rd}"></label></div>
-        <div class="atk-resumo"><span>Dano final: <b>${c.final}</b>${c.rd?` (${c.v} – RD ${c.rd})`:''}${pcMental?' · vai para a Sanidade':''}</span>${c.final&&i.pvMax&&!pcMental&&c.final>=i.pvMax/2?`<span class="warn" style="margin:0">Dano massivo: Fortitude DT ${15+2*Math.floor(c.final/10)} ou cai a 0 PV.</span>`:''}</div>`:''}
-      <div class="mfoot"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn ${st.modo==='dano'?'red':''} solid" id="rdGo">${st.modo==='dano'?'Aplicar dano':st.modo==='cura'?'Curar':'Aplicar'}</button></div>`;
-    const f=$('#rdV');if(f&&!f.value)f.focus();
-  }
-  openModal(`<h3>${st.modo==='dano'?'Receber dano':'Pontos de vida'} — ${esc(e.nome)}</h3><div id="rdBody"></div>`);draw();
-  const body=$('#rdBody');
-  body.addEventListener('input',ev=>{if(ev.target.id==='rdV'){st.valor=ev.target.value;const c=calc();const fin=body.querySelector('.atk-resumo b');if(fin)fin.textContent=c.final}if(ev.target.id==='rdRD')st.rdMan=ev.target.value});
-  body.addEventListener('change',ev=>{const t=ev.target;if(t.id==='rdTipo'){st.tipo=t.value;st.rdMan=null;draw()}if(t.id==='rdMelee'){st.melee=t.checked;st.rdMan=null;draw()}if(t.id==='rdBloq'){st.bloq=t.checked;st.rdMan=null;draw()}if(t.id==='rdRD'){st.rdMan=t.value;draw()}});
-  body.addEventListener('click',async ev=>{
-    const b=ev.target.closest('[data-m],[data-rolar],#rdGo');if(!b)return;
-    if(b.dataset.m){st.modo=b.dataset.m;draw();return}
-    if(b.hasAttribute('data-rolar')){try{const L=mkLine('Rolagem',$('#rdExpr').value);st.valor=String(L.total);logRoll([L],{char:e.nome,secret:e.tipo==='npc'&&privado()});draw()}catch(x){toast('Expressão inválida.','err')}return}
-    if(b.id==='rdGo')await aplicar();
-  });
-  async function aplicar(){
-    const c=calc();const s=e.s;let msg='';
-    if(st.modo==='cura'){
-      const v=Math.max(0,num(st.valor));
-      if(s&&s.type==='pc'){const d=derive(s);const b=+s.pv||0;s.pv=Math.min(d.pvMax,b+v);if(s.pv>0){s.morte=0;s.condicoes=(s.condicoes||[]).filter(x=>x!=='inconsciente')}msg=`${s.nome} recuperou ${s.pv-b} PV.`}
-      else if(s){const b=+s.pv||0;s.pv=Math.min(+s.pvMax||0,b+v);msg=`${s.nome} recuperou ${s.pv-b} PV.`}
-      else if(e.raw.pvMax){Col.set('ini',e.id,{pv:Math.min(+e.raw.pvMax,(+e.raw.pv||0)+v)});msg=`${e.nome} recuperou ${v} PV.`}
-    }else if(st.modo==='san'&&s){
-      const v=num(st.valor);const d=derive(s);const b=+s.san||0;s.san=clamp(b+v,0,d.sanMax);if(s.san>0)s.loucura=0;msg=`${s.nome}: SAN ${b} → ${s.san}.`;
-      if(b>0&&s.san===0)msg+=' Enlouquecendo!';
-    }else{
-      const fin=c.final;
-      if(s&&s.type==='pc'&&st.tipo==='mental'){const b=+s.san||0;s.san=Math.max(0,b-fin);msg=`${s.nome} sofreu ${fin} de dano mental (SAN ${b} → ${s.san}).`;if(b>0&&s.san===0)msg+=' Enlouquecendo: três turnos e fica insano.'}
-      else if(s&&s.type==='pc'){
-        let resto=fin;const t=+s.pvTemp||0;const usado=Math.min(t,resto);s.pvTemp=t-usado;resto-=usado;
-        const b=+s.pv||0;s.pv=Math.max(0,b-resto);msg=`${s.nome} sofreu ${fin} de dano${c.rd?` (RD ${c.rd})`:''}${usado?`, ${usado} nos PV temporários`:''}: PV ${b} → ${s.pv}.`;
-        const d=derive(s);
-        if(s.pv>0&&fin>=d.pvMax/2){const dt=15+2*Math.floor(fin/10);const r=d.per.Fortitude;const L=mkLine(`Dano massivo · Fortitude DT ${dt}`,testExpr(r.base,r.dmod,r.total),null,dt);logRoll([L],{char:s.nome});if(L.total<dt){s.pv=0;msg+=` Falhou no teste de dano massivo (${L.total}): cai a 0 PV.`}else msg+=` Resistiu ao dano massivo (${L.total}).`}
-        if(b>0&&s.pv===0){s.condicoes=[...new Set([...(s.condicoes||[]),'inconsciente'])];msg+=' Inconsciente e morrendo: três turnos na cena e morre. Medicina DT 20 estabiliza.'}
-      }else if(s){
-        const b=+s.pv||0;s.pv=Math.max(0,b-fin);msg=`${s.nome} sofreu ${fin} de dano${c.rd?` (RD ${c.rd})`:''}: PV ${b} → ${s.pv}.`;
-        if(s.pv>0&&fin>=(+s.pvMax||0)/2){const dt=15+2*Math.floor(fin/10);const v=s.fort||{d:1,b:0};const L=mkLine(`Dano massivo · Fortitude DT ${dt}`,testExpr(+v.d||1,0,+v.b||0),null,dt);logRoll([L],{char:s.nome,secret:privado()});if(L.total<dt){s.pv=0;msg+=` Falhou no dano massivo: cai a 0 PV.`}}
-        if(s.pv===0)msg+=' Derrotado.';
-      }else if(e.raw.pvMax){const b=+e.raw.pv||0;const n=Math.max(0,b-fin);Col.set('ini',e.id,{pv:n});msg=`${e.nome} sofreu ${fin} de dano: PV ${b} → ${n}.`}
-      else msg=`${e.nome} sofreu ${fin} de dano.`;
-    }
-    if(s){await Store.saveSheet(s);const k=state.sheets.findIndex(x=>x.id===s.id);if(k>=0)state.sheets[k]=s}
-    closeModal();logRoll([{note:msg}],{char:e.nome,secret:e.tipo==='npc'&&privado()&&!state.isGM?false:(e.tipo==='npc'&&privado())});
-    toast(esc(msg),s&&s.pv===0?'err':'');render();
-  }
-}
+/* abrirReceberDano: ver reacoes.js */
 
 /* ---------- adicionar ao combate (mestre) ---------- */
 function abrirAddCombatente(){
@@ -6537,7 +6913,7 @@ Object.assign(A,{
   cbFinalizar:async()=>{const n=Object.keys(Col.all('ini')).length;if(!await confirmBox(`Finalizar o combate? ${n} participante(s) saem da ordem de iniciativa e a rodada volta a 1. As fichas não são apagadas.`,'Finalizar combate',false))return;Col.replace('ini',{});bmSaveCfg({turno:null,rodada:1});toast('Combate finalizado.')},
   cbAtacar:el=>abrirAtaque(el.dataset.sid,el.dataset.atk),
   cbDano:el=>abrirReceberDano(el.dataset.id),
-  cbDanoPre:el=>{closeModal();abrirReceberDano(el.dataset.id,{valor:el.dataset.v,tipo:el.dataset.t,melee:el.dataset.m==='1'})},
+  cbDanoPre:el=>{closeModal();const r=cbUltimo[el.dataset.id];delete cbUltimo[el.dataset.id];abrirReceberDano(el.dataset.id,r?{...r}:{valor:el.dataset.v,tipo:el.dataset.t,melee:el.dataset.m==='1'})},
   cbCondAplicar:async el=>{const e=combateEntradas().find(x=>x.id===el.dataset.id);if(!e)return;const k=el.dataset.k;
     if(e.s){e.s.condicoes=[...new Set([...(e.s.condicoes||[]),k])];await Store.saveSheet(e.s)}else Col.set('ini',e.id,{cond:[...new Set([...(e.raw.cond||[]),k])]});closeModal();render()},
   cbRes:async el=>{const s=sheetById(el.dataset.sid);if(!s||!podeControlar(s))return;const k=el.dataset.k;let dl=+el.dataset.d;
@@ -6568,6 +6944,242 @@ document.addEventListener('keydown',ev=>{
   const ids=combateEntradas().filter(e=>e.s&&podeControlar(e.s)).map(e=>e.s.id);if(!ids.length)return;
   ev.preventDefault();let i=ids.indexOf(state.cbSel);i=i<0?0:clamp(i+(ev.key==='ArrowDown'?1:-1),0,ids.length-1);state.cbSel=ids[i];render();
 });
+
+/* =====================================================================
+   RECEBER DANO · ROTEAMENTO E REAÇÕES
+   · Quem controla o alvo recebe a tela: agentes de jogadores → o dono
+     da ficha; ameaças, aliados, fichas sem dono ou do mestre → o mestre.
+   · Pedidos viajam pela coleção compartilhada "dmgReq".
+   · Reações de defesa (livro p. 87): esquiva, bloqueio e contra-ataque.
+     Uma por rodada; poderes como Esquiva Tática, Corpo Fechado e
+     Revidar Violento liberam uma segunda, se for do tipo deles.
+   · Venenos e outros testes de resistência pendentes vêm junto.
+   ===================================================================== */
+const REAC={esquiva:{nome:'Esquivar',per:'Reflexos',palavra:/esquiva/i},bloqueio:{nome:'Bloquear',per:'Fortitude',palavra:/bloqueio/i},contra:{nome:'Contra-atacar',per:'Luta',palavra:/contra-ataque/i}};
+const controladorDe=e=>{const s=e&&e.s;const gm=state.camp&&state.camp.ownerId;if(s&&s.type==='pc'&&s.ownerId&&s.ownerId!==gm&&!ehAliadoImp(s))return s.ownerId;return gm};
+const nomeUsuario=id=>(state.users&&state.users[id]&&state.users[id].name)||'o jogador';
+
+/* reações gastas nesta rodada (guardadas na própria ficha) */
+function reacoesDe(s){const R=bmCfg().rodada||1;const r=s.reacoes||{};return r.rodada===R?r.usadas||[]:[]}
+function reacaoExtra(s,k){return (s.habilidades||[]).some(h=>{const t=`${h.nome} ${h.descricao||''}`;return (/segunda rea[cç][aã]o/i.test(t)&&REAC[k].palavra.test(t))||(k==='esquiva'&&/duas esquivas|esquivar duas vezes/i.test(t))})}
+function reacaoPode(s,k,ctx){
+  const d=derive(s);const r=REAC[k];const p=d.per[r.per];
+  if(!p||!p.treino)return{ok:false,motivo:`precisa ser treinado em ${r.per}`};
+  if(k==='bloqueio'&&!ctx.melee)return{ok:false,motivo:'só contra ataque corpo a corpo'};
+  if(k==='contra'&&!ctx.melee)return{ok:false,motivo:'só contra ataque corpo a corpo'};
+  if(k==='contra'&&!ctx.errou)return{ok:false,motivo:'só quando o atacante erra'};
+  const us=reacoesDe(s);
+  if(us.length===0)return{ok:true};
+  if(us.length===1&&reacaoExtra(s,k))return{ok:true,extra:true};
+  return{ok:false,motivo:`já usou ${us.map(x=>REAC[x]?REAC[x].nome.toLowerCase():x).join(' e ')} nesta rodada`};
+}
+function marcarReacao(s,k){const R=bmCfg().rodada||1;const us=reacoesDe(s);s.reacoes={rodada:R,usadas:[...us,k]}}
+
+/* ---------- envio ---------- */
+function enviarDano(e,req){
+  const to=controladorDe(e);const id=uid('dr_');
+  Col.set('dmgReq',id,{...req,entryId:e.id,sheetId:e.s?e.s.id:null,alvoNome:e.nome,to,from:state.user.id,ts:Date.now()});
+  return{to,id};
+}
+const drAbertos=new Set();
+function drPendentes(){const me=state.user&&state.user.id;const lim=Date.now()-6*3600e3;return Col.list('dmgReq').filter(r=>r.to===me&&!r.feito&&r.ts>lim).sort((a,b)=>a.ts-b.ts)}
+function drBadge(){
+  let el=document.getElementById('drBadge');const L=state.camp?drPendentes():[];
+  if(!L.length){if(el)el.remove();return}
+  if(!el){el=document.createElement('div');el.id='drBadge';document.body.appendChild(el)}
+  el.innerHTML=`<b>⚠ ${L.length>1?L.length+' pendências':L[0].modo==='cura'?'Cura para você':'Ataque contra você'}</b>${L.slice(0,3).map(r=>`<button class="btn sm red solid" data-drab="${r.id}">${esc(r.atacante||'Ataque')} → ${esc(r.alvoNome||'')}: ${r.modo==='cura'?'receber':'reagir'}</button>`).join('')}`;
+  el.onclick=ev=>{const b=ev.target.closest('[data-drab]');if(b)drAbrir(b.dataset.drab)};
+}
+function drAbrir(id){const r=Col.get('dmgReq',id);if(!r)return drBadge();drAbertos.add(id);abrirReceberDano(r.entryId||('s:'+r.sheetId),{...r,reqId:id})}
+function drChecar(){
+  drBadge();if(!state.camp)return;const L=drPendentes().filter(r=>!drAbertos.has(r.id));
+  if(L.length&&!document.querySelector('#modal .overlay'))drAbrir(L[0].id);
+}
+Col.on('dmgReq',()=>setTimeout(drChecar,50));
+setInterval(()=>{if(state.camp)drBadge()},4000);
+
+/* ---------- tela ---------- */
+function abrirReceberDano(entryId,pre={}){
+  let e=combateEntradas().find(x=>x.id===entryId);
+  if(!e&&pre.sheetId){const s=sheetById(pre.sheetId);if(s)e={id:entryId,sheetId:s.id,s,nome:s.nome,tipo:s.type,raw:{}}}
+  if(!e&&String(entryId).startsWith('s:')){const s=sheetById(entryId.slice(2));if(s)e={id:entryId,sheetId:s.id,s,nome:s.nome,tipo:s.type,raw:{}}}
+  if(!e){if(pre.reqId){Col.set('dmgReq',pre.reqId,{feito:true});toast('O alvo desse ataque não está mais na campanha.','err')}return}
+  const golpes=(pre.golpes||[]).map(g=>({...g}));
+  const tipo0=pre.tipo&&TIPOS_DANO.includes(String(pre.tipo).toLowerCase())?String(pre.tipo).toLowerCase():(pre.tipo||'corte');
+  const st={modo:pre.modo||'dano',valor:pre.valor||'',valorMan:false,tipo:tipo0,melee:!!pre.melee,bloq:false,rdMan:null,reac:'',alvoG:Math.max(0,golpes.findIndex(g=>g.acertou)),venenos:(pre.venenos||[]).map(v=>({...v,bonus:0,dados:0,usa:[],rol:null}))};
+  const isPC=e.s&&e.s.type==='pc';
+  const ctx=()=>({melee:st.melee,errou:golpes.some(g=>!g.acertou)});
+  /* aplica esquiva/bloqueio nos golpes */
+  function golpesEf(){
+    const d=isPC?derive(e.s):null;
+    return golpes.map((g,ix)=>{let def=g.def,acertou=g.acertou,rdB=0;
+      if(ix===st.alvoG&&st.reac==='esquiva'&&d){def=(g.def||0)+d.per.Reflexos.total;acertou=g.atk>=def}
+      if(ix===st.alvoG&&st.reac==='bloqueio'&&d)rdB=d.per.Fortitude.total;
+      return{...g,defEf:def,acertou,rdB}});
+  }
+  function calc(){
+    const rdBase=st.rdMan!=null&&st.rdMan!==''?num(st.rdMan):rdContra(e,st.tipo,st.melee,st.bloq);
+    if(golpes.length&&!st.valorMan){const G=golpesEf();let v=0,fin=0;G.forEach(g=>{if(!g.acertou)return;v+=g.dano;fin+=Math.max(0,g.dano-rdBase-g.rdB)});return{v,rd:rdBase,final:fin,G}}
+    const v=Math.max(0,num(st.valor));return{v,rd:rdBase,final:Math.max(0,v-rdBase),G:golpes.length?golpesEf():[]};
+  }
+  function venenoHtml(){
+    if(!st.venenos.length)return'';const d=isPC?derive(e.s):null;
+    return `<div class="rd-ven"><div class="lbl">Testes de resistência</div>${st.venenos.map((v,ix)=>{const p=d?d.per[v.res]:null;const habs=isPC?(e.s.habilidades||[]).filter(h=>new RegExp(v.res+'|veneno|toxina|doen','i').test(h.descricao||'')):[];
+      return `<div class="rd-ven-it"><div><b>${esc(v.nome)}</b> <span class="hmeta">${esc(v.res)} DT ${v.dt}${v.efeito?' · '+esc(v.efeito):''}</span></div>
+        <div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end"><label class="field" style="width:90px"><span>Bônus</span><input class="inp" type="number" data-vb="${ix}" value="${v.bonus||0}"></label><label class="field" style="width:90px"><span>Dados ±</span><input class="inp" type="number" data-vd="${ix}" value="${v.dados||0}"></label>
+        ${habs.length?`<div class="rd-habs">${habs.map(h=>`<label class="chk" title="${esc(h.descricao||'')}"><input type="checkbox" data-vh="${ix}" value="${esc(h.nome)}" ${v.usa.includes(h.nome)?'checked':''}> ${esc(h.nome)}</label>`).join('')}</div>`:''}
+        <button class="btn sm solid" data-vrol="${ix}">${v.rol?'Rolar de novo':'Rolar '+esc(v.res)}</button>${v.rol?`<span class="rd-vres ${v.rol.ok?'ok':'falha'}">${v.rol.total}: ${v.rol.ok?'resistiu':'falhou'}</span>`:''}</div>
+        ${p?'':'<p class="fx-help">Usa a Fortitude/Reflexos/Vontade da ficha da ameaça.</p>'}</div>`}).join('')}</div>`;
+  }
+  function reacHtml(){
+    if(!isPC||!golpes.length)return'';const s=e.s;const d=derive(s);const c=ctx();
+    const ops=['esquiva','bloqueio','contra'].map(k=>{const p=reacaoPode(s,k,c);const extra=k==='esquiva'?`+${d.per.Reflexos.total} na Defesa`:k==='bloqueio'?`RD +${d.per.Fortitude.total}`:'ataca quem errou';
+      return `<button class="seg-btn ${st.reac===k?'on':''}" data-reac="${k}" ${p.ok?'':'disabled'} title="${esc(p.ok?(p.extra?'Segunda reação liberada por um poder':''):p.motivo)}">${REAC[k].nome}<small>${p.ok?extra:esc(p.motivo)}</small></button>`}).join('');
+    return `<div class="rd-reac"><div class="lbl">Reação <small class="mono muted">uma por rodada · rodada ${bmCfg().rodada||1}${reacoesDe(s).length?' · usadas: '+reacoesDe(s).map(x=>REAC[x].nome.toLowerCase()).join(', '):''}</small></div>
+      <div class="seg rd-seg"><button class="seg-btn ${!st.reac?'on':''}" data-reac="">Nenhuma</button>${ops}</div>
+      ${golpes.filter(g=>g.acertou).length>1&&['esquiva','bloqueio'].includes(st.reac)?`<label class="field" style="max-width:260px"><span>Contra qual ataque</span><select class="inp" id="rdAlvoG">${golpes.map((g,ix)=>g.acertou?`<option value="${ix}" ${ix===st.alvoG?'selected':''}>Ataque ${ix+1} (${g.atk})</option>`:'').join('')}</select></label>`:''}
+      ${st.reac==='contra'?`<p class="fx-help">Ao confirmar, você ataca ${esc(pre.atacante||'o atacante')} com sua arma corpo a corpo equipada.</p>`:''}</div>`;
+  }
+  function draw(){
+    const i=cbInfo(e);const c=calc();const pcMental=isPC&&st.tipo==='mental';const d=isPC?derive(e.s):null;
+    $('#rdBody').innerHTML=`${pre.atacante?`<p class="rd-de">${pre.modo==='cura'?'✚':'⚔'} <b>${esc(pre.atacante)}</b> ${pre.modo==='cura'?'curou você':'atacou'}${pre.arma?' com '+esc(pre.arma):''}.</p>`:''}
+      ${golpes.length?`<div class="rd-golpes">${c.G.map((g,ix)=>`<div class="rd-g ${g.acertou?'hit':'miss'}"><span>Ataque ${ix+1}</span><b>${g.atk}</b><span>contra Defesa ${g.defEf??'—'}</span><span>${g.acertou?`${g.crit?'<b class="crit">crítico</b> · ':''}${g.dano} de dano${g.rdB?` (bloqueio −${g.rdB})`:''}`:'errou'}</span></div>`).join('')}</div>`:''}
+      ${reacHtml()}
+      <div class="seg"><button class="seg-btn ${st.modo==='dano'?'on':''}" data-m="dano">🩸 Dano</button><button class="seg-btn ${st.modo==='cura'?'on':''}" data-m="cura">✚ Cura</button>${isPC?`<button class="seg-btn ${st.modo==='san'?'on':''}" data-m="san">🧠 Sanidade</button>`:''}</div>
+      <p class="mono" style="font-size:15px;margin:10px 0 4px">${esc(e.nome)} · PV <b>${i.pv??'—'}/${i.pvMax||'—'}</b>${i.pvTemp?` (+${i.pvTemp} temp.)`:''}${isPC?` · SAN <b>${e.s.san}/${d.sanMax}</b>`:''}</p>
+      <div class="mgrid c3"><label class="field"><span>${st.modo==='dano'?(golpes.length?'Dano total (antes da RD)':'Dano'):st.modo==='cura'?'PV curados':'SAN (– perde, + recupera)'}</span><input class="inp" id="rdV" type="number" value="${esc(golpes.length&&!st.valorMan&&st.modo==='dano'?c.v:st.valor)}"></label>
+        <label class="field"><span>Ou rolar</span><div class="row" style="gap:4px"><input class="inp" id="rdExpr" placeholder="2d8+3"><button class="btn sm" data-rolar>🎲</button></div></label>
+        ${st.modo==='dano'?`<label class="field"><span>Tipo</span><select class="inp" id="rdTipo">${TIPOS_DANO.map(t=>`<option ${t===st.tipo?'selected':''}>${t}</option>`).join('')}</select></label>`:''}</div>
+      ${st.modo==='dano'?`<div class="row" style="flex-wrap:wrap;gap:14px;margin-top:6px"><label class="chk"><input type="checkbox" id="rdMelee" ${st.melee?'checked':''}> Ataque corpo a corpo</label>
+        <label class="field" style="max-width:150px"><span>RD por golpe</span><input class="inp" id="rdRD" type="number" value="${c.rd}"></label></div>
+        <div class="atk-resumo"><span>Dano final: <b>${c.final}</b>${c.rd&&!golpes.length?` (${c.v} – RD ${c.rd})`:''}${pcMental?' · vai para a Sanidade':''}</span>${c.final&&i.pvMax&&!pcMental&&c.final>=i.pvMax/2?`<span class="warn" style="margin:0">Dano massivo: Fortitude DT ${15+2*Math.floor(c.final/10)} ou cai a 0 PV.</span>`:''}</div>`:''}
+      ${venenoHtml()}
+      <div class="mfoot">${pre.reqId?`<button class="btn" id="rdDepois">Depois</button>`:'<button class="btn" data-act="closeModal">Cancelar</button>'}<button class="btn ${st.modo==='dano'?'red':''} solid" id="rdGo">${st.modo==='dano'?(c.final?'Aplicar dano':'Confirmar'):st.modo==='cura'?'Curar':'Aplicar'}</button></div>`;
+  }
+  openModal(`<h3>${pre.modo==='cura'?'Cura recebida':pre.reqId?'Você foi atacado':'Receber dano'} — ${esc(e.nome)}</h3><div id="rdBody"></div>`,'wide');draw();
+  const body=$('#rdBody');
+  body.addEventListener('input',ev=>{const t=ev.target;if(t.id==='rdV'){st.valor=t.value;st.valorMan=true;const c=calc();const fin=body.querySelector('.atk-resumo b');if(fin)fin.textContent=c.final}if(t.id==='rdRD')st.rdMan=t.value;
+    if(t.dataset.vb!=null)st.venenos[+t.dataset.vb].bonus=num(t.value);if(t.dataset.vd!=null)st.venenos[+t.dataset.vd].dados=num(t.value)});
+  body.addEventListener('change',ev=>{const t=ev.target;if(t.id==='rdTipo'){st.tipo=t.value;st.rdMan=null;draw()}if(t.id==='rdMelee'){st.melee=t.checked;st.rdMan=null;draw()}if(t.id==='rdRD'){st.rdMan=t.value;draw()}if(t.id==='rdAlvoG'){st.alvoG=+t.value;draw()}
+    if(t.dataset.vh!=null){const v=st.venenos[+t.dataset.vh];v.usa=t.checked?[...v.usa,t.value]:v.usa.filter(x=>x!==t.value)}});
+  body.addEventListener('click',async ev=>{
+    const b=ev.target.closest('[data-m],[data-rolar],#rdGo,#rdDepois,[data-reac],[data-vrol]');if(!b||b.disabled)return;
+    if(b.id==='rdDepois'){closeModal();drAbertos.delete(pre.reqId);drBadge();return}
+    if(b.dataset.reac!=null){st.reac=b.dataset.reac;st.valorMan=false;if(st.reac&&golpes.length&&!golpes[st.alvoG]?.acertou)st.alvoG=Math.max(0,golpes.findIndex(g=>g.acertou));draw();return}
+    if(b.dataset.m){st.modo=b.dataset.m;draw();return}
+    if(b.dataset.vrol!=null){const v=st.venenos[+b.dataset.vrol];const d=isPC?derive(e.s):null;let L;
+      if(d){const p=d.per[v.res]||{base:1,dmod:0,total:0};L=mkLine(`${v.res} contra ${v.nome}${v.usa.length?' ('+v.usa.join(', ')+')':''}`,testExpr(p.base,p.dmod+(v.dados||0),p.total+(v.bonus||0)),null,v.dt)}
+      else{const k={Fortitude:'fort',Reflexos:'ref',Vontade:'von'}[v.res]||'fort';const x=(e.s&&e.s[k])||{d:1,b:0};L=mkLine(`${v.res} contra ${v.nome}`,testExpr(+x.d||1,(v.dados||0),(+x.b||0)+(v.bonus||0)),null,v.dt)}
+      v.rol={total:L.total,ok:L.total>=v.dt};logRoll([L],{char:e.nome,secret:e.tipo==='npc'&&privado()});draw();return}
+    if(b.hasAttribute('data-rolar')){try{const L=mkLine('Rolagem',$('#rdExpr').value);st.valor=String(L.total);st.valorMan=true;logRoll([L],{char:e.nome,secret:e.tipo==='npc'&&privado()});draw()}catch(x){toast('Expressão inválida.','err')}return}
+    if(b.id==='rdGo')await aplicar();
+  });
+  async function contraAtacar(){
+    const s=e.s;const d=derive(s);const w=attacksOf(s).find(a=>atkInfo(a,d).melee);if(!w){toast('Sem arma corpo a corpo equipada para contra-atacar.','err');return}
+    const i=atkInfo(w,d);const at=combateEntradas().find(x=>x.id===pre.atacanteId);const def=at?cbInfo(at).def:null;
+    const t=mkLine(`Contra-ataque · ${w.nome}${at?' → '+at.nome:''}`,testExpr(i.base,i.dmod,i.atkB),i.crit,def||null);const lines=[t];let dano=0;
+    const ok=!def||t.total>=def;if(ok){const dm=mkLine(`Dano${t.crit?' crítico':''} · ${w.nome}`,t.crit?critExpr(i.baseDano,i.mult)+(i.extras.length?'+'+i.extras.join('+'):'')+(i.flat?fmtB(i.flat):''):i.dmg.replace(/\s*\(.*$/,''));lines.push(dm);dano=dm.total}
+    else lines.push({note:`Errou (${t.total} contra Defesa ${def}).`});
+    logRoll(lines,{char:s.nome});
+    if(at&&dano){const to=controladorDe(at);const g=[{atk:t.total,def,acertou:true,dano,crit:t.crit}];
+      if(to===state.user.id)setTimeout(()=>abrirReceberDano(at.id,{golpes:g,valor:dano,tipo:(w.danoTipo||'').toLowerCase(),melee:true,atacante:s.nome,atacanteId:combateEntradas().find(x=>x.sheetId===s.id)?.id,arma:w.nome}),300);
+      else enviarDano(at,{golpes:g,valor:dano,tipo:(w.danoTipo||'').toLowerCase(),melee:true,atacante:s.nome,atacanteId:combateEntradas().find(x=>x.sheetId===s.id)?.id,arma:w.nome})}
+    return ok?`Contra-atacou e acertou (${dano} de dano).`:'Contra-atacou e errou.';
+  }
+  async function aplicar(){
+    for(const v of st.venenos){if(!v.rol){toast(`Role ${v.res} contra ${esc(v.nome)} antes de confirmar.`,'err');return}}
+    const c=calc();const s=e.s;let msg='';
+    if(isPC&&st.reac){const p=reacaoPode(s,st.reac,ctx());if(!p.ok){toast('Essa reação não está disponível: '+p.motivo,'err');return}marcarReacao(s,st.reac)}
+    if(st.modo==='cura'){
+      const v=Math.max(0,num(st.valor));
+      if(s&&s.type==='pc'){const d=derive(s);const b=+s.pv||0;s.pv=Math.min(d.pvMax,b+v);if(s.pv>0){s.morte=0;s.condicoes=(s.condicoes||[]).filter(x=>x!=='inconsciente')}msg=`${s.nome} recuperou ${s.pv-b} PV.`}
+      else if(s){const b=+s.pv||0;s.pv=Math.min(+s.pvMax||0,b+v);msg=`${s.nome} recuperou ${s.pv-b} PV.`}
+      else if(e.raw.pvMax){Col.set('ini',e.id,{pv:Math.min(+e.raw.pvMax,(+e.raw.pv||0)+v)});msg=`${e.nome} recuperou ${v} PV.`}
+    }else if(st.modo==='san'&&s){
+      const v=num(st.valor);const d=derive(s);const b=+s.san||0;s.san=clamp(b+v,0,d.sanMax);if(s.san>0)s.loucura=0;msg=`${s.nome}: SAN ${b} → ${s.san}.`;
+      if(b>0&&s.san===0)msg+=' Enlouquecendo!';
+    }else{
+      const fin=c.final;
+      if(st.reac==='esquiva')msg+=`${e.nome} se esquivou${c.G[st.alvoG]&&!c.G[st.alvoG].acertou?' e evitou o golpe':', mas foi atingido'}. `;
+      if(st.reac==='bloqueio')msg+=`${e.nome} bloqueou (RD +${c.G[st.alvoG]?.rdB||0}). `;
+      if(st.reac==='contra')msg+=await contraAtacar()+' ';
+      if(!fin&&!(s&&st.tipo==='mental'&&isPC)){if(!pre.soVeneno)msg+=`${e.nome} não sofreu dano.`}
+      else if(s&&s.type==='pc'&&st.tipo==='mental'){const b=+s.san||0;s.san=Math.max(0,b-fin);msg+=`${s.nome} sofreu ${fin} de dano mental (SAN ${b} → ${s.san}).`;if(b>0&&s.san===0)msg+=' Enlouquecendo: três turnos e fica insano.'}
+      else if(s&&s.type==='pc'){
+        let resto=fin;const t=+s.pvTemp||0;const usado=Math.min(t,resto);s.pvTemp=t-usado;resto-=usado;
+        const b=+s.pv||0;s.pv=Math.max(0,b-resto);msg+=`${s.nome} sofreu ${fin} de dano${c.rd?` (RD ${c.rd})`:''}${usado?`, ${usado} nos PV temporários`:''}: PV ${b} → ${s.pv}.`;
+        const d=derive(s);
+        if(s.pv>0&&fin>=d.pvMax/2){const dt=15+2*Math.floor(fin/10);const r=d.per.Fortitude;const L=mkLine(`Dano massivo · Fortitude DT ${dt}`,testExpr(r.base,r.dmod,r.total),null,dt);logRoll([L],{char:s.nome});if(L.total<dt){s.pv=0;msg+=` Falhou no teste de dano massivo (${L.total}): cai a 0 PV.`}else msg+=` Resistiu ao dano massivo (${L.total}).`}
+        if(b>0&&s.pv===0){s.condicoes=[...new Set([...(s.condicoes||[]),'inconsciente'])];msg+=' Inconsciente e morrendo: três turnos na cena e morre. Medicina DT 20 estabiliza.'}
+      }else if(s){
+        const b=+s.pv||0;s.pv=Math.max(0,b-fin);msg+=`${s.nome} sofreu ${fin} de dano${c.rd?` (RD ${c.rd})`:''}: PV ${b} → ${s.pv}.`;
+        if(s.pv>0&&fin>=(+s.pvMax||0)/2){const dt=15+2*Math.floor(fin/10);const v=s.fort||{d:1,b:0};const L=mkLine(`Dano massivo · Fortitude DT ${dt}`,testExpr(+v.d||1,0,+v.b||0),null,dt);logRoll([L],{char:s.nome,secret:privado()});if(L.total<dt){s.pv=0;msg+=` Falhou no dano massivo: cai a 0 PV.`}}
+        if(s.pv===0)msg+=' Derrotado.';
+      }else if(e.raw.pvMax){const b=+e.raw.pv||0;const n=Math.max(0,b-fin);Col.set('ini',e.id,{pv:n});e.raw.pv=n;msg+=`${e.nome} sofreu ${fin} de dano: PV ${b} → ${n}.`}
+      else msg+=`${e.nome} sofreu ${fin} de dano.`;
+      /* venenos */
+      const perderPV=n=>{if(s){if(isPC){const tp=+s.pvTemp||0;const u=Math.min(tp,n);s.pvTemp=tp-u;n-=u}const b=+s.pv||0;s.pv=Math.max(0,b-n);if(isPC&&b>0&&s.pv===0)s.condicoes=[...new Set([...(s.condicoes||[]),'inconsciente'])]}
+        else if(e.raw&&e.raw.pvMax){e.raw.pv=Math.max(0,(+e.raw.pv||0)-n);Col.set('ini',e.id,{pv:e.raw.pv})}};
+      const rolarDano=(v,ex,metade)=>{try{const L=mkLine(`${v.nome} · dano${metade?' (metade)':''}`,ex);logRoll([L],{char:e.nome,secret:e.tipo==='npc'&&privado()});const n=metade?Math.floor(L.total/2):L.total;
+        if(v.danoTipo==='mental'&&isPC)s.san=Math.max(0,(+s.san||0)-n);else perderPV(n);return ` (${n} de dano${v.danoTipo?' '+v.danoTipo:''}${v.rodadas?`, repete por ${v.rodadas} rodadas`:''})`}catch(x){return''}};
+      const addCond=cs=>{if(cs&&cs.length&&s)s.condicoes=[...new Set([...(s.condicoes||[]),...cs])]};
+      for(const v of st.venenos){
+        if(!v.rol.ok){msg+=` Falhou contra ${v.nome}: ${String(v.efeito||'sofre o efeito').replace(/\.$/,'').toLowerCase()}`;
+          if(v.zeraPV){if(s){s.pv=0;if(isPC)s.condicoes=[...new Set([...(s.condicoes||[]),'inconsciente'])]}else if(e.raw&&e.raw.pvMax)Col.set('ini',e.id,{pv:0})}
+          if(v.dano)msg+=rolarDano(v,v.dano,false);addCond(v.cond);msg+='.';
+        }else{msg+=` Resistiu a ${v.nome}${v.efeitoSucesso?': '+v.efeitoSucesso:''}`;
+          if(v.danoSucesso)msg+=rolarDano(v,v.danoSucesso,false);else if(v.metade&&v.dano)msg+=rolarDano(v,v.dano,true);addCond(v.condSucesso);msg+='.'}}
+    }
+    if(s){await Store.saveSheet(s);const k=state.sheets.findIndex(x=>x.id===s.id);if(k>=0)state.sheets[k]=s}
+    if(pre.reqId){Col.set('dmgReq',pre.reqId,{feito:true,resultado:msg});drAbertos.delete(pre.reqId)}
+    closeModal();logRoll([{note:msg.trim()}],{char:e.nome,secret:e.tipo==='npc'&&privado()});
+    toast(esc(msg.trim()),s&&s.pv===0?'err':'');render();setTimeout(drChecar,400);
+  }
+}
+Object.assign(A,{reacLiberar:async el=>{const s=state.sheet;s.reacoes=null;await saveSheet(s);toast('Reações liberadas.')}});
+
+/* =====================================================================
+   HABILIDADES COM AUTOMAÇÃO EXTRA
+   · Paramédico: escolhe quantos dados (2d10 / 3d10 em NEX 40% / 4d10 em
+     65% / 5d10 em 99%), paga 1 PE por dado e cura você ou outra ficha
+     (a cura chega para quem controla a ficha).
+   · Assassinar: marca o alvo; o próximo Ataque Furtivo dobra os dados.
+   ===================================================================== */
+function habEspecial(s,h,d){
+  const n=String(h.nome||'');
+  if(/^Paramédico/i.test(n)){paramedicoModal(s,h);return true}
+  if(/^Assassinar/i.test(n)){
+    if(s.assassinar){toast('Assassinar já está preparado: o próximo Ataque Furtivo dobra os dados.');return true}
+    if(!spendPE(s,d,+h.custo||3))return true;
+    const dt=10+(d.peTurnoBase||d.peTurno||0)+(d.attrs.AGI||0);
+    s.assassinar={ts:Date.now(),dt};
+    saveSheet(s).then(()=>logRoll([{note:`${s.nome} analisou o alvo (Assassinar, –${(+h.custo||3)+d.custoExtra} PE). O próximo Ataque Furtivo contra ele dobra os dados extras; se sofrer dano, Fortitude DT ${dt} ou fica inconsciente (ou morrendo, se já estiver machucado).`}]));
+    toast('Assassinar preparado. Marque Ataque Furtivo na Próxima rolagem e ataque.');return true;
+  }
+  return false;
+}
+function paramedicoModal(s,h){
+  const nex=+s.nex||0;const niveis=[[2,0],[3,40],[4,65],[5,99]].filter(([,m])=>nex>=m);
+  const int=(s.habilidades||[]).some(x=>/Técnica Medicinal/i.test(x.nome))?derive(s).attrs.INT:0;const dv=(s.habilidades||[]).some(x=>/Médico da Salvação|Medico da Salvacao/i.test(x.nome))?'d12':'d10';
+  const alvos=[{id:'eu',nome:`${s.nome} (você)`},...state.sheets.filter(x=>x.id!==s.id&&(x.type==='pc'||ehAliado(x))&&!ehAmeaca(x)).map(x=>({id:x.id,nome:x.nome||'Sem nome'}))];
+  let n=niveis[niveis.length-1][0],alvo='eu';
+  const draw=()=>{const d=derive(s);const custo=n+d.custoExtra;
+    $('#pmBody').innerHTML=`<div class="forms">${niveis.map(([k])=>`<button class="form-opt ${k===n?'on':''}" data-pm="${k}"><strong>${k}${dv}${int?'+'+int:''} · ${k+d.custoExtra} PE</strong><small>${k===2?'padrão':k===3?'NEX 40%':k===4?'NEX 65%':'NEX 99%'}</small></button>`).join('')}</div>
+      <label class="field" style="margin-top:12px"><span>Curar quem (adjacente)</span><select class="inp" id="pmAlvo">${alvos.map(a=>`<option value="${a.id}" ${a.id===alvo?'selected':''}>${esc(a.nome)}</option>`).join('')}</select></label>
+      <p class="fx-help">Ação padrão. Exige um kit de medicina.${int?' Técnica Medicinal soma seu Intelecto.':''} Você tem ${(+s.pe||0)+(+s.peTemp||0)} PE.</p>
+      <div class="mfoot"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn solid" id="pmGo">Curar ${n}${dv}${int?'+'+int:''} (${custo} PE)</button></div>`};
+  openModal(`<h3>${esc(h.nome)}</h3><div id="pmBody"></div>`,'wide');draw();
+  $('#pmBody').addEventListener('click',async ev=>{const b=ev.target.closest('[data-pm],#pmGo');if(!b)return;if(b.dataset.pm){n=+b.dataset.pm;draw();return}
+    const d=derive(s);if(!spendPE(s,d,n))return;
+    const L=mkLine(`${h.nome} · ${n}${dv}`,`${n}${dv}${int?'+'+int:''}`);let msg='';
+    if(alvo==='eu'){const b0=+s.pv||0;s.pv=Math.min(d.pvMax,b0+L.total);if(s.pv>0){s.condicoes=(s.condicoes||[]).filter(x=>x!=='inconsciente');s.morte=0}msg=`${s.nome} recuperou ${s.pv-b0} PV.`}
+    else{const t=sheetById(alvo);const e=combateEntradas().find(x=>x.sheetId===alvo)||{id:'s:'+alvo,sheetId:alvo,s:t,nome:t.nome,tipo:t.type,raw:{}};
+      if(canEdit(t)&&controladorDe(e)===state.user.id){if(t.type==='pc'){const dt=derive(t);const b0=+t.pv||0;t.pv=Math.min(dt.pvMax,b0+L.total);msg=`${t.nome} recuperou ${t.pv-b0} PV.`}else{const b0=+t.pv||0;t.pv=Math.min(+t.pvMax||0,b0+L.total);msg=`${t.nome} recuperou ${t.pv-b0} PV.`}await Store.saveSheet(t)}
+      else{enviarDano(e,{modo:'cura',valor:L.total,atacante:s.nome,arma:h.nome});msg=`Cura de ${L.total} PV enviada para ${t.nome}.`}}
+    closeModal();await saveSheet(s);logRoll([{note:`Usou ${h.nome} (–${n+d.custoExtra} PE)`},L,{note:msg}]);toast(esc(msg));
+  });
+  $('#pmBody').addEventListener('change',ev=>{if(ev.target.id==='pmAlvo'){alvo=ev.target.value;}});
+}
 
 /* =====================================================================
    MAPA DE BATALHA (no espírito do Owlbear Rodeo) — porta do app de GOT,
