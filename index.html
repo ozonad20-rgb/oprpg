@@ -1844,6 +1844,10 @@ details.hcard[open]>summary .hc-tg{transform:rotate(90deg)}
 /* o cartão de rolagem não cobre uma janela aberta */
 #rollcard.dock{place-items:start center;padding-top:8px}
 #rollcard.dock .rc{zoom:.6}
+
+.sangra-ctl{display:inline-flex;gap:3px;align-items:center}
+.sangra-ctl .cond{min-width:30px;justify-content:center}
+.sangra-ctl .sangra-rol{border-color:var(--pv);color:var(--pv);font-weight:700}
 </style>
 <div id="app"><div class="boot"><div><div class="logo">NE<span>X</span></div><p>Abrindo o arquivo de agentes…</p><div class="bar"><i></i></div>
 <noscript><p style="color:#e5e2d9">O NEX precisa de JavaScript para funcionar. Abra pela página publicada ou em um navegador com JavaScript ativado; visualizadores de arquivo costumam bloquear scripts.</p></noscript></div></div></div>
@@ -3499,6 +3503,8 @@ function modFx(ids){const f={ataque:0,dano:0,margem:0,dado:0,mult:0,extra:[],aut
 function attacksOf(s){
   const list=(s.ataques||[]).map(a=>({...a,src:'ataque'}));
   (s.itens||[]).forEach(i=>{if(i.tipo==='arma'&&i.equipado&&i.arma)list.push({...i.arma,id:i.id,nome:i.nome,ferramenta:i.ferramenta,src:'item'})});
+  /* cargas de ritual para o próximo ataque corpo a corpo (ex.: Decadência discente) valem para qualquer ataque corpo a corpo */
+  const px=s.proxAtaque||[];if(px.length)return list.map(a=>(a.tipoAtq||'corpo')==='corpo'?{...a,ritMods:[...(a.ritMods||[]),...px]}:a);
   return list;
 }
 function atkInfo(a,d){
@@ -4237,7 +4243,8 @@ function nextRollBar(s,d,ed){
     if(b.tipo==='bonus')lbl+=` +${b.valor}`+(b.custoSan?` (–${b.custoSan} SAN)`:'');
     return `<button class="boost ${on?'on':''}" data-act="nrToggle" data-id="${h.id}" ${ed?'':'disabled'}>${esc(lbl)} <small>${cost} PE</small></button>`}).join('');
   const ass=(s.habilidades||[]).filter(h=>!h.boost&&h.modo==='acao'&&/^Assassinar/i.test(h.nome)).map(h=>s.assassinar?`<span class="boost on" title="Os dados do Ataque Furtivo do próximo ataque saem dobrados">${esc(h.nome)} ativo</span>`:`<button class="boost" data-act="ccAct" data-a="useHab" data-sid="${s.id}" data-id="${h.id}" ${ed?'':'disabled'} title="${esc(h.descricao||'')}">${esc(h.nome)} <small>${h.custo||0} PE</small></button>`).join('');
-  const items2=items+ass;
+  const prox=(s.proxAtaque||[]).map(m=>`<span class="boost on" title="Entra sozinho no próximo ataque corpo a corpo que acertar">${esc(m.nome)} +${esc(m.dano)} ${esc(m.danoTipo||'')}${ed?` <button class="linkbtn" data-act="proxLimpar" data-sid="${s.id}" data-id="${m.id}" aria-label="Remover ${esc(m.nome)}">✕</button>`:''}</span>`).join('');
+  const items2=items+ass+prox;
   return `<div class="nextroll"><div class="row"><span class="lbl">Próxima rolagem</span><span class="spacer"></span>
       <span class="stepper" title="Dados extras: +1d20 ou –1d20 no teste"><button data-act="nrDice" data-d="-1" aria-label="Menos um dado">–</button><span>${nr.dice?(nr.dice>0?'+':'–')+Math.abs(nr.dice)+'d20':'±d20'}</span><button data-act="nrDice" data-d="1" aria-label="Mais um dado">+</button></span>
       <span class="stepper" title="Bônus numérico"><button data-act="nrBonus" data-d="-1" aria-label="Menos 1">–</button><span>${nr.bonus?fmtB(nr.bonus):'±0'}</span><button data-act="nrBonus" data-d="1" aria-label="Mais 1">+</button></span>
@@ -4255,7 +4262,8 @@ function condPanel(s,ed){
   const ativas=(s.condicoes||[]).filter(k=>CONDICOES[k]);
   return `<div class="cond-box"><details class="cond-det" data-k="conds"><summary><span class="lbl">Condições</span>${ativas.length?ativas.map(k=>`<span class="chip cond-on">${esc(CONDICOES[k].nome)}</span>`).join(''):'<span class="muted mono" style="font-size:14px">nenhuma</span>'}<span class="spacer"></span><span class="cond-mais">${ed?'alterar':'ver'}</span></summary>
     ${ativas.length&&ed?'<div class="row" style="justify-content:flex-end;margin:6px 0"><button class="linkbtn" data-act="clearConds" style="font-size:13.5px">limpar todas</button></div>':''}
-    <div class="conds">${Object.entries(CONDICOES).map(([k,c])=>`<button class="cond ${(s.condicoes||[]).includes(k)?'on':implied.has(k)?'implied':''}" data-act="toggleCond" data-k="${k}" title="${esc(c.desc)}" ${ed?'':'disabled'}>${c.nome}</button>`).join('')}</div></details>
+    <div class="conds">${Object.entries(CONDICOES).map(([k,c])=>`<button class="cond ${(s.condicoes||[]).includes(k)?'on':implied.has(k)?'implied':''}" data-act="toggleCond" data-k="${k}" title="${esc(c.desc)}" ${ed?'':'disabled'}>${c.nome}${k==='sangrando'&&sangraN(s)>1?' ×'+sangraN(s):''}</button>`).join('')}</div>
+    ${sangraN(s)&&ed?`<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><span class="lbl">Sangrando ×${sangraN(s)}</span><span class="sangra-ctl"><button class="cond" data-act="cbSangraMais" data-sid="${s.id}" data-d="-1" aria-label="Um sangramento a menos">−</button><button class="cond" data-act="cbSangraMais" data-sid="${s.id}" data-d="1" title="Sangrando de novo: +1d6" aria-label="Sangrando de novo">+</button><button class="cond sangra-rol" data-act="cbSangrar" data-sid="${s.id}" title="Início do turno: Vigor DT 20. Falhou: perde ${sangraN(s)}d6 PV. Passou: estanca.">🩸 Rolar sangramento (${sangraN(s)}d6)</button></span></div>`:''}</details>
     ${parts.length?`<div class="cond-sum">Aplicado nas rolagens: ${parts.join(' · ')}</div>`:''}</div>`;
 }
 /* caixa de vida temporária: fica acima da vida e é gasta primeiro */
@@ -4528,7 +4536,7 @@ async function rollAttack(id,rajada){
   if(b.consumir.length)s.habilidades=(s.habilidades||[]).filter(h=>!b.consumir.includes(h.id));if(b.assassinar){s.assassinar=null;toast('Assassinar usado: dados do Ataque Furtivo dobrados.')}
   const baseD=addDice(i.baseDano,rajada?1:0);const extras=[...i.extras,...b.dmgExtra];const flat=i.flat+b.dmgBonus;
   const dm=mkLine(`Dano${t.crit?' crítico':''} · ${a.nome}${i.tipos.length?' ('+i.tipos.join(', ')+')':''}`,(t.crit?critExpr(baseD,i.mult):baseD)+extras.map(x=>'+'+x).join('')+(t.crit?i.soCrit.map(x=>'+'+x).join(''):'')+(flat?fmtB(flat):''));dm.crit=t.crit;
-  const itU=(s.itens||[]).find(x=>x.id===id);const unicos=itU?ritModsDe(itU).filter(x=>x.unico):[];if(unicos.length)encerrarModsUnicos(s,itU);
+  const itU=(s.itens||[]).find(x=>x.id===id);const unicos=(a.ritMods||[]).filter(x=>x.unico);if(unicos.length){if(itU)encerrarModsUnicos(s,itU);s.proxAtaque=[]}
   state.nr=freshNR();await saveSheet(s);logRoll([t,dm,...venNota(s,id,i),...(unicos.length?[{note:`${unicos.map(x=>x.nome).join(', ')} descarregado neste ataque (vale só se acertou).`}]:[])]);
 }
 
@@ -4725,12 +4733,12 @@ function castModal(rid){
     $('#castBody').innerHTML=`<div class="forms">${opts.map(([k,l,desc,rol])=>{const c=ritualCost(s,d,r,k);const over=k!=='b'&&c>d.peTurnoRitual;const semAf=k!=='b'&&/afinidade/i.test((r.formas[k].req||'')+' '+(r.formas[k].desc||''))&&s.afinidade!==r.elemento;return `<button class="form-opt ${forma===k?'on':''}" data-forma="${k}" ${over||semAf?'disabled':''}>${semAf?`<small style="color:var(--stamp)">Requer afinidade com ${esc(r.elemento)}</small>`:''}<strong>${l} · ${c} PE</strong><small>${esc(desc||'')}</small>${rol?`<small>Rolagem: ${esc(rol)}</small>`:''}${over?`<small style="color:var(--stamp)">Acima do limite de ${d.peTurnoRitual} PE</small>`:''}</button>`}).join('')}</div>
       <div class="kv" style="margin-top:12px"><span><b>Custo</b>${cost} PE (você tem ${avail})</span><span><b>DT do ritual</b>${d.dtRitual}</span><span><b>Execução</b>${esc(r.execucao)}</span>${r.resistencia?`<span><b>Resistência</b>${esc(r.resistencia)}</span>`:''}</div>
       ${medo?`<p class="warn">Ritual de Medo: você perde ${cost} de Sanidade e ${forma==='v'?3:forma==='d'?2:1} de SAN permanente.</p>`:`<label class="chk" style="margin-top:10px"><input type="checkbox" id="castAuto" ${auto?'checked':''}> Rolar o custo do paranormal (Ocultismo contra DT ${20+cost})</label>`}
-      ${(()=>{const fx=ritArmaFx(r,forma);if(!fx)return'';return `<div class="cast-arma"><label class="field"><span>${fx.opcional?'Usar Chamejar em uma arma?':'Em qual arma?'}</span><select class="inp" id="castArma"><option value="">${fx.opcional?'Não, outra escolha do ritual':'Arma de outra pessoa / outro alvo'}</option>${(fx.soCorpo?ws.filter(i=>(i.arma.tipoAtq||'corpo')==='corpo'):ws).map(i=>`<option value="${i.id}" ${i.id===alvoArma?'selected':''}>${esc(i.nome)}${i.equipado?' (equipada)':''}${ritModsDe(i).length?' · já tem rituais':''}</option>`).join('')}</select></label><p class="fx-help">${alvoArma?`A arma fica com ${esc(fx.resumo)} até você encerrar os rituais nela.${fx.dano?' O dano extra é rolado junto com o ataque.':''}`:fx.opcional?'O efeito escolhido é resolvido normalmente.':'Nada muda na sua ficha: o efeito vai para a arma de quem você tocou.'}</p></div>`})()}
+      ${(()=>{const fx=ritArmaFx(r,forma);if(!fx)return'';return `<div class="cast-arma"><label class="field"><span>${fx.opcional?'Usar Chamejar em uma arma?':'Em qual arma?'}</span><select class="inp" id="castArma">${fx.unico?`<option value="__prox" ${alvoArma==='__prox'?'selected':''}>Próximo ataque corpo a corpo (qualquer arma)</option>`:''}<option value="">${fx.opcional?'Não, outra escolha do ritual':'Arma de outra pessoa / outro alvo'}</option>${(fx.soCorpo?ws.filter(i=>(i.arma.tipoAtq||'corpo')==='corpo'):ws).map(i=>`<option value="${i.id}" ${i.id===alvoArma?'selected':''}>${esc(i.nome)}${i.equipado?' (equipada)':''}${ritModsDe(i).length?' · já tem rituais':''}</option>`).join('')}</select></label><p class="fx-help">${alvoArma?`A arma fica com ${esc(fx.resumo)} até você encerrar os rituais nela.${fx.dano?' O dano extra é rolado junto com o ataque.':''}`:fx.opcional?'O efeito escolhido é resolvido normalmente.':'Nada muda na sua ficha: o efeito vai para a arma de quem você tocou.'}</p></div>`})()}
       ${cost>avail?`<p class="warn">PE insuficientes.</p>`:''}
       <div class="mfoot"><button class="btn" data-act="closeModal">Cancelar</button><button class="btn red solid" id="castGo" ${cost>avail?'disabled':''}>Conjurar</button></div>`;
   };
   openModal(`<h3>Conjurar ${esc(r.nome)}</h3><div id="castBody"></div>`,'wide');draw();
-  $('#castBody').addEventListener('click',e=>{const b=e.target.closest('[data-forma]');if(b&&!b.disabled){forma=b.dataset.forma;const fx=ritArmaFx(r,forma);if(fx&&!fx.opcional&&!alvoArma){const wc=ws.find(i=>i.equipado&&(i.arma.tipoAtq||'corpo')==='corpo')||(fx.soCorpo?null:w0);if(wc)alvoArma=wc.id}if(!fx)alvoArma='';draw();return}if(e.target.id==='castGo')doCast()});
+  $('#castBody').addEventListener('click',e=>{const b=e.target.closest('[data-forma]');if(b&&!b.disabled){forma=b.dataset.forma;const fx=ritArmaFx(r,forma);if(fx&&fx.unico)alvoArma='__prox';else if(fx&&!fx.opcional&&(!alvoArma||alvoArma==='__prox')){alvoArma=w0?w0.id:''}if(!fx)alvoArma='';draw();return}if(e.target.id==='castGo')doCast()});
   $('#castBody').addEventListener('change',e=>{if(e.target.id==='castAuto')auto=e.target.checked;if(e.target.id==='castArma'){alvoArma=e.target.value;draw()}});
   async function doCast(){
     const d=derive(s);const cost=ritualCost(s,d,r,forma);if(!spendPE(s,d,cost-d.custoExtra,1))return;
@@ -4740,7 +4748,9 @@ function castModal(rid){
       if(t.total<dt){s.san=Math.max(0,(+s.san||0)-cost);let msg=`Falhou: –${cost} SAN.`;if(dt-t.total>=5){s.sanPerm=(+s.sanPerm||0)+1;msg+=' Falhou por 5 ou mais: –1 SAN permanente.'}lines.push({note:msg})}}
     const f=forma!=='b'?r.formas[forma]:null;const fxA=ritArmaFx(r,forma);let rol=(f&&f.rolagem)||r.rolagem;const tipo=(f&&f.tipo)||r.rolagemTipo;const applies=[];
     if(fxA&&(tipo==='dano_arma'||alvoArma))rol='';
-    if(fxA&&alvoArma){const it=ligarRitualArma(s,r,forma,alvoArma,fxA,fl);if(it){lines.push({note:`${it.nome} agora tem ${fxA.resumo}${fxA.amaldicoada?' (amaldiçoada)':''}. ${fxA.dano?'O dano extra é rolado ao atacar. ':''}Encerre na arma quando a cena acabar.`});if(/sustentada/i.test(r.duracao)){r.ativo=true;r.armaVinc=it.id;r.formaAtiva=forma}}}
+    if(fxA&&alvoArma==='__prox'){const base=String(r.nome).replace(/\s*\(.*\)$/,'');s.proxAtaque=[...(s.proxAtaque||[]).filter(m=>m.base!==base),{id:uid('rm_'),ritId:r.id,base,nome:r.nome+fl,elemento:r.elemento,forma,...fxA,ts:Date.now()}];
+      lines.push({note:`${r.nome}${fl} carregado: ${fxA.resumo}. Entra sozinho no próximo ataque corpo a corpo que acertar.`})}
+    else if(fxA&&alvoArma){const it=ligarRitualArma(s,r,forma,alvoArma,fxA,fl);if(it){lines.push({note:`${it.nome} agora tem ${fxA.resumo}${fxA.amaldicoada?' (amaldiçoada)':''}. ${fxA.dano?'O dano extra é rolado ao atacar. ':''}Encerre na arma quando a cena acabar.`});if(/sustentada/i.test(r.duracao)){r.ativo=true;r.armaVinc=it.id;r.formaAtiva=forma}}}
     else if(fxA&&!fxA.opcional)lines.push({note:`Ritual na arma de outra pessoa: ela causa ${fxA.resumo}. Quem ataca rola o extra.`});
     if(rol){const flat=isDice(rol)&&['dano','cura','dreno'].includes(tipo)?d.danoRitual:0;const rolM=tipo==='dano'&&d.dadosM?addDice(rol,d.dadosM):rol;const L=mkLine(`${tipo==='cura'?'Cura':tipo==='pvtemp'?'PV temporários':tipo==='dreno'?'Dano (cura metade)':tipo==='dano'?'Dano':'Efeito'} · ${r.nome}${rolM!==rol?' (máscara)':''}`,rolM+(flat?fmtB(flat):''));lines.push(L);
       if(tipo==='cura')applies.push({k:'pv',v:L.total,label:`Curar ${L.total} PV em mim`});
@@ -4874,7 +4884,7 @@ const A={
   rollInsanity:async()=>{const s=state.sheet;const l=mkLine('Efeito de insanidade','1d20');s.insanidade=EFEITOS_INSANIDADE[l.total-1];await saveSheet(s);logRoll([l,{note:s.insanidade}])},
   clearInsanity:async()=>{state.sheet.insanidade='';await saveSheet()},
   endScene:async()=>{if(!await confirmBox('Encerrar a cena? Remove condições, PV e PE temporários, contadores de morte e loucura, rituais de cena e sustentados (inclusive os das armas) e habilidades ativadas.','Encerrar cena',false))return;
-    const s=state.sheet;s.condicoes=[];s.pvTemp=0;s.peTemp=0;s.morte=0;s.loucura=0;(s.rituais||[]).forEach(r=>{if(r.ativo&&!/dia|permanente/i.test(r.duracao)){r.ativo=false;r.armaVinc=null}});armasDe(s).forEach(i=>{i.arma.ritMods=ritModsDe(i).filter(m=>/dia|permanente/i.test(m.duracao))});(s.habilidades||[]).forEach(h=>{if(h.modo==='ativavel')h.ativa=false});await saveSheet(s);toast('Cena encerrada.')},
+    const s=state.sheet;s.condicoes=[];s.pvTemp=0;s.peTemp=0;s.morte=0;s.loucura=0;s.proxAtaque=[];s.assassinar=null;s.venenoArma=null;(s.rituais||[]).forEach(r=>{if(r.ativo&&!/dia|permanente/i.test(r.duracao)){r.ativo=false;r.armaVinc=null}});armasDe(s).forEach(i=>{i.arma.ritMods=ritModsDe(i).filter(m=>/dia|permanente/i.test(m.duracao))});(s.habilidades||[]).forEach(h=>{if(h.modo==='ativavel')h.ativa=false});await saveSheet(s);toast('Cena encerrada.')},
   restore:async()=>{const s=state.sheet;const d=derive(s);s.pv=d.pvMax;s.pe=d.peMax;s.san=d.sanMax;s.morte=0;s.loucura=0;await saveSheet();toast('PV, PE e SAN restaurados.')},
   advNex:async()=>{const s=state.sheet;const cost=state.camp.settings?.xpPorNex||100;const i=NEX_STEPS.indexOf(+s.nex);if(i<0||i>=NEX_STEPS.length-1||(s.xp||0)<cost)return;
     const b=derive(s);s.nex=NEX_STEPS[i+1];s.xp-=cost;const a=derive(s);s.pv+=a.pvMax-b.pvMax;s.pe+=a.peMax-b.peMax;s.san+=a.sanMax-b.sanMax;await saveSheet();
@@ -4904,9 +4914,10 @@ const A={
   nrBonus:el=>{state.nr.bonus=clamp(state.nr.bonus+(+el.dataset.d),-30,30);render()},
   nrToggle:el=>{state.nr.on[el.dataset.id]=!state.nr.on[el.dataset.id];render()},
   nrReset:()=>{state.nr=freshNR();render()},
+  proxLimpar:async el=>{const s=sheetById(el.dataset.sid)||state.sheet;s.proxAtaque=(s.proxAtaque||[]).filter(m=>m.id!==el.dataset.id);await saveSheet(s);toast('Carga removida.')},
   toggleCond:async el=>{const s=state.sheet;const k=el.dataset.k;s.condicoes=s.condicoes||[];
     if(s.condicoes.includes(k))s.condicoes=s.condicoes.filter(x=>x!==k);
-    else{if(k==='abalado'&&s.condicoes.includes('abalado'))return;s.condicoes.push(k);if(k==='apavorado')s.condicoes=s.condicoes.filter(x=>x!=='abalado')}
+    else{if(k==='abalado'&&s.condicoes.includes('abalado'))return;s.condicoes.push(k);if(k==='sangrando')s.sangra=1;if(k==='apavorado')s.condicoes=s.condicoes.filter(x=>x!=='abalado')}
     await saveSheet(s,true)},
   clearConds:async()=>{state.sheet.condicoes=[];await saveSheet()},
   editAtk:el=>entryModal('ataques',el.dataset.id),
@@ -6744,7 +6755,8 @@ Col.on('ini',local=>{if(state.view==='camp'&&state.campTab==='combate')cbRefresh
 Col.on('bm',()=>{if(state.view==='camp'&&state.campTab==='combate')cbRefresh();else if(typeof bmAgendar==='function')bmAgendar()});
 function cbRefresh(){
   const a=document.activeElement;
-  if(a&&a.closest&&a.closest('#combateWrap')&&a.matches('input,textarea,select'))return;
+  /* não redesenha enquanto alguém digita; os seletores do mapa (cena, mapa) não contam */
+  if(a&&a.closest&&a.closest('#combateWrap')&&a.matches('input,textarea,select')&&!a.matches('.bm-sel'))return;
   if($('#modal').innerHTML)return;softRender();
 }
 const bmCfg=()=>({cenaAtiva:null,cenas:{},turno:null,rodada:1,livre:false,...(Col.get('bm','config')||{})});
@@ -6822,7 +6834,7 @@ function combatCardHtml(s,ents){
   const anel=s.type==='npc'?anelElem(s.elementos):'';
   const foto=`<div class="cc-foto ${anel?'com-anel':''}" style="${anel?`--anel:${anel};`:''}${bgCss(s.foto,3/4)}">${s.foto?'':esc((s.nome||'?')[0])}</div>`;
   const conds=s.condicoes||[];
-  const condHtml=`<div class="cc-conds">${conds.map(c=>`<button class="cond on" data-act="cbCond" data-sid="${s.id}" data-k="${c}" ${dis} title="${esc(CONDICOES[c]?.desc||'')} (clique para remover)">${COND_ICONE[c]||''} ${esc(CONDICOES[c]?.nome||c)}</button>`).join('')}
+  const condHtml=`<div class="cc-conds">${conds.map(c=>`<button class="cond on" data-act="cbCond" data-sid="${s.id}" data-k="${c}" ${dis} title="${esc(CONDICOES[c]?.desc||'')} (clique para remover)">${COND_ICONE[c]||''} ${esc(CONDICOES[c]?.nome||c)}${c==='sangrando'&&sangraN(s)>1?' ×'+sangraN(s):''}</button>${c==='sangrando'&&pode?`<span class="sangra-ctl"><button class="cond" data-act="cbSangraMais" data-sid="${s.id}" data-d="-1" title="Um sangramento a menos" aria-label="Um sangramento a menos">−</button><button class="cond" data-act="cbSangraMais" data-sid="${s.id}" data-d="1" title="Sangrando de novo: +1d6" aria-label="Sangrando de novo">+</button><button class="cond sangra-rol" data-act="cbSangrar" data-sid="${s.id}" title="Início do turno: Vigor DT 20. Falhou: perde ${sangraN(s)}d6 PV. Passou: estanca.">🩸 Rolar sangramento (${sangraN(s)}d6)</button></span>`:''}`).join('')}
     ${pode?`<select class="inp cc-addcond" data-act-change="cbCondAdd" data-sid="${s.id}" aria-label="Adicionar condição"><option value="">+ condição</option>${Object.entries(CONDICOES).filter(([k])=>!conds.includes(k)).map(([k,c])=>`<option value="${k}">${c.nome}</option>`).join('')}</select>`:''}</div>`;
   const head=(sub,acoes)=>`<header class="cc-head">${foto}<div class="cc-id"><h2 class="cc-nome">${esc(s.nome||'Sem nome')}</h2><div class="cc-sub">${sub}${e?` · iniciativa <b>${e.valor}</b>`:''}</div></div>
     <div class="cc-acoes"><button class="btn sm" data-act="cbGuia">Guia</button>${pode?`<button class="btn sm solid" data-act="cbAtacar" data-sid="${s.id}">⚔ Atacar!</button><button class="btn sm" data-act="cbDano" data-id="${e?e.id:'s:'+s.id}">🩸 Receber dano</button>`:''}${acoes}
@@ -6899,7 +6911,7 @@ function cbTurnoAvancar(dir){
     const conds=e.s.condicoes||[];const avisos=[];
     if(e.s.type==='pc'&&+e.s.pv<=0)avisos.push('está morrendo: marque o turno (3 turnos = morte)');
     if(e.s.type==='pc'&&+e.s.san<=0&&derive(e.s).sanMax>0)avisos.push('está enlouquecendo: marque o turno');
-    if(conds.includes('sangrando'))avisos.push('está sangrando: Vigor DT 20 no início do turno ou perde 1d6 PV');
+    if(conds.includes('sangrando'))avisos.push(`está sangrando${sangraN(e.s)>1?' ×'+sangraN(e.s):''}: Vigor DT 20 ou perde ${sangraN(e.s)}d6 PV (botão na ficha de combate)`);
     if(conds.includes('emchamas'))avisos.push('está em chamas: 1d6 de fogo no início do turno');
     if(avisos.length)toast(`<b>${esc(e.nome)}</b> ${avisos.join(' · ')}`,'err');
   }
@@ -7001,14 +7013,15 @@ function abrirAtaque(sid,atkKey,opt={}){
     }
     const m=montar();if(!m){toast('Escolha um ataque.','err');return}
     /* bônus da próxima rolagem (Ataque Furtivo, Assassinar, venenos…) também valem aqui */
+    let assDt=0;const malsArma=isPC&&st.modo==='arma'?(((armas.find(x=>x.key===st.arma)||{}).a||{}).maldicoes||[]):[];
     let bst=null;if(isPC&&st.modo==='arma'){bst=collectBoosts(s,'ataque',{attr:m.atAttr});if(!spendPE(s,d,bst.cost,bst.used.length))return;
       if(bst.used.length||bst.dice||bst.bonus||bst.extra.length){m.expr=testExpr(m.spec.base,m.spec.mod+m.dmodT+bst.dice,m.atkT+bst.bonus)+bst.extra.map(x=>'+'+x).join('');m.nome+=bst.used.length?` (${bst.used.join(', ')})`:''}
       const ex=bst.dmgExtra.map(x=>'+'+x).join('')+(bst.dmgBonus?fmtB(bst.dmgBonus):'');if(ex){m.resto=(m.resto||'')+ex;m.dano=m.base+m.resto}
       if(m.segs){bst.dmgExtra.forEach(x=>m.segs.extras.push({expr:x,tipo:m.danoTipo}));m.segs.flat+=bst.dmgBonus||0}
-      if(bst.consumir.length)s.habilidades=(s.habilidades||[]).filter(h=>!bst.consumir.includes(h.id));if(bst.assassinar)s.assassinar=null;state.nr=freshNR();await Store.saveSheet(s)}
+      if(bst.consumir.length)s.habilidades=(s.habilidades||[]).filter(h=>!bst.consumir.includes(h.id));if(bst.assassinar){assDt=(s.assassinar&&s.assassinar.dt)||0;s.assassinar=null}state.nr=freshNR();await Store.saveSheet(s)}
     try{rollExpr(m.dano)}catch(x){toast('Confira a expressão de dano.','err');return}
     const df=defDe(alvoE);const lines=[];const golpes=[];
-    const nAt=Math.max(1,Math.min(st.vezes||m.qtd,m.qtd));let unicoUsado=false;
+    const nAt=Math.max(1,Math.min(st.vezes||m.qtd,m.qtd));let unicoUsado=false,salvarAtacante=false;
     for(let k=0;k<nAt;k++){
       const t=mkLine(`Ataque${nAt>1?' '+(k+1):''} · ${m.nome}${alvoE?' → '+alvoE.nome:''}`,m.expr,m.crit,df&&df.v?df.v:null);lines.push(t);const acertou=acerta(t,df&&df.v?df.v:null);
       if(!acertou&&t.crit){t.crit=false;t.label+=' · margem de crítico, mas não passou a Defesa'}
@@ -7017,14 +7030,18 @@ function abrirAtaque(sid,atkKey,opt={}){
         if(m.segs){const S=m.segs;dm=mkLineT(lbl,[{expr:(t.crit?critExpr(S.base,m.mult):S.base)+(S.flat?fmtB(S.flat):''),tipo:S.tipo},...S.extras.filter(x=>!x.unico||!unicoUsado),...(t.crit?S.soCrit:[])]);if(S.extras.some(x=>x.unico))unicoUsado=true}
         else{dm=mkLine(lbl,t.crit?critExpr(m.base,m.mult)+m.resto+(m.soCrit||''):m.dano);dm.partes=[{tipo:normTipo(m.danoTipo),valor:dm.total}]}
         dm.crit=t.crit;lines.push(dm);if(dm.partes.length>1)lines.push({note:'Partes: '+dm.partes.map(p=>`${p.valor} ${p.tipo||'dano'}`).join(' + ')});
-        golpes.push({total:dm.total,crit:t.crit,atk:t.total,nat:t.nat,def:df?df.v:null,acertou:true,dano:dm.total,partes:dm.partes})}
+        const gc=[];if(malsArma.includes('sanguinaria')){gc.push('sangrando');if(t.crit){gc.push('fraco');const tp=mkLine('Sanguinária · PV temporários','2d10');lines.push(tp);s.pvTemp=Math.max(+s.pvTemp||0,tp.total);salvarAtacante=true}}
+        if(malsArma.includes('consumidora'))gc.push('lento');
+        golpes.push({total:dm.total,crit:t.crit,atk:t.total,nat:t.nat,def:df?df.v:null,acertou:true,dano:dm.total,partes:dm.partes,conds:gc})}
       else{lines.push({note:`Errou (${t.total} contra Defesa ${df.v}).`});golpes.push({total:0,crit:false,atk:t.total,nat:t.nat,def:df.v,acertou:false,dano:0})}
     }
-    if(unicoUsado&&isPC&&st.modo==='arma'){const it=(s.itens||[]).find(x=>x.id===st.arma);if(it){const us=ritModsDe(it).filter(x=>x.unico);encerrarModsUnicos(s,it);lines.push({note:`${us.map(x=>x.nome).join(', ')}: descarregado no acerto.`});Store.saveSheet(s)}}
+    if(unicoUsado&&isPC&&st.modo==='arma'){const it=(s.itens||[]).find(x=>x.id===st.arma);const us=[...(it?ritModsDe(it).filter(x=>x.unico):[]),...(s.proxAtaque||[])];if(it)encerrarModsUnicos(s,it);s.proxAtaque=[];lines.push({note:`${us.map(x=>x.nome).join(', ')}: descarregado no acerto.`});salvarAtacante=true}
+    if(salvarAtacante)Store.saveSheet(s);
     if(st.tipos.investida)lines.push({note:`${s.nome} fez uma investida: –5 na Defesa até o próximo turno.`});
     logRoll(lines,{char:s.nome,secret:s.type==='npc'&&privado()});closeModal();
     const soma=golpes.reduce((a,g)=>a+g.total,0);
     const venenos=typeof venenosDoAtaque==='function'?venenosDoAtaque(s,st.modo==='arma'?st.arma:null,m,golpes):[];
+    if(assDt&&golpes.some(g=>g.acertou&&g.dano>0))venenos.push({nome:'Assassinar',res:'Fortitude',dt:assDt,efeito:'se sofrer dano e falhar, fica inconsciente (ou morrendo, se estiver machucado)',assassinar:true});
     const req={golpes,valor:soma,tipo:String(m.danoTipo||'').toLowerCase(),melee:m.melee,atacante:s.nome,arma:m.nome,atacanteId:(combateEntradas().find(x=>x.sheetId===s.id)||{}).id||null,venenos};
     if(alvoE&&(soma||venenos.length||(m.melee&&golpes.some(g=>!g.acertou)))){
       const to=controladorDe(alvoE);
@@ -7131,7 +7148,7 @@ Object.assign(A,{
   cbDano:el=>abrirReceberDano(el.dataset.id),
   cbDanoPre:el=>{closeModal();const r=cbUltimo[el.dataset.id];delete cbUltimo[el.dataset.id];abrirReceberDano(el.dataset.id,r?{...r}:{valor:el.dataset.v,tipo:el.dataset.t,melee:el.dataset.m==='1'})},
   cbCondAplicar:async el=>{const e=combateEntradas().find(x=>x.id===el.dataset.id);if(!e)return;const k=el.dataset.k;
-    if(e.s){e.s.condicoes=[...new Set([...(e.s.condicoes||[]),k])];await Store.saveSheet(e.s)}else Col.set('ini',e.id,{cond:[...new Set([...(e.raw.cond||[]),k])]});closeModal();render()},
+    if(e.s){addCondS(e.s,k);await Store.saveSheet(e.s)}else Col.set('ini',e.id,{cond:[...new Set([...(e.raw.cond||[]),k])]});closeModal();render()},
   cbResTemp:async el=>{const s=sheetById(el.dataset.sid);if(!s||!podeControlar(s))return;s.pvTemp=Math.max(0,(+s.pvTemp||0)+(+el.dataset.d));await Store.saveSheet(s);softRender()},
   cbRes:async el=>{const s=sheetById(el.dataset.sid);if(!s||!podeControlar(s))return;const k=el.dataset.k;let dl=+el.dataset.d;
     if(s.type==='npc'){s.pv=clamp((+s.pv||0)+dl,0,+s.pvMax||0)}
@@ -7151,7 +7168,7 @@ Object.assign(A,{
   npcIni:el=>{const s=sheetById(el.dataset.id);if(!s)return;if(Col.get('ini',s.id)){toast(`${esc(s.nome)} já está no combate.`);return}rolarIniFicha(s);render()},
 });
 Object.assign(CH,{
-  cbCondAdd:async el=>{const s=sheetById(el.dataset.sid);if(!s||!el.value)return;s.condicoes=[...new Set([...(s.condicoes||[]),el.value])];await Store.saveSheet(s);render()},
+  cbCondAdd:async el=>{const s=sheetById(el.dataset.sid);if(!s||!el.value)return;addCondS(s,el.value);await Store.saveSheet(s);render()},
 });
 /* setas trocam a ficha selecionada no combate */
 document.addEventListener('keydown',ev=>{
@@ -7240,6 +7257,28 @@ function abrirPresenca(sid){
     ids.forEach(id=>{const e=pcs.find(x=>x.id===id);enviarDano(e,{golpes:[],valor:L.total,tipo:'mental',melee:false,atacante:s.nome,arma:'Presença perturbadora',venenos:[{nome:'Presença perturbadora',res:'Vontade',dt:+P.dt||0,efeito:'passar reduz o dano à metade',metadeDano:true,ritual:true}]})});
     toast(`${L.total} de dano mental enviado.`)};
 }
+
+/* ---------- Sangrando acumula: cada vez a mais soma 1d6 ao sangramento ---------- */
+const sangraN=s=>s&&(s.condicoes||[]).includes('sangrando')?Math.max(1,+s.sangra||1):0;
+function addCondS(s,k){if(!s)return;const L=s.condicoes||[];
+  if(k==='sangrando'){if(L.includes(k))s.sangra=sangraN(s)+1;else{s.condicoes=[...L,k];s.sangra=1}return}
+  if(!L.includes(k))s.condicoes=[...L,k]}
+/* início do turno: Vigor DT 20; falhou perde Nd6, passou estanca */
+async function rolarSangramento(s){
+  const n=sangraN(s);if(!n)return;let expr;
+  if(s.type==='pc'){const d=derive(s);expr=testExpr(d.attrs.VIG,d.dAll+(d.dAttr.VIG||0),d.testeM||0)}else expr=testExpr(+((s.attrs||{}).VIG)||1,0,0);
+  const T=mkLine(`Sangramento · Vigor`,expr,null,20);const lines=[T];
+  if(T.total>=20){s.condicoes=(s.condicoes||[]).filter(c=>c!=='sangrando');s.sangra=0;lines.push({note:`${s.nome} estancou o sangramento.`})}
+  else{const D=mkLine(`Sangramento${n>1?' ×'+n:''} · perda de vida`,`${n}d6`);lines.push(D);let v=D.total;const antes=+s.pv||0;
+    if(s.type==='pc'){const tp=+s.pvTemp||0;const u=Math.min(tp,v);s.pvTemp=tp-u;v-=u}
+    s.pv=Math.max(0,antes-v);if(s.type==='pc'&&antes>0&&s.pv===0)s.condicoes=[...new Set([...(s.condicoes||[]),'inconsciente'])];
+    lines.push({note:`${s.nome} perde ${D.total} PV pelo sangramento (PV ${antes} → ${s.pv}) e continua sangrando.`})}
+  await Store.saveSheet(s);logRoll(lines,{char:s.nome,secret:s.type==='npc'&&privado()});render();
+}
+Object.assign(A,{
+  cbSangrar:el=>{const s=sheetById(el.dataset.sid);if(s&&podeControlar(s))rolarSangramento(s)},
+  cbSangraMais:async el=>{const s=sheetById(el.dataset.sid);if(!s||!podeControlar(s))return;const d=+el.dataset.d||1;const n=sangraN(s)+d;if(n<=0){s.condicoes=(s.condicoes||[]).filter(c=>c!=='sangrando');s.sangra=0}else s.sangra=n;await Store.saveSheet(s);render()},
+});
 
 /* =====================================================================
    RECEBER DANO · ROTEAMENTO E REAÇÕES
@@ -7450,14 +7489,20 @@ function abrirReceberDano(entryId,pre={}){
         if(s.pv===0)msg+=' Derrotado.';
       }else if(e.raw.pvMax){const b=+e.raw.pv||0;const n=Math.max(0,b-fin);Col.set('ini',e.id,{pv:n});e.raw.pv=n;msg+=`${e.nome} sofreu ${fin} de dano: PV ${b} → ${n}.`}
       else msg+=`${e.nome} sofreu ${fin} de dano.`;
+      {const todas=(c.G||[]).filter(g=>g.acertou).flatMap(g=>g.conds||[]);const cs=[...new Set(todas)];if(cs.length&&s){todas.forEach(k=>addCondS(s,k));msg+=` Fica ${cs.map(k=>((CONDICOES[k]||{}).nome||k)+(k==='sangrando'&&sangraN(s)>1?' ×'+sangraN(s)+' ('+sangraN(s)+'d6 por turno)':'')).join(', ').toLowerCase()}.`}}
       /* venenos */
       const perderPV=n=>{if(s){if(isPC){const tp=+s.pvTemp||0;const u=Math.min(tp,n);s.pvTemp=tp-u;n-=u}const b=+s.pv||0;s.pv=Math.max(0,b-n);if(isPC&&b>0&&s.pv===0)s.condicoes=[...new Set([...(s.condicoes||[]),'inconsciente'])]}
         else if(e.raw&&e.raw.pvMax){e.raw.pv=Math.max(0,(+e.raw.pv||0)-n);Col.set('ini',e.id,{pv:e.raw.pv})}};
       const rolarDano=(v,ex,metade)=>{try{const L=mkLine(`${v.nome} · dano${metade?' (metade)':''}`,ex);logRoll([L],{char:e.nome,secret:e.tipo==='npc'&&privado()});const n=metade?Math.floor(L.total/2):L.total;
         if(v.danoTipo==='mental'&&isPC)s.san=Math.max(0,(+s.san||0)-n);else perderPV(n);return ` (${n} de dano${v.danoTipo?' '+v.danoTipo:''}${v.rodadas?`, repete por ${v.rodadas} rodadas`:''})`}catch(x){return''}};
-      const addCond=cs=>{if(cs&&cs.length&&s)s.condicoes=[...new Set([...(s.condicoes||[]),...cs])]};
+      const addCond=cs=>{if(cs&&cs.length&&s)cs.forEach(k=>addCondS(s,k))};
       for(const v of st.venenos){
         if(v.ritual){if(!v.rol.ok)msg+=` Falhou na resistência contra ${v.nome}.`;continue}
+        if(v.assassinar){if(!fin){msg+=' Assassinar: não sofreu dano, sem efeito.';continue}if(v.rol.ok){msg+=' Resistiu ao Assassinar.';continue}
+          const i2=cbInfo(e);const mach=i2.pvMax&&(+i2.pv||0)<=i2.pvMax/2;
+          if(mach){if(s){s.pv=0;s.condicoes=[...new Set([...(s.condicoes||[]),'inconsciente'])]}else if(e.raw&&e.raw.pvMax){e.raw.pv=0;Col.set('ini',e.id,{pv:0})}msg+=` Falhou contra Assassinar e já estava machucado: ${e.nome} cai morrendo (0 PV).`}
+          else{addCond(['inconsciente']);msg+=` Falhou contra Assassinar: ${e.nome} fica inconsciente.`}
+          continue}
         if(!v.rol.ok){msg+=` Falhou contra ${v.nome}: ${String(v.efeito||'sofre o efeito').replace(/\.$/,'').toLowerCase()}`;
           if(v.zeraPV){if(s){s.pv=0;if(isPC)s.condicoes=[...new Set([...(s.condicoes||[]),'inconsciente'])]}else if(e.raw&&e.raw.pvMax)Col.set('ini',e.id,{pv:0})}
           if(v.dano)msg+=rolarDano(v,v.dano,false);addCond(v.cond);msg+='.';
@@ -7744,7 +7789,7 @@ function bmPainelHtml(cena,ents,cenasIds){
 function bmWireBarra(sec){
   const q=s=>sec.querySelectorAll(s);const cfg=bmCfg();
   q('[data-bmrecolher]').forEach(b=>b.onclick=()=>{bmRecolhido=!bmRecolhido;try{localStorage.setItem('nexpref.bmRecolhido',bmRecolhido?'1':'0')}catch(e){}if(bmRecolhido)bmTelaCheia=false;bmView.cena=null;bmRender()});
-  q('[data-bmcena]').forEach(s=>s.onchange=()=>{bmSel=null;bmAjustando=false;bmView.cena=null;bmSaveCfg({cenaAtiva:s.value})});
+  q('[data-bmcena]').forEach(s=>s.onchange=()=>{s.blur();bmSel=null;bmAjustando=false;bmView.cena=null;bmSaveCfg({cenaAtiva:s.value})});
   q('[data-bmferr]').forEach(b=>b.onclick=()=>{bmFerramenta=b.dataset.bmferr;bmRender()});
   q('[data-bmzoom]').forEach(b=>b.onclick=()=>{const r=bmVp().getBoundingClientRect();bmZoomEm(bmView.z*(b.dataset.bmzoom==='1'?1.25:.8),r.left+r.width/2,r.top+r.height/2)});
   q('[data-bmfit]').forEach(b=>b.onclick=bmEnquadrar);
@@ -7752,7 +7797,7 @@ function bmWireBarra(sec){
   q('[data-bmlivre]').forEach(b=>b.onclick=()=>{const v=b.dataset.bmlivre==='1';bmSaveCfg({livre:v});toast(v?'Movimento livre: todos movem os próprios tokens.':'Por iniciativa: cada jogador move na sua vez.')});
   q('[data-bmgaveta]').forEach(b=>b.onclick=()=>{bmGaveta=bmGaveta==='cena'?null:'cena';if(bmGaveta)bmSel=null;bmRender()});
   q('[data-bmav]').forEach(b=>b.onclick=()=>cbTurnoAvancar(b.dataset.bmav));
-  q('[data-bmmapasel]').forEach(s=>s.onchange=()=>{bmSalvarCena(cfg.cenaAtiva,{mapaAtivo:s.value});bmView.cena=null});
+  q('[data-bmmapasel]').forEach(s=>s.onchange=()=>{s.blur();bmSalvarCena(cfg.cenaAtiva,{mapaAtivo:s.value});bmView.cena=null});
   q('[data-bmclima]').forEach(b=>b.onclick=()=>{bmClimaAberto=!bmClimaAberto;bmRender()});
   q('[data-bmclimak]').forEach(b=>b.onclick=()=>{const cena=bmCena();if(!cena)return;const k=b.dataset.bmclimak;const c={...(cena.clima||{})};if(k==='__limpar')Object.keys(BM_CLIMAS).forEach(x=>c[x]=false);else c[k]=!c[k];bmSalvarCena(cfg.cenaAtiva,{clima:c})});
   q('[data-bmescuromodo]').forEach(b=>b.onclick=()=>{bmEscuroModo=b.dataset.bmescuromodo;bmRender()});
